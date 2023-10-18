@@ -52,16 +52,16 @@ class NavigationDrawerWidget extends StatelessWidget {
       );
 
   Widget buildSearchField() {
-    final color = Colors.white;
+    const color = Colors.white;
 
     return TextField(
-      style: TextStyle(color: color),
+      style: const TextStyle(color: color),
       decoration: InputDecoration(
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         hintText: 'Search',
-        hintStyle: TextStyle(color: color),
-        prefixIcon: Icon(Icons.search, color: color),
+        hintStyle: const TextStyle(color: color),
+        prefixIcon: const Icon(Icons.search, color: color),
         filled: true,
         fillColor: Colors.white12,
         enabledBorder: OutlineInputBorder(
@@ -81,21 +81,21 @@ class NavigationDrawerWidget extends StatelessWidget {
     required IconData icon,
     VoidCallback? onClicked,
   }) {
-    final color = Colors.white;
-    final hoverColor = Colors.white70;
+    const color = Colors.white;
+    const hoverColor = Colors.white70;
 
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(text, style: TextStyle(color: color)),
+      title: Text(text, style: const TextStyle(color: color)),
       hoverColor: hoverColor,
       onTap: onClicked,
     );
   }
 
   Widget build(BuildContext context) {
-    final name = 'Tala Chemist';
-    final email = 'talachemist@gmail.com';
-    final urlImage =
+    const name = 'Tala Chemist';
+    const email = 'talachemist@gmail.com';
+    const urlImage =
         'https://images.unsplash.com/photo-1603706580932-6befcf7d8521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80';
 
     return Drawer(
@@ -108,7 +108,7 @@ class NavigationDrawerWidget extends StatelessWidget {
               name: name,
               email: email,
               onClicked: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => UserPage(
+                builder: (context) => const UserPage(
                   name: 'Tala Chemist',
                   urlImage: urlImage,
                 ),
@@ -138,7 +138,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                     onClicked: () {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => UserPage(
+                        builder: (context) => const UserPage(
                           name:
                               'Tala Chemist', // Provide the required name argument
                           urlImage:
@@ -204,7 +204,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            SettingsPage(), // Navigate to the HomePage
+                            const SettingsPage(), // Navigate to the HomePage
                       ));
                     },
                   ),
@@ -216,7 +216,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            LogOutPage(), // Navigate to the HomePage
+                            const LogOutPage(), // Navigate to the HomePage
                       ));
                     },
                   ),

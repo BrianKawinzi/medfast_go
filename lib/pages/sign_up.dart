@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
-
-
+import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class signUpPage extends StatelessWidget {
   signUpPage({super.key});
@@ -13,10 +12,8 @@ class signUpPage extends StatelessWidget {
   final emailController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-
   //sign upmethod
   void SignUserUp() {}
-
 
   @override
   Widget build(BuildContext context) {
@@ -24,70 +21,75 @@ class signUpPage extends StatelessWidget {
       backgroundColor: Colors.grey[300],
       body: SafeArea(
         child: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 50),
-              //logo
-              const Icon(
-                Icons.lock,
-                size: 100,
-              ),
-
-              const SizedBox(height: 50),
-
-
-              //Welcome to medfast
-              Text(
-                'Welcome to MedFast!',
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 16,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                //Back button
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back_ios_new_rounded),
+                      onPressed: () {
+                        //Navigate back to the previous screen
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
                 ),
-              ),
+                
+                const SizedBox(height: 50),
 
-              const SizedBox(height: 25),
+                //Welcome to medfast
+                Text(
+                  'Welcome to MedFast!',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 20,
+                  ),
+                ),
 
-              //username textfield
-              MyTextField(
-                controller: usernameController, 
-                hintText: 'Username', 
-                obscureText: false,
-              ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 25),
 
-              //email textfield
-              MyTextField(
-                controller: emailController, 
-                hintText: 'Email', 
-                obscureText: false,
-              ),
-              const SizedBox(height: 10),
+                //username textfield
+                normalTF(
+                    controller: usernameController,
+                    hintText: 'Username',
+                    obscureText: false),
+                const SizedBox(height: 10),
 
-              //password textfield
-              MyTextField(
-                controller: passwordController, 
-                hintText: 'Password', 
-                obscureText: true,
-              ),
-              const SizedBox(height: 10),
+                //email textfield
+                normalTF(
+                  controller: emailController,
+                  hintText: 'Email',
+                  obscureText: false,
+                ),
+                const SizedBox(height: 10),
 
-              //confirm password textfield
-              MyTextField(
-                controller: confirmPasswordController, 
-                hintText: 'Confirm Password', 
-                obscureText: true,
-              ),
-              const SizedBox(height: 10),
+                //password textfield
+                MyTextField(
+                  controller: passwordController,
+                  hintText: 'Password', obscureText: true,
+                ),
+                const SizedBox(height: 10),
 
-              //register button
-              MyButton(
-                onTap: SignUserUp,
-                buttonText: "Sign Up",
-              ),
+                //confirm password textfield
+                MyTextField(
+                  controller: confirmPasswordController,
+                  hintText: 'Confirm Password', obscureText: true,
+                ),
+                const SizedBox(height: 20),
 
-            ],
+                //register button
+                MyButton(
+                  onTap: SignUserUp,
+                  buttonText: "Agree and Register",
+                ),
+              ],
             ),
-            ),
+          ),
+        ),
       ),
     );
   }
