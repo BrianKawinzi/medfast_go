@@ -11,6 +11,7 @@ import 'package:medfast_go/business/sale_order.dart';
 import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/business/stores.dart';
 import 'package:medfast_go/business/suppliers.dart';
+import 'package:medfast_go/pages/notification.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 
 
@@ -67,6 +68,9 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.notifications),
             onPressed: () {
               // Handle notification icon click here
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => NotificationsPage(),  // Navigate to the NotificationsPage
+              ));
             },
           ),
           IconButton(
