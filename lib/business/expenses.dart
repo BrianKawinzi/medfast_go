@@ -21,8 +21,8 @@ class Expenses extends StatelessWidget {
           onPressed: () {
             // Add your action here when the button is clicked
           },
-          backgroundColor: Color.fromRGBO(58, 205, 50, 1),
-          child: Icon(Icons.add),
+          backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+          child: const Icon(Icons.add),
         ),
       );
 }
