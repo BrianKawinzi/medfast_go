@@ -110,7 +110,7 @@ class OtherIncome extends StatelessWidget {
                   ),
                   child: const Text('Save',
                       style: TextStyle(
-                        fontSize: 20.0,
+                        fontSize: 25.0,
                         fontWeight: FontWeight.w600,
                       )),
                 ),
@@ -527,7 +527,10 @@ class OtherIncome extends StatelessWidget {
             _showIncomeForm(context);
           },
           backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
-          child: const Icon(Icons.add),
+          child: const Icon(
+            Icons.add,
+            size: 36,
+          ),
         ),
       );
 }
