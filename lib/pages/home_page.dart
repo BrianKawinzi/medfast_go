@@ -11,8 +11,8 @@ import 'package:medfast_go/business/sale_order.dart';
 import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/business/stores.dart';
 import 'package:medfast_go/business/suppliers.dart';
+import 'package:medfast_go/pages/notification.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
-
 
 void main() {
   runApp(MaterialApp(
@@ -27,9 +27,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final List<String> tileNames = [
-    'Sale Order',
-    'Products',
     'Sales',
+    'Products',
     'Reports',
     'Expenses',
     'Stores',
@@ -38,6 +37,7 @@ class _HomePageState extends State<HomePage> {
     'Activity',
     'Customers',
     'Representative',
+    'Sale History',
     'Other Income',
   ];
 
@@ -60,13 +60,17 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tala Chemist'),
-        backgroundColor: Color.fromRGBO(58, 205, 50, 1),
+        title: const Text('Tala Chemist'),
+        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications),
             onPressed: () {
               // Handle notification icon click here
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) =>
+                    const NotificationsPage(), // Navigate to the NotificationsPage
+              ));
             },
           ),
           IconButton(
@@ -78,7 +82,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Container(
-        color: Color.fromRGBO(58, 205, 50, 1),
+        color: const Color.fromRGBO(58, 205, 50, 1),
         child: Padding(
           padding: const EdgeInsets.all(5.0),
           child: Column(
@@ -117,17 +121,13 @@ class _HomePageState extends State<HomePage> {
 
   void navigateToDetailScreen(BuildContext context, String name) {
     switch (name) {
-      case 'Sale Order':
+      case 'Sales':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => SaleOrder()));
+            .push(MaterialPageRoute(builder: (context) => Sales()));
         break;
       case 'Products':
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => Products()));
-        break;
-      case 'Sales':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Sales()));
         break;
       case 'Reports':
         Navigator.of(context)
@@ -164,6 +164,10 @@ class _HomePageState extends State<HomePage> {
       case 'Other Income':
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => OtherIncome()));
+        break;
+      case 'Sale History':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => SaleOrder()));
         break;
       default:
         Navigator.of(context)
