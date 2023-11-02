@@ -5,6 +5,9 @@ class Supplier extends StatelessWidget {
   final TextEditingController supplierNameController = TextEditingController();
   final TextEditingController phoneNoController = TextEditingController();
   final TextEditingController emailAddressController = TextEditingController();
+  final TextEditingController dateController = TextEditingController();
+  final TextEditingController costController = TextEditingController();
+  final FocusNode dateFocusNode = FocusNode();
 
   Widget buildEmptyMessage(BuildContext context) {
     return Container(
@@ -43,55 +46,99 @@ class Supplier extends StatelessWidget {
 
   void _showSupplierForm(BuildContext context) {
     showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16.0),
-          height: MediaQuery.of(context).size.height * 0.48,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16.0),
-              _customInputField(supplierNameController, 'Supplier Name',
-                  'Enter Supplier Name'),
-              const SizedBox(height: 16.0),
-              _customInputField(phoneNoController, 'Phone No', 'Enter Phone No',
-                  TextInputType.phone),
-              const SizedBox(height: 16.0),
-              _customInputField(emailAddressController, 'Email Address',
-                  'Enter Email Address', TextInputType.emailAddress),
-              const SizedBox(height: 40.0),
-              Container(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Save the supplier details here
+        context: context,
+        isScrollControlled: true,
+        builder: (BuildContext context) {
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            height: MediaQuery.of(context).size.height * 0.58,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16.0),
+                _customInputField(
+                  supplierNameController,
+                  'Supplier Name',
+                  'Enter Supplier Name',
+                  TextInputType.text,
+                ),
+                const SizedBox(height: 16.0),
+                _customInputField(phoneNoController, 'Phone No',
+                    'Enter Phone No', TextInputType.phone),
+                const SizedBox(height: 16.0),
+                _customInputField(emailAddressController, 'Email Address',
+                    'Enter Email Address', TextInputType.emailAddress),
+                const SizedBox(height: 16.0),
+                _customInputField(
+                  dateController,
+                  'Date',
+                  'Enter Date',
+                  TextInputType.text,
+                  focusNode: dateFocusNode,
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now().add(const Duration(
+                          days: 3650)), // 10 years into the future
+                      builder: (BuildContext context, Widget? child) {
+                        return Theme(
+                          data: ThemeData.light().copyWith(
+                            primaryColor: const Color.fromRGBO(58, 205, 50, 1),
+                            scaffoldBackgroundColor:
+                                const Color.fromRGBO(58, 205, 50, 1),
+                            colorScheme: const ColorScheme.light(
+                                primary: Color.fromRGBO(58, 205, 50, 1)),
+                            buttonTheme: const ButtonThemeData(
+                                textTheme: ButtonTextTheme.primary),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (pickedDate != null) {
+                      String formattedDate =
+                          "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                      dateController.text = formattedDate;
+                    }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color.fromRGBO(58, 205, 50, 1), // button color
-                  ),
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
+                ),
+                const SizedBox(height: 40.0),
+                Container(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Save the supplier details here
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          const Color.fromRGBO(58, 205, 50, 1), // button color
+                    ),
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+              ],
+            ),
+          );
+        });
   }
 
   Widget _customInputField(
-      TextEditingController controller, String header, String hintText,
-      [TextInputType keyboardType = TextInputType.text]) {
+    TextEditingController controller,
+    String header,
+    String hintText,
+    TextInputType keyboardType, {
+    FocusNode? focusNode,
+    VoidCallback? onTap,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -104,6 +151,8 @@ class Supplier extends StatelessWidget {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          focusNode: focusNode, // Assign the focus node here
+          onTap: onTap,
           decoration: InputDecoration(
             hintText: hintText,
             fillColor: Colors.white,
@@ -240,7 +289,10 @@ class Supplier extends StatelessWidget {
             _showSupplierForm(context);
           },
           backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
-          child: const Icon(Icons.add),
+          child: const Icon(
+            Icons.add,
+            size: 36,
+          ),
         ),
       );
 }
