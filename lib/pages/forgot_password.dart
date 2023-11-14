@@ -28,7 +28,7 @@ class forgotPassword extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new_rounded),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       onPressed: () {
                         // Navigate back to the previous screen
                         Navigator.of(context).pop();
@@ -40,7 +40,7 @@ class forgotPassword extends StatelessWidget {
                 const SizedBox(height: 50),
 
                 // Forgot password text
-                Text(
+                const Text(
                   'Forgot Password?',
                   style: TextStyle(
                     color: Colors.black,

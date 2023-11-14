@@ -15,12 +15,14 @@ import 'package:medfast_go/pages/notification.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: HomePage(),
   ));
 }
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -107,7 +109,7 @@ class _HomePageState extends State<HomePage> {
       ),
       drawer: Drawer(
         width: MediaQuery.of(context).size.width * 0.9,
-        child: NavigationDrawerWidget(),
+        child: const NavigationDrawerWidget(),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
@@ -123,7 +125,7 @@ class _HomePageState extends State<HomePage> {
     switch (name) {
       case 'Sales':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Sales()));
+            .push(MaterialPageRoute(builder: (context) => const Sales()));
         break;
       case 'Products':
         Navigator.of(context)
@@ -131,7 +133,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Reports':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Reports()));
+            .push(MaterialPageRoute(builder: (context) => const Reports()));
         break;
       case 'Expenses':
         Navigator.of(context)
@@ -139,11 +141,11 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Stores':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Stores()));
+            .push(MaterialPageRoute(builder: (context) => const Stores()));
         break;
       case 'Purchase Order':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => PurchaseOrder()));
+            .push(MaterialPageRoute(builder: (context) => const PurchaseOrder()));
         break;
       case 'Supplier':
         Navigator.of(context)
@@ -151,7 +153,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Activity':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Activity()));
+            .push(MaterialPageRoute(builder: (context) => const Activity()));
         break;
       case 'Customers':
         Navigator.of(context)
@@ -159,7 +161,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Representative':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Representative()));
+            .push(MaterialPageRoute(builder: (context) => const Representative()));
         break;
       case 'Other Income':
         Navigator.of(context)
@@ -167,11 +169,11 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Sale History':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => SaleOrder()));
+            .push(MaterialPageRoute(builder: (context) => const SaleOrder()));
         break;
       default:
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => HomePage()));
+            .push(MaterialPageRoute(builder: (context) => const HomePage()));
         break;
     }
   }

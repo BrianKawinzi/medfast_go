@@ -23,15 +23,15 @@ class MyApp extends StatelessWidget {
       title: 'MedFast',
       initialRoute: '/splash',
       routes: {
-        '/splash': (context) =>  SplashScreen(),
-        '/HomePage': (context) => HomePage(),
+        '/splash': (context) =>  const SplashScreen(),
+        '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
         '/signUp': (context) => signUpPage(),
         // '/invent': (context) => InventoryPage(),
         '/password':(context) => forgotPassword(),
-        '/success':(context) => SuccessfulPassword(),
-        '/verify':(context) => VerificationPage(),
-        '/brandintro':(context) => BrandIntroPage(),
+        '/success':(context) => const SuccessfulPassword(),
+        '/verify':(context) => const VerificationPage(),
+        '/brandintro':(context) => const BrandIntroPage(),
       },
     );
   }

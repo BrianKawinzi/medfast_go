@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 
 class VerificationPage extends StatefulWidget {
-  VerificationPage({super.key});
+  const VerificationPage({super.key});
 
   @override
   _VerificationPageState createState() => _VerificationPageState();
@@ -98,7 +98,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new_rounded),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       onPressed: () {
                         // Navigate back to the previous screen
                         Navigator.of(context).pop();
@@ -110,7 +110,7 @@ class _VerificationPageState extends State<VerificationPage> {
                 const SizedBox(height: 50),
 
                 // OTP Verification
-                Text(
+                const Text(
                   'OTP Verification',
                   style: TextStyle(
                     color: Colors.black,
@@ -165,7 +165,7 @@ class _VerificationPageState extends State<VerificationPage> {
 
   // Helper method to build a single code text field
   Widget buildCodeTextField(TextEditingController controller, FocusNode focusNode) {
-    return Container(
+    return SizedBox(
       width: 50, // Adjust the width as needed
       child: TextField(
         controller: controller,
@@ -173,7 +173,7 @@ class _VerificationPageState extends State<VerificationPage> {
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         maxLength: 1, // Limit the input to a single digit
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           border: OutlineInputBorder(),
           counterText: '', // Remove the character counter
         ),

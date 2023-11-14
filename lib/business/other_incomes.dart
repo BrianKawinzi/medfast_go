@@ -8,6 +8,8 @@ class OtherIncome extends StatelessWidget {
   final TextEditingController amountController = TextEditingController();
   final FocusNode dateFocusNode = FocusNode();
 
+  OtherIncome({super.key});
+
   Widget buildEmptyMessage(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.3,
@@ -507,7 +509,7 @@ class OtherIncome extends StatelessWidget {
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => HomePage(),
+                builder: (context) => const HomePage(),
               ));
             },
             child: const Icon(Icons.arrow_back),

@@ -20,7 +20,7 @@ class LoginPage extends StatelessWidget {
       Navigator.of(context).pushReplacementNamed('/HomePage');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Invalid email or password'),
           duration: Duration(seconds: 2),
         ),
@@ -43,7 +43,7 @@ class LoginPage extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new_rounded),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       onPressed: () {
                         // Navigate back to the previous screen
                         Navigator.of(context).pop();
@@ -133,7 +133,7 @@ class LoginPage extends StatelessWidget {
                         // Navigate to the Register page
                         Navigator.of(context).pushNamed('/signUp');
                       },
-                      child: Text(
+                      child: const Text(
                         'Register now',
                         style: TextStyle(
                           color: Colors.blue,
