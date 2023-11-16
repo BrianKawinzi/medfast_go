@@ -183,8 +183,24 @@ class _HomePageState extends State<HomePage> {
       onTap: () {
         navigateToDetailScreen(context, name);
       },
+      child: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+      
       child: Card(
-        elevation: 0.2,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         color: const Color.fromRGBO(58, 205, 50, 1),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -207,6 +223,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
