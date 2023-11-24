@@ -58,6 +58,17 @@ class _HomePageState extends State<HomePage> {
     Icons.monetization_on,
   ];
 
+  int getCrossAxisCount(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth > 1200) {
+      return 4; // Large screens
+    } else if (screenWidth > 600) {
+      return 3; // Medium-sized screens
+    } else {
+      return 2; // Smaller screens
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,9 +103,11 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.9,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: getCrossAxisCount(context),
+                    childAspectRatio: 1.0, // Adjust as needed
+                    crossAxisSpacing: 16.0, // Add spacing between tiles
+                    mainAxisSpacing: 16.0,
                   ),
                   itemCount: tileNames.length,
                   itemBuilder: (context, index) {
