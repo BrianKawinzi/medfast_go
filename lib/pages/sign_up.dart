@@ -4,8 +4,8 @@ import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class signUpPage extends StatelessWidget {
-  signUpPage({super.key});
-
+  signUpPage({super.key,  required this.pharmacyId});
+ final int? pharmacyId;
   //controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
