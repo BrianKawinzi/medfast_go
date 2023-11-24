@@ -44,8 +44,9 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<IconData> tileIcons = [
-    Icons.attach_money_outlined,
+    Icons.receipt,
     Icons.inventory_2_outlined,
+    Icons.attach_money_outlined,
     Icons.analytics,
     Icons.money_off,
     Icons.store,
@@ -54,7 +55,6 @@ class _HomePageState extends State<HomePage> {
     Icons.notifications_active_outlined,
     Icons.people,
     Icons.person_add_alt_1_sharp,
-    Icons.receipt,
     Icons.monetization_on,
   ];
 
@@ -144,8 +144,8 @@ class _HomePageState extends State<HomePage> {
             .push(MaterialPageRoute(builder: (context) => const Stores()));
         break;
       case 'Purchase Order':
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const PurchaseOrder()));
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const PurchaseOrder()));
         break;
       case 'Supplier':
         Navigator.of(context)
@@ -160,8 +160,8 @@ class _HomePageState extends State<HomePage> {
             .push(MaterialPageRoute(builder: (context) => Customers()));
         break;
       case 'Representative':
-        Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const Representative()));
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const Representative()));
         break;
       case 'Other Income':
         Navigator.of(context)
@@ -197,33 +197,33 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        child: Card(
-          elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          color: const Color.fromRGBO(58, 205, 50, 1),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 94,
+      
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: const Color.fromRGBO(58, 205, 50, 1),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 94,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              const SizedBox(height: 8),
-              Text(
-                name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
