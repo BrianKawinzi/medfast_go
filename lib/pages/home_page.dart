@@ -44,9 +44,8 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<IconData> tileIcons = [
-    Icons.receipt,
-    Icons.inventory_2_outlined,
     Icons.attach_money_outlined,
+    Icons.inventory_2_outlined,
     Icons.analytics,
     Icons.money_off,
     Icons.store,
@@ -55,8 +54,20 @@ class _HomePageState extends State<HomePage> {
     Icons.notifications_active_outlined,
     Icons.people,
     Icons.person_add_alt_1_sharp,
+    Icons.receipt,
     Icons.monetization_on,
   ];
+
+  int getCrossAxisCount(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth > 1200) {
+      return 4; // Large screens
+    } else if (screenWidth > 600) {
+      return 3; // Medium-sized screens
+    } else {
+      return 2; // Smaller screens
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +103,11 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.9,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: getCrossAxisCount(context),
+                    childAspectRatio: 1.0, // Adjust as needed
+                    crossAxisSpacing: 16.0, // Add spacing between tiles
+                    mainAxisSpacing: 16.0,
                   ),
                   itemCount: tileNames.length,
                   itemBuilder: (context, index) {
@@ -144,8 +157,8 @@ class _HomePageState extends State<HomePage> {
             .push(MaterialPageRoute(builder: (context) => const Stores()));
         break;
       case 'Purchase Order':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const PurchaseOrder()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const PurchaseOrder()));
         break;
       case 'Supplier':
         Navigator.of(context)
@@ -160,8 +173,8 @@ class _HomePageState extends State<HomePage> {
             .push(MaterialPageRoute(builder: (context) => Customers()));
         break;
       case 'Representative':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const Representative()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const Representative()));
         break;
       case 'Other Income':
         Navigator.of(context)
@@ -197,33 +210,33 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: const Color.fromRGBO(58, 205, 50, 1),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 94,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        child: Card(
+          elevation: 0,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          color: const Color.fromRGBO(58, 205, 50, 1),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 94,
                 color: Colors.white,
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }
