@@ -1,3 +1,5 @@
+// ignore_for_file: override_on_non_overriding_member
+
 import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/faq.dart';
 import 'package:medfast_go/pages/home_page.dart';
@@ -8,9 +10,10 @@ import 'package:medfast_go/pages/settings_page.dart';
 import 'package:medfast_go/pages/support.dart';
 import 'package:medfast_go/pages/themes.dart';
 
-
 class NavigationDrawerWidget extends StatelessWidget {
   final padding = const EdgeInsets.symmetric(horizontal: 20);
+
+  const NavigationDrawerWidget({super.key});
   @override
   Widget buildHeader({
     required String urlImage,
@@ -92,6 +95,7 @@ class NavigationDrawerWidget extends StatelessWidget {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
     const name = 'Tala Chemist';
     const email = 'talachemist@gmail.com';
@@ -128,7 +132,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            HomePage(), // Navigate to the HomePage
+                            const HomePage(), // Navigate to the HomePage
                       ));
                     },
                   ),
@@ -155,7 +159,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            Themes(), // Navigate to the HomePage
+                            const Themes(), // Navigate to the HomePage
                       ));
                     },
                   ),
@@ -167,7 +171,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            Language(), // Navigate to the HomePage
+                            const Language(), // Navigate to the HomePage
                       ));
                     },
                   ),
@@ -179,7 +183,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            Support(), // Navigate to the HomePage
+                            const Support(), // Navigate to the HomePage
                       ));
                     },
                   ),
@@ -190,7 +194,8 @@ class NavigationDrawerWidget extends StatelessWidget {
                     onClicked: () {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => FAQ(), // Navigate to the HomePage
+                        builder: (context) =>
+                            const FAQ(), // Navigate to the HomePage
                       ));
                     },
                   ),

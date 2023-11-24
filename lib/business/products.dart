@@ -8,12 +8,14 @@ class Products extends StatelessWidget {
   final TextEditingController barcodeController = TextEditingController();
   final TextEditingController sellingPriceController = TextEditingController();
 
+  Products({super.key});
+
   void _showProductForm(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
+        return SizedBox(
           height: MediaQuery.of(context).size.height * 0.947, 
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -192,7 +194,7 @@ class Products extends StatelessWidget {
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => HomePage(),
+                builder: (context) => const HomePage(),
               ));
             },
             child: const Icon(Icons.arrow_back),
