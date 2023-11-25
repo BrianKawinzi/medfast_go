@@ -4,8 +4,8 @@ import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class signUpPage extends StatelessWidget {
-  signUpPage({super.key});
-
+  signUpPage({super.key,  required this.pharmacyId});
+ final int? pharmacyId;
   //controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -30,7 +30,7 @@ class signUpPage extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios_new_rounded),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       onPressed: () {
                         //Navigate back to the previous screen
                         Navigator.of(context).pop();

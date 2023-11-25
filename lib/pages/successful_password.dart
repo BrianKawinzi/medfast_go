@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 
 class SuccessfulPassword extends StatelessWidget {
-  SuccessfulPassword({super.key});
+  const SuccessfulPassword({super.key});
 
   void backLogin(BuildContext context) {
 
