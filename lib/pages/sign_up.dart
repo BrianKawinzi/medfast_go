@@ -1,48 +1,19 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class signUpPage extends StatelessWidget {
-  signUpPage({super.key, required this.pharmacyId});
-  final int? pharmacyId;
-
+  signUpPage({super.key,  required this.pharmacyId});
+ final int? pharmacyId;
   //controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
-  final phoneNumberController = TextEditingController(); 
   final confirmPasswordController = TextEditingController();
-  //sign up method
-  void SignUserUp(BuildContext context) async {
-    final url =
-        Uri.parse('https://medrxapi.azurewebsites.net/api/Account/register');
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': emailController.text,
-        'password': passwordController.text,
-        'username': usernameController.text,
-        'phoneNumber': phoneNumberController.text, // Use phoneNumber from controller
-        'pharmacyId': pharmacyId, // Use the pharmacyId received as a parameter
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      print('User registered successfully');
-      Navigator.of(context).pushReplacementNamed('/login');
-    } else {
-      print('Failed to register user. Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-    }
-  }
+  //sign upmethod
+  void SignUserUp() {}
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +38,7 @@ class signUpPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
+                
                 const SizedBox(height: 50),
 
                 //Welcome to medfast
@@ -99,30 +70,20 @@ class signUpPage extends StatelessWidget {
                 //password textfield
                 MyTextField(
                   controller: passwordController,
-                  hintText: 'Password',
-                  obscureText: true,
+                  hintText: 'Password', obscureText: true,
                 ),
                 const SizedBox(height: 10),
 
                 //confirm password textfield
                 MyTextField(
                   controller: confirmPasswordController,
-                  hintText: 'Confirm Password',
-                  obscureText: true,
-                ),
-                const SizedBox(height: 10),
-
-                //phone number textfield
-                MyTextField(
-                  controller: phoneNumberController,
-                  hintText: 'Phone Number',
-                  obscureText: false,
+                  hintText: 'Confirm Password', obscureText: true,
                 ),
                 const SizedBox(height: 20),
 
                 //register button
                 MyButton(
-                  onTap: () => SignUserUp(context),
+                  onTap: SignUserUp,
                   buttonText: "Agree and Register",
                 ),
               ],
