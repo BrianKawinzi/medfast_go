@@ -9,6 +9,8 @@ class Supplier extends StatelessWidget {
   final TextEditingController costController = TextEditingController();
   final FocusNode dateFocusNode = FocusNode();
 
+  Supplier({super.key});
+
   Widget buildEmptyMessage(BuildContext context) {
     return Container(
       height:
@@ -105,7 +107,7 @@ class Supplier extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 40.0),
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
@@ -269,7 +271,7 @@ class Supplier extends StatelessWidget {
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => HomePage(),
+                builder: (context) => const HomePage(),
               ));
             },
             child: const Icon(Icons.arrow_back),

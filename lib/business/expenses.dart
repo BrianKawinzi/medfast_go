@@ -9,6 +9,8 @@ class Expenses extends StatelessWidget {
   final TextEditingController costController = TextEditingController();
   final FocusNode dateFocusNode = FocusNode();
 
+  Expenses({super.key});
+
   Widget buildEmptyMessage(BuildContext context) {
     return Container(
       height:
@@ -52,7 +54,7 @@ class Expenses extends StatelessWidget {
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          height: MediaQuery.of(context).size.height * 0.58,
+          height: MediaQuery.of(context).size.height * 0.9,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -495,7 +497,7 @@ class Expenses extends StatelessWidget {
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => HomePage(),
+                builder: (context) => const HomePage(),
               ));
             },
             child: const Icon(Icons.arrow_back),

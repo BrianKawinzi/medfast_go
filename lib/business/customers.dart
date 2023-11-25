@@ -8,6 +8,8 @@ class Customers extends StatelessWidget {
   final TextEditingController dateController = TextEditingController();
   final FocusNode dateFocusNode = FocusNode();
 
+  Customers({super.key});
+
   Widget buildEmptyMessage(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.3,
@@ -49,7 +51,7 @@ class Customers extends StatelessWidget {
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          height: MediaQuery.of(context).size.height * 0.58,
+          height: MediaQuery.of(context).size.height * 0.90,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -110,13 +112,16 @@ class Customers extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 40.0),
-              Container(
+              SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
                     // Save the customer details here
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+                  ),
                   child: const Text(
                     'Save',
                     style: TextStyle(
@@ -124,9 +129,6 @@ class Customers extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
                   ),
                 ),
               ),
@@ -278,7 +280,7 @@ class Customers extends StatelessWidget {
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => HomePage(),
+                builder: (context) => const HomePage(),
               ));
             },
             child: const Icon(Icons.arrow_back),
