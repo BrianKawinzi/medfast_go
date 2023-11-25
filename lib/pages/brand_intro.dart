@@ -18,7 +18,7 @@ class _BrandIntroPageState extends State<BrandIntroPage> {
     },
     {
       'title': 'Fast Delivery',
-      'description': 'Get your dawa right at your doorstep',
+      'description': 'Get your records right with medfastgo',
       'image': 'lib/assets/medicine.png',
     },
     {
