@@ -7,15 +7,16 @@ import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class signUpPage extends StatelessWidget {
-  signUpPage({super.key,  required this.pharmacyId});
- final int? pharmacyId;
+  signUpPage({super.key, required this.pharmacyId});
+  final int? pharmacyId;
+
   //controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
+  final phoneNumberController = TextEditingController(); 
   final confirmPasswordController = TextEditingController();
-
-  //sign upmethod
+  //sign up method
   void SignUserUp(BuildContext context) async {
     final url =
         Uri.parse('https://medrxapi.azurewebsites.net/api/Account/register');
@@ -29,14 +30,13 @@ class signUpPage extends StatelessWidget {
         'email': emailController.text,
         'password': passwordController.text,
         'username': usernameController.text,
-        'phoneNumber': '0700394809',
-        'pharmacyId': 5,
+        'phoneNumber': phoneNumberController.text, // Use phoneNumber from controller
+        'pharmacyId': pharmacyId, // Use the pharmacyId received as a parameter
       }),
     );
 
     if (response.statusCode == 200) {
-
-      print('User registered successfully'); // Fixed typo here
+      print('User registered successfully');
       Navigator.of(context).pushReplacementNamed('/login');
     } else {
       print('Failed to register user. Status code: ${response.statusCode}');
@@ -109,6 +109,14 @@ class signUpPage extends StatelessWidget {
                   controller: confirmPasswordController,
                   hintText: 'Confirm Password',
                   obscureText: true,
+                ),
+                const SizedBox(height: 10),
+
+                //phone number textfield
+                MyTextField(
+                  controller: phoneNumberController,
+                  hintText: 'Phone Number',
+                  obscureText: false,
                 ),
                 const SizedBox(height: 20),
 
