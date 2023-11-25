@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
@@ -15,51 +13,33 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
-  
   bool loading = false;
 
- Future<void> signUserIn() async {
-  setState(() {
-    loading = true;
-  });
+  Future<void> signUserIn() async {
+    setState(() {
+      loading = true;
+    });
 
-  final enteredEmail = emailController.text;
-  final enteredPassword = passwordController.text;
+    final enteredEmail = emailController.text;
+    final enteredPassword = passwordController.text;
 
-  final url = Uri.parse('https://medrxapi.azurewebsites.net/api/Account/login');
+    await Future.delayed(Duration(seconds: 2));
 
-  // Store the context in a local variable
-  BuildContext currentContext = context;
+    if (enteredEmail == 'test@gmail.com' && enteredPassword == 'test123') {
+      Navigator.of(context).pushReplacementNamed('/HomePage');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid email or password'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
 
-  await Future.delayed(Duration(seconds: 2));
-
-  final response = await http.post(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
-      'email': enteredEmail,
-      'password': enteredPassword,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    Navigator.of(currentContext).pushReplacementNamed('/HomePage');
-  } else {
-    ScaffoldMessenger.of(currentContext).showSnackBar(
-      const SnackBar(
-        content: Text('Invalid email or password'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    setState(() {
+      loading = false;
+    });
   }
-
-  setState(() {
-    loading = false;
-  });
-}
 
   @override
   Widget build(BuildContext context) {
