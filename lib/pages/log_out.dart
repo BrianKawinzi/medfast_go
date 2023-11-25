@@ -13,10 +13,10 @@ class LogOutPage extends StatelessWidget {
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const HomePage(), // Navigate to the HomePage
+                builder: (context) => const HomePage(), 
               ));
             },
-            child: const Icon(Icons.arrow_back), // Use the back arrow icon
+            child: const Icon(Icons.arrow_back), 
           ),
         ),
       );
