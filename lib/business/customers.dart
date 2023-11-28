@@ -51,7 +51,7 @@ class Customers extends StatelessWidget {
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          height: MediaQuery.of(context).size.height * 0.58,
+          height: MediaQuery.of(context).size.height * 0.90,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

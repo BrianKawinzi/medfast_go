@@ -1,19 +1,47 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class signUpPage extends StatelessWidget {
-  signUpPage({super.key});
-
+  signUpPage({super.key,  required this.pharmacyId});
+ final int? pharmacyId;
   //controllers
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-
+ 
   //sign upmethod
-  void SignUserUp() {}
+    void SignUserUp(BuildContext context) async {
+    final url =
+        Uri.parse('https://medrxapi.azurewebsites.net/api/Account/register');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': emailController.text,
+        'password': passwordController.text,
+        'username': usernameController.text,
+        'phoneNumber': passwordController.text,
+        'pharmacyId': pharmacyId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+
+      print('User registered successfully'); // Fixed typo here
+      Navigator.of(context).pushReplacementNamed('/login');
+    } else {
+      print('Failed to register user. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +108,11 @@ class signUpPage extends StatelessWidget {
                   hintText: 'Confirm Password', obscureText: true,
                 ),
                 const SizedBox(height: 20),
+                
 
                 //register button
                 MyButton(
-                  onTap: SignUserUp,
+                  onTap: () => SignUserUp(context),
                   buttonText: "Agree and Register",
                 ),
               ],
