@@ -8,6 +8,7 @@ import 'package:medfast_go/pages/splash_screen.dart';
 import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
+import 'package:medfast_go/pages/profile.dart';
 
 void main() async {
   
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         '/verify':(context) => const VerificationPage(),
         '/brandintro':(context) => const BrandIntroPage(),
         '/registerpharmacy':(context) =>  RegisterPharmacyScreen(),
+        '/profile':(context) => PharmacyProfile(),
         
       },
     );

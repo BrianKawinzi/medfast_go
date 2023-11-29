@@ -281,10 +281,23 @@ class PharmacyProfileState extends State<PharmacyProfile> {
                     ),
                     TextFormField(
                       controller: phoneController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Phone*',
+                        
                       ),
                       keyboardType: TextInputType.phone,
+                      onChanged: (value) {
+
+                        _formKey.currentState?.validate();
+
+                      },
+                      validator: (value) {
+                        if(value!.isEmpty) {
+                          return "Please Enter a Phone Number";
+                        } else if(!RegExp(r'^\+\d{1,4}\s?\d+$').hasMatch(value)){
+                          return "Please Enter a Valid Phone Number";
+                        }
+                      },
                     ),
                   ],
                 ),
