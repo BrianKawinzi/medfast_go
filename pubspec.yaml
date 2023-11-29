@@ -63,6 +63,9 @@ flutter:
     - lib/assets/Medrxlogo.png
     - lib/assets/Successmark.png
     - lib/assets/medicine.png
+    - lib/assets/Financial Insights.png
+    - lib/assets/medlaunchinglogo.png
+    - lib/assets/Posimage.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
