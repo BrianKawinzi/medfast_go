@@ -112,10 +112,7 @@ class NavigationDrawerWidget extends StatelessWidget {
               name: name,
               email: email,
               onClicked: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const UserPage(
-                  name: 'Tala Chemist',
-                  urlImage: urlImage,
-                ),
+                builder: (context) => const PharmacyProfile(),
               )),
             ),
             Container(
@@ -142,12 +139,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                     onClicked: () {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const UserPage(
-                          name:
-                              'Tala Chemist', // Provide the required name argument
-                          urlImage:
-                              urlImage, // Provide the required urlImage argument
-                        ),
+                        builder: (context) => const PharmacyProfile(),
                       ));
                     },
                   ),
@@ -183,7 +175,8 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            Support(), // Navigate to the HomePage
+                            
+                             Support(),
                       ));
                     },
                   ),
