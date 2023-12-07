@@ -7,6 +7,8 @@ import 'package:medfast_go/pages/sign_up.dart';
 import 'package:medfast_go/pages/splash_screen.dart';
 import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
+import 'package:medfast_go/security/register_pharmacy.dart';
+import 'package:medfast_go/pages/profile.dart';
 
 void main() async {
   
@@ -26,12 +28,20 @@ class MyApp extends StatelessWidget {
         '/splash': (context) =>  const SplashScreen(),
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
-        '/signUp': (context) => signUpPage(),
+        '/signUp': (context) {
+          final Map<String, dynamic> args =
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          final int? pharmacyId = args['pharmacyId'] as int?;
+          return signUpPage(pharmacyId: pharmacyId);
+        },
         // '/invent': (context) => InventoryPage(),
         '/password':(context) => forgotPassword(),
         '/success':(context) => const SuccessfulPassword(),
         '/verify':(context) => const VerificationPage(),
         '/brandintro':(context) => const BrandIntroPage(),
+        '/registerpharmacy':(context) =>  RegisterPharmacyScreen(),
+        '/profile':(context) => PharmacyProfile(),
+        
       },
     );
   }

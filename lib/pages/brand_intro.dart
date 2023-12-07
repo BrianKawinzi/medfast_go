@@ -156,7 +156,7 @@ class _BrandIntroPageState extends State<BrandIntroPage> {
           const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/signUp');
+              Navigator.pushNamed(context, '/registerpharmacy');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
