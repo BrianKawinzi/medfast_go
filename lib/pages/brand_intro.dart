@@ -1,9 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 class BrandIntroPage extends StatefulWidget {
-  const BrandIntroPage({super.key});
+  const BrandIntroPage({Key? key}) : super(key: key);
 
   @override
   _BrandIntroPageState createState() => _BrandIntroPageState();
@@ -70,8 +69,6 @@ class _BrandIntroPageState extends State<BrandIntroPage> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('MedFastGo'),
@@ -80,7 +77,7 @@ class _BrandIntroPageState extends State<BrandIntroPage> {
       body: Column(
         children: [
           SizedBox(
-            height: screenHeight * 0.5,
+            height: 300,
             child: PageView.builder(
               controller: pageController,
               itemCount: slides.length,
@@ -100,10 +97,21 @@ class _BrandIntroPageState extends State<BrandIntroPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        slides[index]['image'],
-                        fit: BoxFit.cover,
-                        height: screenHeight * 0.38,
+                      ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(15), // Rounded corners
+                        child: index == 1
+                            ? Image.asset(
+                                slides[index]['image'],
+                                fit: BoxFit.cover,
+                                width: 200,
+                                height: 200,
+                              )
+                            : Image.asset(
+                                slides[index]['image'],
+                                fit: BoxFit.cover,
+                                height: 200,
+                              ),
                       ),
                       const SizedBox(height: 20),
                       Text(
