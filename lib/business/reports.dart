@@ -282,7 +282,7 @@ class _ReportsState extends State<Reports> {
                   DataCell(Text('Product B')),
                   DataCell(Text('ID-002')),
                   DataCell(Text('2023-11-05')),
-                  DataCell(Text('\Ksh30')),
+                  DataCell(Text('\Ksh40')),
                   DataCell(Text('Out of Stock')),
                   DataCell(Text('50')),
                 ]),
