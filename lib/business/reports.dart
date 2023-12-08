@@ -274,7 +274,7 @@ class _ReportsState extends State<Reports> {
                   DataCell(Text('Product A')),
                   DataCell(Text('ID-001')),
                   DataCell(Text('2023-11-01')),
-                  DataCell(Text('\Ksh50')),
+                  DataCell(Text('\Ksh70')),
                   DataCell(Text('In Stock')),
                   DataCell(Text('100')),
                 ]),
