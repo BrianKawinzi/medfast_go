@@ -75,6 +75,15 @@ class PharmacyProfileState extends State<PharmacyProfile> {
     // Add all the Kenyan counties here
   ];
 
+  String? validatePhoneNumber(String value) {
+    if (value.isEmpty) {
+      return 'Phone number is required';
+    } else if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+      return 'Invalid phone number format';
+    }
+    return null;
+  }
+
   // Function to handle the save action
   void _handleSave() async {
     // Get an instance of SharedPreferences
@@ -162,6 +171,7 @@ class PharmacyProfileState extends State<PharmacyProfile> {
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.always,
           child: Column(
             children: <Widget>[
               const SizedBox(height: 3),
@@ -238,17 +248,18 @@ class PharmacyProfileState extends State<PharmacyProfile> {
               Form(
                 child: Column(
                   children: <Widget>[
-                    TextFormField(
+                    //Pharmacy Textfield
+                    _buildTextField(
                       controller: pharmacyNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Pharmacy Name*',
-                      ),
+                      label: 'Pharmacy Name',
                     ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'County*',
-                      ),
+
+                    const SizedBox(height: 10),
+
+                    //county textfield
+                    _buildTextField(
                       controller: countyController,
+                      label: 'County*',
                       onTap: () async {
                         final String? selected = await showDialog(
                           context: context,
@@ -262,11 +273,13 @@ class PharmacyProfileState extends State<PharmacyProfile> {
                         }
                       },
                     ),
-                    TextFormField(
+
+                    const SizedBox(height: 10),
+
+                    //email textfield
+                    _buildTextField(
                       controller: emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email*',
-                      ),
+                      label: 'Email*',
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -279,24 +292,21 @@ class PharmacyProfileState extends State<PharmacyProfile> {
                         return null; // Return null if the input is valid
                       },
                     ),
-                    TextFormField(
+                    const SizedBox(height: 10),
+
+                    //phone textfield
+                    _buildTextField(
                       controller: phoneController,
-                      decoration: InputDecoration(
-                        labelText: 'Phone*',
-                        
-                      ),
+                      label: 'Phone*',
                       keyboardType: TextInputType.phone,
-                      onChanged: (value) {
-
-                        _formKey.currentState?.validate();
-
-                      },
                       validator: (value) {
-                        if(value!.isEmpty) {
-                          return "Please Enter a Phone Number";
-                        } else if(!RegExp(r'^\+\d{1,4}\s?\d+$').hasMatch(value)){
-                          return "Please Enter a Valid Phone Number";
+                        if (value == null || value.isEmpty) {
+                          return 'Phone number is required';
+                        } else if (!RegExp(r'^\+\d{1,4}\s?\d+$')
+                            .hasMatch(value)) {
+                          return 'Invalid phone number format';
                         }
+                        return null;
                       },
                     ),
                   ],
@@ -306,6 +316,29 @@ class PharmacyProfileState extends State<PharmacyProfile> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboardType,
+    void Function()? onTap,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+          ),
+        ),
+      ),
+      keyboardType: keyboardType,
+      onTap: onTap,
+      validator: validator,
     );
   }
 

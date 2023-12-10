@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return  MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/productwithoutbarcode',
+      initialRoute: '/profile',
       routes: {
         '/splash': (context) =>  const SplashScreen(),
         '/HomePage': (context) => const HomePage(),
