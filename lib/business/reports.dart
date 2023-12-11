@@ -140,6 +140,17 @@ class _ReportsState extends State<Reports> {
     );
   }
 
+  int getCrossAxisCount(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth > 1200) {
+      return 4; // Large screens
+    } else if (screenWidth > 600) {
+      return 3; // Medium-sized screens
+    } else {
+      return 2; // Smaller screens
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
