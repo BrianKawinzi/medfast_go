@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:medfast_go/pages/components/validatorTF.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:medfast_go/models/pharmacy.dart';
 import 'package:medfast_go/services/api_service.dart';
@@ -12,6 +13,12 @@ class RegisterPharmacyScreen extends StatefulWidget {
 class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
+  final pharmacyController = TextEditingController();
+  final regionController = TextEditingController();
+  final cityController = TextEditingController();
+  final subCityController = TextEditingController();
+  final landmarkController = TextEditingController();
+  final phoneNumberController = TextEditingController();
 
   String pharmacyName = '';
   String region = '';
@@ -107,96 +114,100 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
           key: _formKey,
           child: Column(
             children: <Widget>[
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Pharmacy Name',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                validator: (value) {
+              //Pharmacy name textfield
+              ValidatorTF(
+                controller: pharmacyController,
+                 hintText: 'Pharmacy Name', 
+                 obscureText: false,
+                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the pharmacy name';
                   }
-                  return null;
+                  return '';
                 },
-                onSaved: (value) => pharmacyName = value ?? '',
+                onSaved: (value) => pharmacyController.text = value ?? ''
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Region',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                onSaved: (value) => region = value ?? '',
+              const SizedBox(height: 10),
+              
+
+              //region textfield
+              ValidatorTF(
+                controller: regionController,
+                 hintText: 'Region', 
+                 obscureText: false,
+                 validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the region';
+                  }
+                  return '';
+                },
+                onSaved: (value) => regionController.text = value ?? ''
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'City',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                validator: (value) {
+              const SizedBox(height: 10),
+              
+
+              //city textfield
+              ValidatorTF(
+                controller: cityController,
+                 hintText: 'City', 
+                 obscureText: false,
+                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the city';
                   }
-                  return null;
+                  return '';
                 },
-                onSaved: (value) => city = value ?? '',
+                onSaved: (value) => cityController.text = value ?? ''
               ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'SubCity',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                onSaved: (value) => subCity = value ?? '',
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Landmark',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                onSaved: (value) => landmark = value ?? '',
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                validator: (value) {
+              const SizedBox(height: 10),
+             
+
+             //Subcity textfield
+             ValidatorTF(
+                controller: subCityController,
+                 hintText: 'SubCity', 
+                 obscureText: false,
+                 validator: (String? value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the phone number';
+                    return 'Please enter the SubCity';
                   }
-                  return null;
+                  return '';
                 },
-                onSaved: (value) => phoneNumber = value ?? '',
+                onSaved: (value) => subCityController.text = value ?? ''
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 10),
+
+
+              //Land mark textfield
+              ValidatorTF(
+                controller: landmarkController,
+                 hintText: 'Landmark', 
+                 obscureText: false,
+                 validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your Landmark';
+                  }
+                  return '';
+                },
+                onSaved: (value) => landmarkController.text = value ?? ''
+              ),
+              const SizedBox(height: 10),
+
+
+              //Phone number textfield
+              ValidatorTF(
+                controller: phoneNumberController,
+                 hintText: 'Phone Number', 
+                 obscureText: false,
+                 validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return '';
+                },
+                onSaved: (value) => phoneNumberController.text = value ?? ''
+              ),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
