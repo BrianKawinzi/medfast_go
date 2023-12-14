@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/addproductwithoutbarcode.dart';
+import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/pages/brand_intro.dart';
 import 'package:medfast_go/pages/forgot_password.dart';
 import 'package:medfast_go/pages/home_page.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
     return  MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/productwithoutbarcode',
+      initialRoute: '/splash',
       routes: {
         '/splash': (context) =>  const SplashScreen(),
         '/HomePage': (context) => const HomePage(),
@@ -41,8 +42,9 @@ class MyApp extends StatelessWidget {
         '/verify':(context) => const VerificationPage(),
         '/brandintro':(context) => const BrandIntroPage(),
         '/registerpharmacy':(context) =>  RegisterPharmacyScreen(),
-        '/profile':(context) => PharmacyProfile(),
-        '/productwithoutbarcode':(context) =>  AddProductApp()
+        '/profile':(context) => const PharmacyProfile(),
+        '/productwithoutbarcode':(context) =>  AddProductForm(),
+        '/product':(context) =>  Products(),
       },
     );
   }
