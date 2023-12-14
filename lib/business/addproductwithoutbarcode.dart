@@ -2,48 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:medfast_go/pages/home_page.dart';
+import 'package:medfast_go/data/DatabaseHelper.dart';
+import 'package:medfast_go/models/product.dart';
 
-// Define a Product class to represent products
-class Product {
-  final String productName;
-  final double buyingPrice;
-  final double sellingPrice;
-  final int quantity;
-  final String unit;
-  final String manufactureDate;
-  final String expiryDate;
-  final File? image;
-
-  Product({
-    required this.productName,
-    required this.buyingPrice,
-    required this.sellingPrice,
-    required this.quantity,
-    required this.unit,
-    required this.manufactureDate,
-    required this.expiryDate,
-    this.image,
-  });
-}
-
-// Create a global list to store products
-List<Product> productsList = [];
-
-void main() => runApp(AddProductApp());
-
-class AddProductApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Add Product',
-      theme: ThemeData(
-        // Your theme settings here
-      ),
-      home: AddProductForm(),
-    );
-  }
-}
 
 class AddProductForm extends StatefulWidget {
   @override
@@ -59,12 +20,12 @@ class _AddProductFormState extends State<AddProductForm> {
 
   String _productName = '';
   double _buyingPrice = 0.0;
-  double _sellingPrice = 0.0;
-  int _quantity = 0;
   String _unit = 'piece';
 
+  DatabaseHelper _databaseHelper = DatabaseHelper(); // Initialize your database helper
+
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -72,31 +33,74 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _captureImage() async {
+    final XFile? capturedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (capturedFile != null) {
+      setState(() {
+        _image = File(capturedFile.path);
+      });
+    }
+  }
+
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      // Create a new Product object
+
+      final List<Product> products = await _databaseHelper.getProducts();
+      int maxId = 0;
+      for (final product in products) {
+        if (product.id > maxId) {
+          maxId = product.id;
+        }
+      }
+      final newProductId = maxId + 1; // Generate a unique id
+
       final newProduct = Product(
+        id: newProductId, // Set the unique id
         productName: _productName,
+        medicineDescription: '', // Set an appropriate value if needed
         buyingPrice: _buyingPrice,
-        sellingPrice: _sellingPrice,
-        quantity: _quantity,
-        unit: _unit,
-        manufactureDate: _manufactureDateController.text,
+        image: _image != null ? _image!.path : null,
         expiryDate: _expiryDateController.text,
-        image: _image,
+        manufactureDate: _manufactureDateController.text,
+        unit: _unit,
       );
 
-      // Add the new product to the global list
-      productsList.add(newProduct);
+      // Insert the new product into the database
+      final result = await _databaseHelper.insertProduct(newProduct);
 
-      // Clear the form
-      setState(() {
-        _image = null;
-      });
+      if (result != -1) {
+        // Product was successfully inserted
+        // Clear the form and show a success message if needed
+        setState(() {
+          _image = null;
+          // Clear other form fields
+          _formKey.currentState!.reset();
+        });
 
-      // You can also navigate back to the home page or do any other necessary actions
-      // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => HomePage()));
+        // Route to the '/product' screen
+        Navigator.pushReplacementNamed(context, '/HomePage');
+      } else {
+        // Error occurred while inserting the product
+        // Show an error message if needed
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Failed to insert the product into the database.'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 
@@ -110,80 +114,6 @@ class _AddProductFormState extends State<AddProductForm> {
     if (picked != null) {
       controller.text = DateFormat('yyyy-MM-dd').format(picked);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Add Product Without Barcode'),
-        backgroundColor: Colors.green[800],
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => HomePage(),
-          ),
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  'Add New Product',
-                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.green[800]),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 30.0),
-                _buildTextField('Product Name', 'Please enter the product name'),
-                _buildTextField('Buying Price', 'Please enter a valid buying price', isNumeric: true),
-                _buildTextField('Selling Price', 'Please enter a valid selling price', isNumeric: true),
-                _buildTextField('Quantity', 'Please enter a valid quantity', isNumeric: true),
-                _buildDropdown(),
-                _buildDatePicker(_manufactureDateController, 'Manufacture Date'),
-                _buildDatePicker(_expiryDateController, 'Expiry Date'),
-                SizedBox(height: 30.0),
-                
-                if (_image != null)
-                  Container(
-                    margin: EdgeInsets.only(bottom: 15.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.green[800]!),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: Image.file(File(_image!.path)),
-                  ),
-                OutlinedButton(
-                  onPressed: _pickImage,
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.green[800]!),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-                  ),
-                  child: Text('Capture Product Image', style: TextStyle(color: Colors.green[800])),
-                ),
-                SizedBox(height: 30.0),
-
-                ElevatedButton(
-                  onPressed: _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.green[700],
-                    padding: EdgeInsets.symmetric(vertical: 15.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: Text('Submit', style: TextStyle(fontSize: 18.0, color: Colors.white)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildTextField(String label, String errorText, {bool isNumeric = false}) {
@@ -206,12 +136,6 @@ class _AddProductFormState extends State<AddProductForm> {
               break;
             case 'Buying Price':
               _buyingPrice = double.tryParse(value!) ?? 0.0;
-              break;
-            case 'Selling Price':
-              _sellingPrice = double.tryParse(value!) ?? 0.0;
-              break;
-            case 'Quantity':
-              _quantity = int.tryParse(value!) ?? 0;
               break;
           }
         },
@@ -239,7 +163,6 @@ class _AddProductFormState extends State<AddProductForm> {
           );
         }).toList(),
         onChanged: (String? newValue) => setState(() => _unit = newValue!),
-        onSaved: (value) => _unit = value!,
       ),
     );
   }
@@ -260,6 +183,95 @@ class _AddProductFormState extends State<AddProductForm> {
         readOnly: true,
         onTap: () => _selectDate(context, controller),
         validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add Product Without Barcode'),
+        backgroundColor: Colors.green[800],
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: <Widget>[
+            Text(
+              'Add New Product',
+              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.green[800]),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 30.0),
+            _buildTextField('Product Name', 'Please enter the product name'),
+            _buildTextField('Buying Price', 'Please enter a valid buying price', isNumeric: true),
+            _buildDropdown(),
+            _buildDatePicker(_manufactureDateController, 'Manufacture Date'),
+            _buildDatePicker(_expiryDateController, 'Expiry Date'),
+            SizedBox(height: 30.0),
+            if (_image != null)
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Dialog(
+                        child: Container(
+                          padding: EdgeInsets.all(16.0),
+                          child: Image.file(_image!),
+                        ),
+                      );
+                    },
+                  );
+                },
+                child: Container(
+                  margin: EdgeInsets.only(bottom: 15.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.green[800]!),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Image.file(_image!),
+                ),
+              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _captureImage,
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green[800],
+                    padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                  ),
+                  child: Text('Capture Image'),
+                ),
+                ElevatedButton(
+                  onPressed: _pickImage,
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green[800],
+                    padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                  ),
+                  child: Text('Select Image'),
+                ),
+              ],
+            ),
+            SizedBox(height: 30.0),
+            ElevatedButton(
+              onPressed: _submitForm,
+              style: ElevatedButton.styleFrom(
+                primary: Colors.green[700],
+                padding: EdgeInsets.symmetric(vertical: 15.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+              ),
+              child: Text('Submit', style: TextStyle(fontSize: 18.0, color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }
