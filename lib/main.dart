@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/addproductwithoutbarcode.dart';
+import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products.dart';
+import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/brand_intro.dart';
 import 'package:medfast_go/pages/forgot_password.dart';
 import 'package:medfast_go/pages/home_page.dart';
@@ -45,6 +47,12 @@ class MyApp extends StatelessWidget {
         '/profile':(context) => const PharmacyProfile(),
         '/productwithoutbarcode':(context) =>  AddProductForm(),
         '/product':(context) =>  Products(),
+        '/editProduct': (context) {
+    final Product product = ModalRoute.of(context)!.settings.arguments as Product;
+    return EditProductPage(product: product);
+  },
+        
+        
       },
     );
   }

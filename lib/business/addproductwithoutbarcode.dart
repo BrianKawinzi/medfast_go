@@ -79,7 +79,7 @@ class _AddProductFormState extends State<AddProductForm> {
         });
 
         // Route to the '/product' screen
-        Navigator.pushReplacementNamed(context, '/HomePage');
+        Navigator.pushReplacementNamed(context, '/product');
       } else {
         // Error occurred while inserting the product
         // Show an error message if needed
