@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:medfast_go/pages/components/my_button.dart';
-import 'package:medfast_go/pages/components/validatorTF.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:medfast_go/models/pharmacy.dart';
 import 'package:medfast_go/services/api_service.dart';
@@ -14,16 +12,13 @@ class RegisterPharmacyScreen extends StatefulWidget {
 class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
-  final pharmacyController = TextEditingController();
-  final regionController = TextEditingController();
-  final cityController = TextEditingController();
-  final subCityController = TextEditingController();
-  final landmarkController = TextEditingController();
-  final phoneNumberController = TextEditingController();
 
-  bool loading = false;
-
-  
+  String pharmacyName = '';
+  String region = '';
+  String city = '';
+  String subCity = '';
+  String landmark = '';
+  String phoneNumber = '';
 
   // Variable to store location
   Position? pharmacyLocation;
@@ -106,162 +101,149 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                //Pharmacy name textfield
-                ValidatorTF(
-                  controller: pharmacyController,
-                   hintText: 'Pharmacy Name', 
-                   obscureText: false,
-                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the pharmacy name';
-                    }
-                    return '';
-                  },
-                  onSaved: (value) => pharmacyController.text = value ?? ''
-                ),
-                const SizedBox(height: 10),
-                
-      
-                //region textfield
-                ValidatorTF(
-                  controller: regionController,
-                   hintText: 'Region', 
-                   obscureText: false,
-                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the region';
-                    }
-                    return '';
-                  },
-                  onSaved: (value) => regionController.text = value ?? ''
-                ),
-                const SizedBox(height: 10),
-                
-      
-                //city textfield
-                ValidatorTF(
-                  controller: cityController,
-                   hintText: 'City', 
-                   obscureText: false,
-                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the city';
-                    }
-                    return '';
-                  },
-                  onSaved: (value) => cityController.text = value ?? ''
-                ),
-                const SizedBox(height: 10),
-               
-      
-               //Subcity textfield
-               ValidatorTF(
-                  controller: subCityController,
-                   hintText: 'SubCity', 
-                   obscureText: false,
-                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the SubCity';
-                    }
-                    return '';
-                  },
-                  onSaved: (value) => subCityController.text = value ?? ''
-                ),
-                const SizedBox(height: 10),
-      
-      
-                //Land mark textfield
-                ValidatorTF(
-                  controller: landmarkController,
-                   hintText: 'Landmark', 
-                   obscureText: false,
-                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your Landmark';
-                    }
-                    return '';
-                  },
-                  onSaved: (value) => landmarkController.text = value ?? ''
-                ),
-                const SizedBox(height: 10),
-      
-      
-                //Phone number textfield
-                ValidatorTF(
-                  controller: phoneNumberController,
-                   hintText: 'Phone Number', 
-                   obscureText: false,
-                   validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    return '';
-                  },
-                  onSaved: (value) => phoneNumberController.text = value ?? ''
-                ),
-                const SizedBox(height: 20),
-                MyButton(
-                  onTap: () async {
-                    setState(() {
-                      loading = true;
-                    });
-      
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-      
-                      final pharmacy = Pharmacy(
-                        pharmacyName: pharmacyController.text, 
-                        region: regionController.text, 
-                        city: cityController.text, 
-                        subCity: subCityController.text, 
-                        landmark: landmarkController.text, 
-                        phoneNumber: phoneNumberController.text, 
-                        latitude: pharmacyLocation?.latitude ?? 0.0, 
-                        longitude: pharmacyLocation?.longitude ?? 0.0,
-                      );
-      
-                      await _apiService.registerPharmacy(context, pharmacy);
-                    }
-      
-                    setState(() {
-                      loading = false;
-                    });
-                  }, 
-                  buttonText: 'Register Pharmacy',
-                ),
-                const SizedBox(height: 20),
-                if (pharmacyLocation != null)
-                  Text(
-                    'Location: Lat:${pharmacyLocation!.latitude}, Lon:${pharmacyLocation!.longitude}',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Pharmacy Name',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-              ],
-            ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the pharmacy name';
+                  }
+                  return null;
+                },
+                onSaved: (value) => pharmacyName = value ?? '',
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Region',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                onSaved: (value) => region = value ?? '',
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'City',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the city';
+                  }
+                  return null;
+                },
+                onSaved: (value) => city = value ?? '',
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'SubCity',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                onSaved: (value) => subCity = value ?? '',
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Landmark',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                onSaved: (value) => landmark = value ?? '',
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the phone number';
+                  }
+                  return null;
+                },
+                onSaved: (value) => phoneNumber = value ?? '',
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+
+                    final pharmacy = Pharmacy(
+                      pharmacyName: pharmacyName,
+                      region: region,
+                      city: city,
+                      subCity: subCity,
+                      landmark: landmark,
+                      phoneNumber: phoneNumber,
+                      latitude: pharmacyLocation?.latitude ?? 0.0,
+                      longitude: pharmacyLocation?.longitude ?? 0.0,
+                    );
+
+                    // Register the pharmacy using the API service
+                    await _apiService.registerPharmacy(context,pharmacy);
+                  }
+                },
+                child: Text(
+                  'Register',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.green, // Change button color to green
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              if (pharmacyLocation != null)
+                Text(
+                  'Location: Lat:${pharmacyLocation!.latitude}, Lon:${pharmacyLocation!.longitude}',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
           ),
         ),
-        if (loading)
-          Container(
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-              ),
-            ),
-          )
-        ],
       ),
-      
     );
   }
 }
