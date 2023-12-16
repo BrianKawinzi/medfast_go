@@ -36,3 +36,5 @@ flutter:
     - lib/assets/Financial Insights.png
     - lib/assets/medlaunchinglogo.png
     - lib/assets/Posimage.png
+    - lib/assets/no_barcode_icon.png
+    - lib/assets/barcode_icon.png
