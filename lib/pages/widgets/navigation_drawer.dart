@@ -1,4 +1,5 @@
 // ignore_for_file: override_on_non_overriding_member
+
 import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/faq.dart';
 import 'package:medfast_go/pages/home_page.dart';
@@ -8,8 +9,10 @@ import 'package:medfast_go/pages/profile.dart';
 import 'package:medfast_go/pages/settings_page.dart';
 import 'package:medfast_go/pages/support.dart';
 import 'package:medfast_go/pages/themes.dart';
+
 class NavigationDrawerWidget extends StatelessWidget {
   final padding = const EdgeInsets.symmetric(horizontal: 20);
+
   const NavigationDrawerWidget({super.key});
   @override
   Widget buildHeader({
@@ -50,8 +53,10 @@ class NavigationDrawerWidget extends StatelessWidget {
           ),
         ),
       );
+
   Widget buildSearchField() {
     const color = Colors.white;
+
     return TextField(
       style: const TextStyle(color: color),
       decoration: InputDecoration(
@@ -73,6 +78,7 @@ class NavigationDrawerWidget extends StatelessWidget {
       ),
     );
   }
+
   Widget buildMenuItem({
     required String text,
     required IconData icon,
@@ -80,6 +86,7 @@ class NavigationDrawerWidget extends StatelessWidget {
   }) {
     const color = Colors.white;
     const hoverColor = Colors.white70;
+
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(text, style: const TextStyle(color: color)),
@@ -87,12 +94,14 @@ class NavigationDrawerWidget extends StatelessWidget {
       onTap: onClicked,
     );
   }
+
   @override
   Widget build(BuildContext context) {
     const name = 'Tala Chemist';
     const email = 'talachemist@gmail.com';
     const urlImage =
         'https://images.unsplash.com/photo-1603706580932-6befcf7d8521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80';
+
     return Drawer(
       child: Material(
         color: const Color.fromRGBO(58, 205, 50, 1),
@@ -103,10 +112,7 @@ class NavigationDrawerWidget extends StatelessWidget {
               name: name,
               email: email,
               onClicked: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const UserPage(
-                  name: 'Tala Chemist',
-                  urlImage: urlImage,
-                ),
+                builder: (context) => const PharmacyProfile(),
               )),
             ),
             Container(
@@ -133,12 +139,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                     onClicked: () {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const UserPage(
-                          name:
-                              'Tala Chemist', // Provide the required name argument
-                          urlImage:
-                              urlImage, // Provide the required urlImage argument
-                        ),
+                        builder: (context) => const PharmacyProfile(),
                       ));
                     },
                   ),
@@ -174,7 +175,8 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                             Support(), // Navigate to the HomePage
+                            
+                             Support(),
                       ));
                     },
                   ),
