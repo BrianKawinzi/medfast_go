@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   // Store the context in a local variable
   BuildContext currentContext = context;
 
-  await Future.delayed(Duration(seconds: 2));
+  
 
   final response = await http.post(
     url,
@@ -48,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(currentContext).showSnackBar(
       const SnackBar(
         content: Text('Invalid email or password'),
-        duration: Duration(seconds: 2),
+        duration: Duration(milliseconds: 1),
       ),
     );
   }
