@@ -77,7 +77,6 @@ class _EditProductPageState extends State<EditProductPage> {
               keyboardType: TextInputType.number,
             ),
             ElevatedButton(
-              backgroundColor: Color.fromRGBO(58, 205, 50, 1),
               onPressed: () {
                 _updateProduct();
               },
