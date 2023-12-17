@@ -215,10 +215,10 @@ class _ProductsState extends State<Products> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-       return Container(
+         return Container(
   color: Color.fromRGBO(126, 127, 179, 0.39),
   child: Padding(
-    padding: const EdgeInsets.all(20.0),
+    padding: const EdgeInsets.all(30.0),
     child: Wrap(
       alignment: WrapAlignment.center,
       spacing: 10, // Adjust this value as needed for spacing between buttons
@@ -239,7 +239,7 @@ class _ProductsState extends State<Products> {
                 ),
                 borderRadius: BorderRadius.circular(45),
               ),
-              padding: const EdgeInsets.all(35), // Reduced padding
+              padding: const EdgeInsets.all(30), // Reduced padding
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -277,7 +277,7 @@ class _ProductsState extends State<Products> {
                 color: Color.fromRGBO(58, 205, 50, 1),
                 borderRadius: BorderRadius.circular(45),
               ),
-              padding: const EdgeInsets.all(35), // Reduced padding
+              padding: const EdgeInsets.all(30), // Reduced padding
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -285,7 +285,6 @@ class _ProductsState extends State<Products> {
                     'lib/assets/no_barcode_icon.png',
                     width: 80, // Reduced size
                     height: 80,
-            
                   ),
                   const Text('No Barcode', style: TextStyle(
                     fontSize: 16,
@@ -311,4 +310,4 @@ class _ProductsState extends State<Products> {
       },
     );
   }
-}
+} 
