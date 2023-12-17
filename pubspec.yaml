@@ -35,7 +35,8 @@ flutter:
     - lib/assets/medicine.png
     - lib/assets/barcode_icon.png
     - lib/assets/no_barcode_icon.png
-
+    - lib/assets/Posimage.png
+    - lib/assets/Financial Insights.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
