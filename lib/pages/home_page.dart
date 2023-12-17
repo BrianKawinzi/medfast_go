@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/activity.dart';
-import 'package:medfast_go/business/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/customers.dart';
 import 'package:medfast_go/business/expenses.dart';
 import 'package:medfast_go/business/other_incomes.dart';
