@@ -215,101 +215,99 @@ class _ProductsState extends State<Products> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
-          color: Color.fromRGBO(126, 127, 179, 0.39),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              children: [
-                Material(
-                  borderRadius: BorderRadius.circular(45),
-                  elevation: 6,
-                  child: InkWell(
-                    onTap: () {
-                      print("Retrieving product by barcode...");
-                    },
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.deepPurple, Colors.purpleAccent],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(45),
-                      ),
-                      padding: const EdgeInsets.all(40),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Image.asset(
-                            'lib/assets/barcode_icon.png',
-                            width: 100,
-                            height: 100,
-                          ),
-                          const Text('Barcode',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 2.0,
-                                    color: Colors.black26,
-                                    offset: Offset(1.0, 1.0),
-                                  ),
-                                ],
-                              ))
-                        ],
-                      ),
-                    ),
-                  ),
+         return Container(
+  color: Color.fromRGBO(126, 127, 179, 0.39),
+  child: Padding(
+    padding: const EdgeInsets.all(30.0),
+    child: Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 10, // Adjust this value as needed for spacing between buttons
+      children: [
+        Material(
+          borderRadius: BorderRadius.circular(45),
+          elevation: 6,
+          child: InkWell(
+            onTap: () {
+              print("Retrieving product by barcode...");
+            },
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.deepPurple, Colors.purpleAccent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(width: 20),
-                Material(
-                  borderRadius: BorderRadius.circular(45),
-                  elevation: 6,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/productwithoutbarcode');
-                    },
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        color: Color.fromRGBO(58, 205, 50, 1),
-                        borderRadius: BorderRadius.circular(45),
-                      ),
-                      padding: const EdgeInsets.all(40),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Image.asset(
-                            'lib/assets/no_barcode_icon.png',
-                            width: 100,
-                            height: 100,
-                          ),
-                          const Text('No Barcode',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 2.0,
-                                    color: Colors.black26,
-                                    offset: Offset(1.0, 1.0),
-                                  ),
-                                ],
-                              ))
-                        ],
-                      ),
-                    ),
+                borderRadius: BorderRadius.circular(45),
+              ),
+              padding: const EdgeInsets.all(30), // Reduced padding
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Image.asset(
+                    'lib/assets/barcode_icon.png',
+                    width: 80, // Reduced size
+                    height: 80,
                   ),
-                ),
-              ],
+                  const Text('Barcode', style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 2.0,
+                        color: Colors.black26,
+                        offset: Offset(1.0, 1.0),
+                      ),
+                    ],
+                  ))
+                ],
+              ),
             ),
           ),
-        );
+        ),
+        Material(
+          borderRadius: BorderRadius.circular(45),
+          elevation: 6,
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).pushNamed('/productwithoutbarcode');
+            },
+            child: Ink(
+              decoration: BoxDecoration(
+                color: Color.fromRGBO(58, 205, 50, 1),
+                borderRadius: BorderRadius.circular(45),
+              ),
+              padding: const EdgeInsets.all(30), // Reduced padding
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Image.asset(
+                    'lib/assets/no_barcode_icon.png',
+                    width: 80, // Reduced size
+                    height: 80,
+                  ),
+                  const Text('No Barcode', style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 2.0,
+                        color: Colors.black26,
+                        offset: Offset(1.0, 1.0),
+                      ),
+                    ],
+                  ))
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+);
       },
     );
   }
-}
+} 
