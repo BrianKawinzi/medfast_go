@@ -15,7 +15,7 @@ class _BrandIntroPageState extends State<BrandIntroPage> {
       'description': 'Run and manage your pharmacy from your phone',
       'image': 'lib/assets/medicine.png',
     },
-    {
+     {
       'title': 'Advanced Financial Insights',
       'description': 'Enhance decisions with comprehensive financial analytics',
       'image': 'lib/assets/Financial Insights.png',

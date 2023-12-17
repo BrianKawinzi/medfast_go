@@ -2,7 +2,7 @@
     <application
         android:label="medfast_go"
         android:name="${applicationName}"
-        android:icon="@mipmap/medlaunchinglogo">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"
