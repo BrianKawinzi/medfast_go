@@ -33,6 +33,8 @@ flutter:
     - lib/assets/Medrxlogo.png
     - lib/assets/Successmark.png
     - lib/assets/medicine.png
+    - lib/assets/barcode_icon.png
+    - lib/assets/no_barcode_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

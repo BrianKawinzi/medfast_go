@@ -15,15 +15,16 @@ class _BrandIntroPageState extends State<BrandIntroPage> {
       'description': 'Run and manage your pharmacy from your phone',
       'image': 'lib/assets/medicine.png',
     },
-    {
-      'title': 'Fast Delivery',
-      'description': 'Get your dawa right at your doorstep',
-      'image': 'lib/assets/medicine.png',
+     {
+      'title': 'Advanced Financial Insights',
+      'description': 'Enhance decisions with comprehensive financial analytics',
+      'image': 'lib/assets/Financial Insights.png',
     },
     {
-      'title': 'Wide Range',
-      'description': 'Choose from a variety of medical products',
-      'image': 'lib/assets/medicine.png',
+      'title': 'Streamlined Sales Experience',
+      'description':
+          'Efficient, customer-centric transactions for enhanced sales',
+      'image': 'lib/assets/Posimage.png',
     },
   ];
 
