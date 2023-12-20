@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
@@ -6,6 +7,8 @@ import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/models/product.dart';
 
 class Products extends StatefulWidget {
+  const Products({super.key});
+
   @override
   _ProductsState createState() => _ProductsState();
 }
@@ -18,13 +21,15 @@ class _ProductsState extends State<Products> {
   final TextEditingController barcodeController = TextEditingController();
   final TextEditingController sellingPriceController = TextEditingController();
   final TextEditingController medicineNameController = TextEditingController();
-  final TextEditingController medicineDescriptionController = TextEditingController();
+  final TextEditingController medicineDescriptionController =
+      TextEditingController();
   final TextEditingController dosageFormController = TextEditingController();
   final TextEditingController strengthController = TextEditingController();
   final TextEditingController manufacturerController = TextEditingController();
   final TextEditingController categoryController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
-  final TextEditingController manufactureDateController = TextEditingController();
+  final TextEditingController manufactureDateController =
+      TextEditingController();
   final TextEditingController expiryDateController = TextEditingController();
 
   List<Product> products = [];
@@ -53,7 +58,7 @@ class _ProductsState extends State<Products> {
         products = allProducts;
       } else {
         products = allProducts.where((product) {
-          final productName = product.productName ?? '';
+          final productName = product.productName;
           return productName.toLowerCase().contains(query.toLowerCase());
         }).toList();
       }
@@ -66,13 +71,15 @@ class _ProductsState extends State<Products> {
 
   Route _createRoute(Product product) {
     return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => EditProductPage(product: product),
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          EditProductPage(product: product),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(1.0, 0.0);
         const end = Offset.zero;
         const curve = Curves.ease;
 
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         var offsetAnimation = animation.drive(tween);
 
         return SlideTransition(
@@ -85,7 +92,7 @@ class _ProductsState extends State<Products> {
 
   Widget _buildProductList() {
     if (products.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           "No products added yet. Click the + button to add your first product.",
           style: TextStyle(fontSize: 18.0),
@@ -97,31 +104,47 @@ class _ProductsState extends State<Products> {
         itemBuilder: (context, index) {
           var product = products[index];
           var imageFile = File(product.image ?? '');
-          return Card(
-            margin: const EdgeInsets.all(8.0),
-            child: ListTile(
-              title: Text(product.productName ?? ''),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Expiry Date: ${product.expiryDate ?? ''}"),
-                  Text('Description: ${product.medicineDescription ?? ''}'),
-                  Text('Price: ${product.buyingPrice ?? ''}'),
-                ],
+          return Dismissible(
+            key: Key(product.id.toString()),
+            onDismissed: (direction) {
+              _confirmDeleteProduct(product);
+            },
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 16),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 36,
               ),
-              leading: SizedBox(
-                width: 100,
-                child: imageFile.existsSync()
-                    ? Image.file(
-                        imageFile,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.error);
-                        },
-                      )
-                    : Placeholder(),
+            ),
+            child: Card(
+              margin: const EdgeInsets.all(8.0),
+              child: ListTile(
+                title: Text(product.productName),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Expiry Date: ${product.expiryDate}"),
+                    Text('Description: ${product.medicineDescription}'),
+                    Text('Price: ${product.buyingPrice}'),
+                  ],
+                ),
+                leading: SizedBox(
+                  width: 100,
+                  child: imageFile.existsSync()
+                      ? Image.file(
+                          imageFile,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error);
+                          },
+                        )
+                      : const Placeholder(),
+                ),
+                onTap: () => _navigateToEditProduct(product),
               ),
-              onTap: () => _navigateToEditProduct(product),
             ),
           );
         },
@@ -129,26 +152,59 @@ class _ProductsState extends State<Products> {
     }
   }
 
+  void _confirmDeleteProduct(Product product) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this product?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteProduct(product);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteProduct(Product product) async {
+    final dbHelper = DatabaseHelper();
+    await dbHelper.deleteProduct(product.id);
+    _fetchProducts();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Products'),
+        title: const Text('Products'),
         centerTitle: true,
-        backgroundColor: Color.fromRGBO(58, 205, 50, 1),
+        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
           onTap: () {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => HomePage(),
+                builder: (context) => const HomePage(),
               ),
             );
           },
-          child: Icon(Icons.arrow_back),
+          child: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.menu),
+            icon: const Icon(Icons.menu),
             onPressed: () {
               // Menu action
             },
@@ -160,8 +216,8 @@ class _ProductsState extends State<Products> {
           Container(
             width: double.infinity,
             height: 48,
-            margin: EdgeInsets.all(16),
-            padding: EdgeInsets.symmetric(horizontal: 16),
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
@@ -170,7 +226,7 @@ class _ProductsState extends State<Products> {
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 2,
                   blurRadius: 3,
-                  offset: Offset(0, 2),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -180,7 +236,7 @@ class _ProductsState extends State<Products> {
                   child: TextField(
                     controller: searchController,
                     onChanged: (query) => _filterProducts(query),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       labelText: 'Search Products',
                       labelStyle: TextStyle(color: Colors.green),
@@ -189,9 +245,11 @@ class _ProductsState extends State<Products> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.qr_code_scanner),
+                  icon: const Icon(Icons.qr_code_scanner),
                   onPressed: () {
-                    print("Retrieving product by barcode...");
+                    if (kDebugMode) {
+                      print("Retrieving product by barcode...");
+                    }
                   },
                 ),
               ],
@@ -204,8 +262,8 @@ class _ProductsState extends State<Products> {
         onPressed: () {
           _showProductForm(context);
         },
-        backgroundColor: Color.fromRGBO(58, 205, 50, 1),
-        child: Icon(Icons.add),
+        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -215,99 +273,104 @@ class _ProductsState extends State<Products> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-         return Container(
-  color: Color.fromRGBO(126, 127, 179, 0.39),
-  child: Padding(
-    padding: const EdgeInsets.all(30.0),
-    child: Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 10, // Adjust this value as needed for spacing between buttons
-      children: [
-        Material(
-          borderRadius: BorderRadius.circular(45),
-          elevation: 6,
-          child: InkWell(
-            onTap: () {
-              print("Retrieving product by barcode...");
-            },
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.deepPurple, Colors.purpleAccent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+        return Container(
+          color: const Color.fromRGBO(126, 127, 179, 0.39),
+          child: Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing:
+                  10, // Adjust this value as needed for spacing between buttons
+              children: [
+                Material(
+                  borderRadius: BorderRadius.circular(45),
+                  elevation: 6,
+                  child: InkWell(
+                    onTap: () {
+                      if (kDebugMode) {
+                        print("Retrieving product by barcode...");
+                      }
+                    },
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Colors.deepPurple, Colors.purpleAccent],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(45),
+                      ),
+                      padding: const EdgeInsets.all(30), // Reduced padding
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Image.asset(
+                            'lib/assets/barcode_icon.png',
+                            width: 80, // Reduced size
+                            height: 80,
+                          ),
+                          const Text('Barcode',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 2.0,
+                                    color: Colors.black26,
+                                    offset: Offset(1.0, 1.0),
+                                  ),
+                                ],
+                              ))
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(45),
-              ),
-              padding: const EdgeInsets.all(30), // Reduced padding
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Image.asset(
-                    'lib/assets/barcode_icon.png',
-                    width: 80, // Reduced size
-                    height: 80,
-                  ),
-                  const Text('Barcode', style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 2.0,
-                        color: Colors.black26,
-                        offset: Offset(1.0, 1.0),
+                Material(
+                  borderRadius: BorderRadius.circular(45),
+                  elevation: 6,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/productwithoutbarcode');
+                    },
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(58, 205, 50, 1),
+                        borderRadius: BorderRadius.circular(45),
                       ),
-                    ],
-                  ))
-                ],
-              ),
+                      padding: const EdgeInsets.all(30), // Reduced padding
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Image.asset(
+                            'lib/assets/no_barcode_icon.png',
+                            width: 80, // Reduced size
+                            height: 80,
+                          ),
+                          const Text('No Barcode',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 2.0,
+                                    color: Colors.black26,
+                                    offset: Offset(1.0, 1.0),
+                                  ),
+                                ],
+                              ))
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        Material(
-          borderRadius: BorderRadius.circular(45),
-          elevation: 6,
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).pushNamed('/productwithoutbarcode');
-            },
-            child: Ink(
-              decoration: BoxDecoration(
-                color: Color.fromRGBO(58, 205, 50, 1),
-                borderRadius: BorderRadius.circular(45),
-              ),
-              padding: const EdgeInsets.all(30), // Reduced padding
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Image.asset(
-                    'lib/assets/no_barcode_icon.png',
-                    width: 80, // Reduced size
-                    height: 80,
-                  ),
-                  const Text('No Barcode', style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 2.0,
-                        color: Colors.black26,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
-                  ))
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    ),
-  ),
-);
+        );
       },
     );
   }
-} 
+}
