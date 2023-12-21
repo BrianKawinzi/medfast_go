@@ -13,6 +13,8 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
 
+  bool loading = false;
+
   String pharmacyName = '';
   String region = '';
   String city = '';
@@ -64,7 +66,8 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
       // Permissions are denied forever, handle appropriately.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Location permissions are permanently denied, we cannot request permissions.'),
+          content: Text(
+              'Location permissions are permanently denied, we cannot request permissions.'),
         ),
       );
       return;
@@ -199,6 +202,9 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
+                  setState(() {
+                    loading = true;
+                  });
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
 
@@ -214,8 +220,12 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
                     );
 
                     // Register the pharmacy using the API service
-                    await _apiService.registerPharmacy(context,pharmacy);
+                    await _apiService.registerPharmacy(context, pharmacy);
                   }
+
+                  setState(() {
+                    loading = false;
+                  });
                 },
                 child: Text(
                   'Register',
@@ -240,6 +250,15 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (loading)
+                  Container(
+                    color: Colors.black.withOpacity(0.5),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                      )
+                  ),
+                )
             ],
           ),
         ),
