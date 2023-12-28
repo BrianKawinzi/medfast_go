@@ -23,6 +23,9 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
   // Variable to store location
   Position? pharmacyLocation;
 
+  //loading state
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -101,148 +104,175 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: <Widget>[
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Pharmacy Name',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: <Widget>[
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Pharmacy Name',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the pharmacy name';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => pharmacyName = value ?? '',
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the pharmacy name';
-                  }
-                  return null;
-                },
-                onSaved: (value) => pharmacyName = value ?? '',
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Region',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 10),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Region',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
+                  onSaved: (value) => region = value ?? '',
                 ),
-                onSaved: (value) => region = value ?? '',
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'City',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 10),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'City',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the city';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => city = value ?? '',
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the city';
-                  }
-                  return null;
-                },
-                onSaved: (value) => city = value ?? '',
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'SubCity',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 10),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'SubCity',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
+                  onSaved: (value) => subCity = value ?? '',
                 ),
-                onSaved: (value) => subCity = value ?? '',
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Landmark',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 10),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Landmark',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
+                  onSaved: (value) => landmark = value ?? '',
                 ),
-                onSaved: (value) => landmark = value ?? '',
-              ),
-              SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 10),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the phone number';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => phoneNumber = value ?? '',
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the phone number';
-                  }
-                  return null;
-                },
-                onSaved: (value) => phoneNumber = value ?? '',
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+      
+                      final pharmacy = Pharmacy(
+                        pharmacyName: pharmacyName,
+                        region: region,
+                        city: city,
+                        subCity: subCity,
+                        landmark: landmark,
+                        phoneNumber: phoneNumber,
+                        latitude: pharmacyLocation?.latitude ?? 0.0,
+                        longitude: pharmacyLocation?.longitude ?? 0.0,
+                      );
 
-                    final pharmacy = Pharmacy(
-                      pharmacyName: pharmacyName,
-                      region: region,
-                      city: city,
-                      subCity: subCity,
-                      landmark: landmark,
-                      phoneNumber: phoneNumber,
-                      latitude: pharmacyLocation?.latitude ?? 0.0,
-                      longitude: pharmacyLocation?.longitude ?? 0.0,
-                    );
 
-                    // Register the pharmacy using the API service
-                    await _apiService.registerPharmacy(context,pharmacy);
-                  }
-                },
-                child: Text(
-                  'Register',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.0,
+                      //set loading state
+                      setState(() {
+                        isLoading = true;
+                      });
+      
+                      // Register the pharmacy using the API service
+                     try {
+                      await _apiService.registerPharmacy(context, pharmacy);
+                     } finally {
+
+                      //Reset loading state
+                      setState(() {
+                        isLoading = false;
+                      });
+                     }
+                    }
+                  },
+                  child: Text(
+                    'Register',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green, // Change button color to green
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
                   ),
                 ),
-                style: ElevatedButton.styleFrom(
-                  primary: Colors.green, // Change button color to green
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                SizedBox(height: 20),
+                if (pharmacyLocation != null)
+                  Text(
+                    'Location: Lat:${pharmacyLocation!.latitude}, Lon:${pharmacyLocation!.longitude}',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(height: 20),
-              if (pharmacyLocation != null)
-                Text(
-                  'Location: Lat:${pharmacyLocation!.latitude}, Lon:${pharmacyLocation!.longitude}',
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
+        if (isLoading)
+          Container(
+            color: Colors.black54,
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
