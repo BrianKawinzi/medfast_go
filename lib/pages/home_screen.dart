@@ -87,10 +87,22 @@ class HomeScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 16.0),
                     // Progress Indicators
-                    _buildHorizontalProgressIndicators('Current Sales', 70,
-                        Colors.purple, 'Target Sales', 60, Colors.orange),
-                    _buildHorizontalProgressIndicators('New Sales', 40,
-                        Colors.yellow, 'Retarget Sales', 80, Colors.red),
+                    _buildHorizontalProgressIndicators(
+                      'Current Sales',
+                      70,
+                      Colors.purple,
+                      'Target Sales',
+                      60,
+                      Colors.orange,
+                    ),
+                    _buildHorizontalProgressIndicators(
+                      'New Sales',
+                      40,
+                      Colors.yellow,
+                      'Retarget Sales',
+                      80,
+                      Colors.red,
+                    ),
                   ],
                 ),
               ),
@@ -101,48 +113,61 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Helper method to build circular progress indicators
-  Widget _buildHorizontalProgressIndicators(String title1, int percentage1,
-      Color color1, String title2, int percentage2, Color color2) {
+  // Helper method to build horizontal progress indicators
+  Widget _buildHorizontalProgressIndicators(
+    String title1,
+    int percentage1,
+    Color color1,
+    String title2,
+    int percentage2,
+    Color color2,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildCircularProgressIndicator(title1, percentage1, color1),
-              SizedBox(width: 16.0),
-              _buildCircularProgressIndicator(title2, percentage2, color2),
-            ],
-          ),
+          _buildCircularProgressIndicator(title1, percentage1, color1),
+          SizedBox(width: 16.0),
+          _buildCircularProgressIndicator(title2, percentage2, color2),
         ],
       ),
     );
   }
 
+  // Helper method to build circular progress indicators
   Widget _buildCircularProgressIndicator(
       String title, int percentage, Color color) {
-    return Stack(
-      alignment: Alignment.center,
+    return Column(
       children: [
-        SizedBox(
-          width: 100.0,
-          height: 100.0,
-          child: CircularProgressIndicator(
-            value: percentage / 100,
-            strokeWidth: 10.0,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            backgroundColor: Colors.grey[300], // Grey background
-          ),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 100.0,
+              height: 100.0,
+              child: CircularProgressIndicator(
+                value: percentage / 100,
+                strokeWidth: 10.0,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                backgroundColor: Colors.grey[300], // Grey background
+              ),
+            ),
+            Text(
+              '$percentage%',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0,
+              ),
+            ),
+          ],
         ),
+        SizedBox(height: 8.0),
         Text(
-          '$title\n$percentage%',
-          textAlign: TextAlign.center,
+          title,
           style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.bold,
-            fontSize: 16.0,
+            color: Colors.grey,
           ),
         ),
       ],
