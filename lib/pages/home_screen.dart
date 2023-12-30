@@ -59,56 +59,107 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Sales tile
-            Card(
-              elevation: 5.0,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sales',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Sales tile
+              Card(
+                elevation: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sales',
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 8.0),
-                    Text(
-                      'Sales Information',
-                      style: TextStyle(
-                        color: Colors.grey,
+                      SizedBox(height: 8.0),
+                      Text(
+                        'Sales Information',
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 16.0),
-                    // Progress Indicators
-                    _buildHorizontalProgressIndicators(
-                      'Current Sales',
-                      70,
-                      Colors.purple,
-                      'Target Sales',
-                      60,
-                      Colors.orange,
-                    ),
-                    _buildHorizontalProgressIndicators(
-                      'New Sales',
-                      40,
-                      Colors.yellow,
-                      'Retarget Sales',
-                      80,
-                      Colors.red,
-                    ),
-                  ],
+                      SizedBox(height: 16.0),
+                      // Progress Indicators
+                      _buildHorizontalProgressIndicators(
+                        'Current Sales',
+                        70,
+                        Colors.purple,
+                        'Target Sales',
+                        60,
+                        Colors.orange,
+                      ),
+                      _buildHorizontalProgressIndicators(
+                        'New Sales',
+                        40,
+                        Colors.yellow,
+                        'Retarget Sales',
+                        80,
+                        Colors.red,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 10),
+      
+              //revenue card
+              Card(
+                elevation: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total \n Revenue',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.grey,
+                            ),
+                          ),
+
+                          Text(
+                            'KSH \n 4,200,000',
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          DropdownButton<String>(
+                            items: <String>['2022', '2023', '2024', '2025', '2026', '2027']
+                              .map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(), 
+                            onChanged: (String? newValue) {
+                              //Handle dropdown value change logic
+                            },
+                            value: '2022',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              
+            ],
+          ),
         ),
       ),
     );
