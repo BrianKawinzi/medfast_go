@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medfast_go/pages/widgets/circular_progress_indicator.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key});
@@ -127,50 +128,11 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildCircularProgressIndicator(title1, percentage1, color1),
+          MyCircularProgressIndicator(title: title1, percentage: percentage1, color: color1),
           SizedBox(width: 16.0),
-          _buildCircularProgressIndicator(title2, percentage2, color2),
+          MyCircularProgressIndicator(title: title2, percentage: percentage2, color: color2),
         ],
       ),
-    );
-  }
-
-  // Helper method to build circular progress indicators
-  Widget _buildCircularProgressIndicator(
-      String title, int percentage, Color color) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 100.0,
-              height: 100.0,
-              child: CircularProgressIndicator(
-                value: percentage / 100,
-                strokeWidth: 10.0,
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-                backgroundColor: Colors.grey[300], // Grey background
-              ),
-            ),
-            Text(
-              '$percentage%',
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 16.0,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.grey,
-          ),
-        ),
-      ],
     );
   }
 }
