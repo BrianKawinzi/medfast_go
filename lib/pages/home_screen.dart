@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medfast_go/pages/widgets/circular_progress_indicator.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key});
@@ -58,56 +59,107 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Sales tile
-            Card(
-              elevation: 5.0,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sales',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Sales tile
+              Card(
+                elevation: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sales',
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 8.0),
-                    Text(
-                      'Sales Information',
-                      style: TextStyle(
-                        color: Colors.grey,
+                      SizedBox(height: 8.0),
+                      Text(
+                        'Sales Information',
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 16.0),
-                    // Progress Indicators
-                    _buildHorizontalProgressIndicators(
-                      'Current Sales',
-                      70,
-                      Colors.purple,
-                      'Target Sales',
-                      60,
-                      Colors.orange,
-                    ),
-                    _buildHorizontalProgressIndicators(
-                      'New Sales',
-                      40,
-                      Colors.yellow,
-                      'Retarget Sales',
-                      80,
-                      Colors.red,
-                    ),
-                  ],
+                      SizedBox(height: 16.0),
+                      // Progress Indicators
+                      _buildHorizontalProgressIndicators(
+                        'Current Sales',
+                        70,
+                        Colors.purple,
+                        'Target Sales',
+                        60,
+                        Colors.orange,
+                      ),
+                      _buildHorizontalProgressIndicators(
+                        'New Sales',
+                        40,
+                        Colors.yellow,
+                        'Retarget Sales',
+                        80,
+                        Colors.red,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 10),
+      
+              //revenue card
+              Card(
+                elevation: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total \n Revenue',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.grey,
+                            ),
+                          ),
+
+                          Text(
+                            'KSH \n 4,200,000',
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          DropdownButton<String>(
+                            items: <String>['2022', '2023', '2024', '2025', '2026', '2027']
+                              .map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(), 
+                            onChanged: (String? newValue) {
+                              //Handle dropdown value change logic
+                            },
+                            value: '2022',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              
+            ],
+          ),
         ),
       ),
     );
@@ -127,50 +179,11 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildCircularProgressIndicator(title1, percentage1, color1),
+          MyCircularProgressIndicator(title: title1, percentage: percentage1, color: color1),
           SizedBox(width: 16.0),
-          _buildCircularProgressIndicator(title2, percentage2, color2),
+          MyCircularProgressIndicator(title: title2, percentage: percentage2, color: color2),
         ],
       ),
-    );
-  }
-
-  // Helper method to build circular progress indicators
-  Widget _buildCircularProgressIndicator(
-      String title, int percentage, Color color) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 100.0,
-              height: 100.0,
-              child: CircularProgressIndicator(
-                value: percentage / 100,
-                strokeWidth: 10.0,
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-                backgroundColor: Colors.grey[300], // Grey background
-              ),
-            ),
-            Text(
-              '$percentage%',
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 16.0,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.grey,
-          ),
-        ),
-      ],
     );
   }
 }
