@@ -4,59 +4,59 @@ import 'package:http/http.dart' as http;
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
+
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
+
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-
   bool loading = false;
 
- Future<void> signUserIn() async {
-  setState(() {
-    loading = true;
-  });
+  Future<void> signUserIn() async {
+    setState(() {
+      loading = true;
+    });
 
-  final enteredEmail = emailController.text;
-  final enteredPassword = passwordController.text;
+    final enteredEmail = emailController.text;
+    final enteredPassword = passwordController.text;
 
-  final url = Uri.parse('https://medrxapi.azurewebsites.net/api/Account/login');
+    final url =
+        Uri.parse('https://medrxapi.azurewebsites.net/api/Account/login');
 
-  // Store the context in a local variable
-  BuildContext currentContext = context;
+    // Store the context in a local variable
+    BuildContext currentContext = context;
 
-  
-
-  final response = await http.post(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
-      'email': enteredEmail,
-      'password': enteredPassword,
-    }),
-  );
-
-  if (response.statusCode == 200) {
-    Navigator.of(currentContext).pushReplacementNamed('/HomePage');
-  } else {
-    ScaffoldMessenger.of(currentContext).showSnackBar(
-      const SnackBar(
-        content: Text('Invalid email or password'),
-        duration: Duration(milliseconds: 1),
-      ),
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'email': enteredEmail,
+        'password': enteredPassword,
+      }),
     );
-  }
 
-  setState(() {
-    loading = false;
-  });
-}
+    if (response.statusCode == 200) {
+      Navigator.of(currentContext).pushReplacementNamed('/dashboard');
+    } else {
+      ScaffoldMessenger.of(currentContext).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid email or password'),
+          duration: Duration(milliseconds: 1),
+        ),
+      );
+    }
+
+    setState(() {
+      loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,8 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                               'Forgot Password?',
                               style: TextStyle(
                                 color: Colors.grey[600],
-                                decoration:
-                                    TextDecoration.underline, 
+                                decoration: TextDecoration.underline,
                               ),
                             ),
                           ],
