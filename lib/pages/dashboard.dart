@@ -25,6 +25,7 @@ class DashboardPage extends StatelessWidget {
             left: 0,
             right: 0,
             child: Center(
+              child: SalesTileWidget(),
             ),
           ),
           Positioned(
@@ -108,6 +109,107 @@ class DashboardPage extends StatelessWidget {
     );
   }
 }
+
+class SalesTileWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SalesCircle(
+            color: Colors.blue,
+            metric: 'Current Sales',
+            percentage: '75%',
+          ),
+          SizedBox(height: 20),
+          SalesCircle(
+            color: Colors.orange,
+            metric: 'Target Sales',
+            percentage: '50%',
+          ),
+          SizedBox(height: 20),
+          SalesCircle(
+            color: Colors.green,
+            metric: 'New Sales',
+            percentage: '90%',
+          ),
+          SizedBox(height: 20),
+          SalesCircle(
+            color: Colors.red,
+            metric: 'Retarget Sales',
+            percentage: '30%',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SalesCircle extends StatelessWidget {
+  final Color color;
+  final String metric;
+  final String percentage;
+
+  const SalesCircle({
+    required this.color,
+    required this.metric,
+    required this.percentage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              metric,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              percentage,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
+          child: Center(
+            child: Text(
+              'Sales',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class YourExistingBodyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
