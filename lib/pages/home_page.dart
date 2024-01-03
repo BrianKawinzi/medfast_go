@@ -138,11 +138,11 @@ class _HomePageState extends State<HomePage> {
     switch (name) {
       case 'Sales':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const Sales()));
+            .push(MaterialPageRoute(builder: (context) =>  Sales(initialProducts: [],)));
         break;
       case 'Products':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Products()));
+            .push(MaterialPageRoute(builder: (context) => Products(productName: '',)));
         break;
       case 'Reports':
         Navigator.of(context)
