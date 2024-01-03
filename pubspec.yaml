@@ -21,6 +21,8 @@ dependencies:
   intl: ^0.17.0
   sqflite: ^2.0.0
   path_provider_foundation: ^2.3.1
+  qr_code_scanner: ^1.0.1
+  provider: ^6.1.1
 
 dev_dependencies:
   flutter_test:
