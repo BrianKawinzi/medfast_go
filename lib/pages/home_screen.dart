@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:medfast_go/bargraph/individual_bar.dart';
 import 'package:medfast_go/pages/widgets/progress_indicator.dart';
-
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
   });
 
-
-  
-
-  
-
-
   //calculate revenue method
   Future<double> calculateTotalRevenue() async {
     double totalRevenue = 0;
 
-    List<double> monthlyAmounts = [10000, 20000, 15000, 25000, 18000, 22000, 30500, 28000, 35000, 32000, 28000, 40000];
-    
+    List<double> monthlyAmounts = [
+      10000,
+      20000,
+      15000,
+      25000,
+      18000,
+      22000,
+      30500,
+      28000,
+      35000,
+      32000,
+      28000,
+      40000
+    ];
+
     for (double amount in monthlyAmounts) {
       totalRevenue += amount;
     }
@@ -39,7 +46,7 @@ class HomeScreen extends StatelessWidget {
             IconButton(
               onPressed: () {
                 //Handle burger functionality
-              }, 
+              },
               icon: Icon(
                 Icons.menu,
                 color: Colors.white,
@@ -57,14 +64,12 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-
         actions: [
-
           //Notification button
           IconButton(
             onPressed: () {
               //Handle notification logic here
-            }, 
+            },
             icon: Icon(
               Icons.notifications,
               color: Colors.white,
@@ -75,7 +80,7 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             onPressed: () {
               //handle help logic here
-            }, 
+            },
             icon: Icon(
               Icons.help_outline_rounded,
               color: Colors.white,
@@ -83,14 +88,12 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
               //sales tile
               Card(
                 elevation: 5.0,
@@ -121,22 +124,102 @@ class HomeScreen extends StatelessWidget {
                       //Progress indicators
                       buildHorizontalProgressIndicators(
                         'Daily Sales',
-                         70, 
-                         Colors.purple, 
-                         'Monthly Sales', 
-                         59, 
-                         Colors.orange,
+                        70,
+                        Colors.purple,
+                        'Monthly Sales',
+                        59,
+                        Colors.orange,
                       ),
 
                       buildHorizontalProgressIndicators(
                         'Annual Sales',
-                         43, 
-                         Colors.yellow, 
-                         'Target Sales', 
-                         87, 
-                         Colors.orange,
+                        43,
+                        Colors.yellow,
+                        'Target Sales',
+                        87,
+                        Colors.orange,
                       ),
-                      
+
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              //revenue card
+              Card(
+                elevation: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total \n Revenue',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.grey,
+                            ),
+                          ),
+
+                          //Calculation of monthly ammounts
+                          FutureBuilder<double>(
+                              future: calculateTotalRevenue(),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Text(
+                                    'KSH \n ${snapshot.data!.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                } else {
+                                  return Text(
+                                    'Loading...',
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                }
+                              }),
+
+                          DropdownButton<String>(
+                            items: <String>[
+                              '2022',
+                              '2023',
+                              '2024',
+                              '2025',
+                              '2026',
+                              '2027'
+                            ].map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              //Handle dropdown value change logic
+                            },
+                            value: '2022',
+                          ),
+                        ],
+                      ),
+
+                      //Bar chart
+                      Container(
+                        height: 200,
+                        child: IndividualBar(
+                          x: 1, 
+                          monthlyAmounts: [10000, 20000, 15000, 25000, 18000, 22000, 30500, 28000, 35000, 32000, 28000, 40000],
+                        ),
+                      )
                     ],
                   ),
                 ),
