@@ -3,6 +3,7 @@ import 'package:medfast_go/business/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/brand_intro.dart';
 import 'package:medfast_go/pages/forgot_password.dart';
 import 'package:medfast_go/pages/home_page.dart';
@@ -27,10 +28,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/home',
+      initialRoute: '/bottom',
       routes: {
         '/splash': (context) => const SplashScreen(),
-        
+        '/bottom': (context) => const BottomNavigation(),
+      
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
         '/home':(context) => HomeScreen(),
