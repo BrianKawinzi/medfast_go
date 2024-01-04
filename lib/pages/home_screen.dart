@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:medfast_go/bargraph/individual_bar.dart';
 import 'package:medfast_go/pages/widgets/progress_indicator.dart';
 
@@ -90,92 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color.fromARGB(255, 16, 253, 44),
-              ),
-              child: Align(
-                alignment: Alignment.center,
-                child: Text(
-                  'MedFast Go',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    
-                  ),
-                ),
-                
-              ),
-
-              
-            ),
-
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-
-                //Handle home option
-                Navigator.pop(context);
-              },
-            ),
-
-            ListTile(
-              leading: Icon(Icons.language),
-              title: Text('Language'),
-              onTap: () {
-
-                //Handle language option
-                Navigator.pop(context);
-              },
-            ),
-
-            ListTile(
-              leading: Icon(Icons.support),
-              title: Text('Support'),
-              onTap: () {
-
-                //Handle support option
-                Navigator.pop(context);
-              },
-            ),
-
-
-            ListTile(
-              leading: Icon(Icons.info),
-              title: Text('About Us'),
-              onTap: () {
-
-                //Handle about option
-                Navigator.pop(context);
-              },
-            ),
-
-
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              onTap: () {
-
-                //Handle settings option
-                Navigator.pop(context);
-              },
-            ),
-
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Logout'),
-              onTap: () {
-
-                //Handle logout option
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: const NavigationDrawerWidget(),
       ),
       body: SingleChildScrollView(
         child: Padding(

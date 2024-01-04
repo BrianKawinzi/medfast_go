@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/faq.dart';
 import 'package:medfast_go/pages/home_page.dart';
+import 'package:medfast_go/pages/home_screen.dart';
 import 'package:medfast_go/pages/language.dart';
 import 'package:medfast_go/pages/log_out.dart';
 import 'package:medfast_go/pages/profile.dart';
@@ -129,7 +130,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            const HomePage(), // Navigate to the HomePage
+                            const HomeScreen(), // Navigate to the HomePage
                       ));
                     },
                   ),
