@@ -1,10 +1,10 @@
 class Product {
   final int id;
-  final String productName;
-  final String medicineDescription;
-  final double buyingPrice;
-  final String? image;
-  final String expiryDate;
+  String productName;
+  String medicineDescription;
+  double buyingPrice;
+  String? image;
+  String expiryDate;
   final String manufactureDate;
   final String? unit; // Unit field
 
@@ -31,7 +31,7 @@ class Product {
         unit = map['unit'];
 
   // Method to convert a Product object to a map
- Map<String, dynamic> toMap({bool excludeId = false}) {
+  Map<String, dynamic> toMap({bool excludeId = false}) {
     return {
       'id': id,
       'productName': productName,
