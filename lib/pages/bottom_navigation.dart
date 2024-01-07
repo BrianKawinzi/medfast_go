@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/business/reports.dart';
+import 'package:medfast_go/pages/general_page.dart';
 import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/pages/home_screen.dart';
 import 'package:medfast_go/pages/profile.dart';
@@ -18,7 +19,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   final List<Widget> _pages = [
     HomeScreen(),
     Products(productName: ''),
-    HomePage(),
+    GeneralPage(),
     Reports(),
     PharmacyProfile(),
   ];
