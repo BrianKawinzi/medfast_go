@@ -48,10 +48,16 @@ class _BottomNavigationState extends State<BottomNavigation> {
             _pageController.jumpToPage(index);
           });
         },
+        // selectedLabelStyle: TextStyle(color: Color.fromARGB(255, 11, 11, 11)),
+        // unselectedLabelStyle: TextStyle(color: Color.fromARGB(255, 11, 11, 11)),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Color.fromARGB(255, 7, 79, 8),
+        unselectedItemColor: Color.fromARGB(255, 37, 234, 6),
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard, color: _currentIndex == 0 ? Colors.green : Colors.lightGreen),
             label: 'Board',
+            
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_bag, color: _currentIndex == 1 ? Colors.green : Colors.lightGreen),

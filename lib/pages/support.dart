@@ -1,4 +1,4 @@
-
+import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/home_page.dart';
 
@@ -18,14 +18,11 @@ class _SupportState extends State<Support> {
         title: Text('Support'),
         centerTitle: true,
         backgroundColor: Color.fromRGBO(58, 205, 50, 1),
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => HomePage(),
-            ));
-          },
-          child: Icon(Icons.arrow_back),
-        ),
+        
+      ),
+      drawer: Drawer(
+        width: MediaQuery.of(context).size.width * 0.9, 
+        child: NavigationDrawerWidget(),
       ),
       backgroundColor:
           Colors.green, // Set the background color of the entire screen

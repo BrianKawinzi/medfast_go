@@ -1,6 +1,7 @@
 // ignore_for_file: override_on_non_overriding_member
 
 import 'package:flutter/material.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/faq.dart';
 import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/pages/home_screen.dart';
@@ -130,7 +131,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
                         builder: (context) =>
-                            const HomeScreen(), // Navigate to the HomePage
+                            const BottomNavigation(), // Navigate to the HomePage
                       ));
                     },
                   ),
