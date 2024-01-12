@@ -28,14 +28,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/splash',
+      initialRoute: '/HomePage',
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
-      
+
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
-        '/home':(context) => HomeScreen(),
+        '/home': (context) => HomeScreen(),
         '/signUp': (context) {
           final Map<String, dynamic> args = ModalRoute.of(context)!
               .settings
@@ -51,7 +51,9 @@ class MyApp extends StatelessWidget {
         '/registerpharmacy': (context) => RegisterPharmacyScreen(),
         '/profile': (context) => const PharmacyProfile(),
         '/productwithoutbarcode': (context) => AddProductForm(),
-        '/product': (context) => Products(productName: '',),
+        '/product': (context) => Products(
+              productName: '',
+            ),
         '/editProduct': (context) {
           final Product product =
               ModalRoute.of(context)!.settings.arguments as Product;
