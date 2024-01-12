@@ -30,6 +30,8 @@ class Product {
         manufactureDate = map['manufactureDate'],
         unit = map['unit'];
 
+  get sellingPrice => null;
+
   // Method to convert a Product object to a map
   Map<String, dynamic> toMap({bool excludeId = false}) {
     return {
