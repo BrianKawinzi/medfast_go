@@ -243,6 +243,119 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+
+
+              const SizedBox(height: 10),
+              //stats card
+              Card(
+                elevation: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          
+                          //stats overview
+                          const Text(
+                            'Stats overview',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          //filter button
+                          IconButton(
+                            onPressed: () {
+                              //Add filter functionality here
+                            }, 
+                            icon: Icon(Icons.filter_list)
+                          )
+                        ],
+                      ),
+
+
+                      const SizedBox(height: 16.0),
+
+
+                      //progress bars
+
+                      const Text(
+                        'Tracking 1',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                       const SizedBox(height: 4),
+
+                      LinearProgressIndicator(
+                        value: 0.7,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color.fromARGB(255, 255, 234, 0)),
+                        backgroundColor: Colors.grey,
+                        minHeight: 10.0,
+                        
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                     
+                      
+
+                      const SizedBox(height: 40.0),
+
+                      const Text(
+                        'Tracking 2',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                       const SizedBox(height: 4),
+
+                      LinearProgressIndicator(
+                        value: 0.4,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color.fromARGB(255, 255, 17, 1)),
+                        backgroundColor: Colors.grey,
+                        minHeight: 10,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+
+                      const SizedBox(height: 40.0),
+
+
+                      const Text(
+                        'Tracking 3',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      LinearProgressIndicator(
+                        value: 0.7,
+                        valueColor: const AlwaysStoppedAnimation<Color>(const Color.fromARGB(255, 213, 0, 250)),
+                        backgroundColor: Colors.grey,
+                        minHeight: 10,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+
+                      
+
+
+                    ],
+                  )
+                ),
+              ),
+
             ],
           ),
         ),
