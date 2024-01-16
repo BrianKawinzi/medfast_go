@@ -3,48 +3,68 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://medrxapi.azurewebsites.net'; 
+  static const String baseUrl = 'https://medrxapi.azurewebsites.net';
 
   Future<void> registerPharmacy(BuildContext context, pharmacy) async {
-    final url = Uri.parse(
-    '$baseUrl/api/pharmacies?'
-     'PharmacyName=${pharmacy.pharmacyName}&'
-      'Region=${pharmacy.region}&'
-      'City=${pharmacy.city}&'
-      'SubCity=${pharmacy.subCity}&'
-      'Landmark=${pharmacy.landmark}&'
-      'PhoneNumber=${pharmacy.phoneNumber}&'
-      'Latitude=${pharmacy.latitude}&'
-      'Longitude=${pharmacy.longitude}'); 
+    final url = Uri.parse('$baseUrl/api/pharmacies?'
+        'PharmacyName=${pharmacy.pharmacyName}&'
+        'Email=${pharmacy.email}&'
+        'PhoneNumber=${pharmacy.phoneNumber}&'
+        'Latitude=${pharmacy.latitude}&'
+        'Longitude=${pharmacy.longitude}');
 
     try {
       final response = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/json', 
+          'Content-Type': 'application/json',
         },
-       
       );
 
       if (response.statusCode == 200) {
-         print('Pharmacy registered successfully');
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-      final int pharmacyId = responseData['pharmacyId']; // Adjust the key based on your API response.
+        final int pharmacyId = responseData['pharmacyId'];
 
-      print('Pharmacy registered successfully with ID: $pharmacyId');
-     
-     // Navigate to the signUpPage and pass the pharmacyId as an argument
-         Navigator.pushNamed(context, '/signUp', arguments: {'pharmacyId': pharmacyId});
-        
-
+        Navigator.pushNamed(context, '/signUp',
+            arguments: {'pharmacyId': pharmacyId});
       } else {
-        // Handle API error (e.g., display an error message)
-        print('Failed to register pharmacy. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final dynamic validationErrors = responseData['validationErrors'] ?? {};
+
+        if (validationErrors is Map<String, dynamic>) {
+          throw Map<String, String>.from(validationErrors.map(
+            (key, value) => MapEntry(key, value.toString()),
+          ));
+        } else if (validationErrors is String) {
+          throw {
+            'error': validationErrors
+          }; // Handle the case where validationErrors is a String
+        } else if (validationErrors is List) {
+          throw {
+            'error': validationErrors.join('\n')
+          }; // Handle the case where validationErrors is a List
+        } else {
+          print(
+              'Failed to register pharmacy. Status code: ${response.statusCode}');
+          print('Response body: ${response.body}');
+        }
       }
     } catch (error) {
-      // Handle network or other errors
       print('Error registering pharmacy: $error');
+
+      final errorMessage = error is Map<String, dynamic>
+          ? error.values.join('\n')
+          : error is String
+              ? error
+              : 'Unexpected error occurred';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+        ),
+      );
+
+      rethrow;
     }
   }
 }
