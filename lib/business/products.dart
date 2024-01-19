@@ -7,7 +7,7 @@ import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/models/product.dart';
 
 class Products extends StatefulWidget {
-  const Products({super.key});
+  const Products({super.key, required String productName});
 
   @override
   _ProductsState createState() => _ProductsState();
