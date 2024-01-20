@@ -41,6 +41,11 @@ flutter:
     - lib/assets/Financial Insights.png
     - lib/assets/bar-code.png
     - lib/assets/pharmacy-store.png
+    - lib/assets/barcode_icon.png
+    - lib/assets/barcode.png
+    - lib/assets/cash.png
+    - lib/assets/MobilePay.jfif
+    - lib/assets/no-barcode.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
