@@ -990,7 +990,3 @@ class CashPayment extends StatelessWidget {
     );
   }
 }
-
-void main() {
-  runApp(MaterialApp(home: CashPayment()));
-}
