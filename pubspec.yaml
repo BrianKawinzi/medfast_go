@@ -23,6 +23,9 @@ dependencies:
   path_provider_foundation: ^2.3.1
   qr_code_scanner: ^1.0.1
   provider: ^6.1.1
+  lottie: ^1.4.3
+
+
 
 dev_dependencies:
   flutter_test:
@@ -39,6 +42,9 @@ flutter:
     - lib/assets/no_barcode_icon.png
     - lib/assets/Posimage.png
     - lib/assets/Financial Insights.png
+    - lib/assets/bar-code.png
+    - lib/assets/pharmacy-store.png
+    - lib/assets/PaymentIcon.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

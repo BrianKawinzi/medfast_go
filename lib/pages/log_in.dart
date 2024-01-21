@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (response.statusCode == 200) {
-      Navigator.of(currentContext).pushReplacementNamed('/dashboard');
+      Navigator.of(currentContext).pushReplacementNamed('/bottom');
     } else {
       ScaffoldMessenger.of(currentContext).showSnackBar(
         const SnackBar(
