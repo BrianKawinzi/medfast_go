@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:js';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
@@ -11,10 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
-import 'package:lottie/lottie.dart';
 
 //import 'package:sms/sms.dart';
-
 
 List<Product> cartItems = [];
 
@@ -652,7 +649,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
               children: [
                 Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: 8), // Add horizontal padding
+                      horizontal: 4), // Add horizontal padding
                   child: Center(
                     // Centers the text horizontally in the container
                     child: Text(
@@ -815,7 +812,7 @@ class MiniScreen extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        margin: EdgeInsets.only(bottom: 2.5 * 38.1),
+        margin: EdgeInsets.only(bottom: 3.5 * 38.1),
         width: 600,
         height: 200,
         decoration: BoxDecoration(
@@ -853,7 +850,7 @@ class MiniScreen extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 150,
+        width: 170,
         height: 60,
         decoration: BoxDecoration(
           color: Color.fromARGB(255, 224, 220, 220),
@@ -1103,7 +1100,7 @@ class _CashPaymentState extends State<CashPayment> {
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        ReceiptPage; // Add your receipt sending logic here
+                        // Add your receipt sending logic here
                       },
                       child: Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
@@ -1357,7 +1354,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
-                        ReceiptPage; // Add your receipt sending logic here
+                        // Add your receipt sending logic here
                       },
                       child: Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
@@ -1381,7 +1378,6 @@ class _MobilePaymentState extends State<MobilePayment> {
     );
   }
 }
-
 
 class PaymentInfoDisplay extends StatelessWidget {
   final String customerName; // Placeholder for customer name
@@ -1410,62 +1406,6 @@ class PaymentInfoDisplay extends StatelessWidget {
           fontSize: 16,
         ),
       ),
-    );
-  }
-}
-
-class ReceiptPage extends StatefulWidget {
-  final double balance; // Assuming balance is passed to this widget
-
-  ReceiptPage({Key? key, required this.balance}) : super(key: key);
-
-  @override
-  _ReceiptPageState createState() => _ReceiptPageState();
-}
-
-class _ReceiptPageState extends State<ReceiptPage> {
-  bool _isReceiptSent = false;
-
-  void _sendReceipt() {
-    if (widget.balance >= 0) {
-      setState(() {
-        _isReceiptSent = true;
-      });
-      // Add your logic to send receipt
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: _isReceiptSent ? _buildSuccessAnimation() : _buildSendButton(),
-      ),
-    );
-  }
-
-  Widget _buildSendButton() {
-    return ElevatedButton(
-      onPressed: _sendReceipt,
-      child: Text("Complete and Send Receipt"),
-      style: ElevatedButton.styleFrom(
-        primary: Colors.green,
-        onPrimary: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: Colors.black),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSuccessAnimation() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Lottie.asset('assets/green_tick.json'), // Path to your Lottie file
-        Text("Receipt sent successfully"),
-      ],
     );
   }
 }
