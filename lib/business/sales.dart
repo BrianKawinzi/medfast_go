@@ -40,7 +40,9 @@ class _SalesState extends State<Sales> {
   List<Product> products = [];
   List<Product> allProducts =
       []; // To store all products fetched from the database
-  String hintText = 'Search'; // Placeholder text for search
+  String hintText = 'Search';
+
+  get totalPrice => null; // Placeholder text for search
   // void initState() {
   //   super.initState();
   //   _fetchProductsFromDatabase(); // Fetch products when the widget initializes
@@ -55,10 +57,13 @@ class _SalesState extends State<Sales> {
   Future<void> _fetchProducts() async {
     final dbHelper = DatabaseHelper();
     final fetchedProducts = await dbHelper.getProducts();
+    if (mounted) {
     setState(() {
       products = fetchedProducts;
     });
   }
+}
+
 
   Future<void> _filterProducts(String query) async {
     final dbHelper = DatabaseHelper();
@@ -77,7 +82,11 @@ class _SalesState extends State<Sales> {
   }
 
   void _navigateToEditProduct(Product product) {
-    Navigator.of(context as BuildContext).push(_createRoute(product));
+Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => CashPayment(totalPrice: totalPrice)),
+    );
   }
 
   Route _createRoute(Product product) {
@@ -110,7 +119,10 @@ class _SalesState extends State<Sales> {
         ),
       );
     } else {
-      return ListView.builder(
+      //return ListView.builder(
+      return RefreshIndicator(
+        onRefresh: _fetchProducts, // Refresh action
+        child: ListView.builder(
         itemCount: products.length,
         itemBuilder: (context, index) {
           var product = products[index];
@@ -204,6 +216,7 @@ class _SalesState extends State<Sales> {
             ),
           );
         },
+        ),
       );
     }
   }
@@ -448,6 +461,7 @@ class OrderConfirmationScreen extends StatefulWidget {
       _OrderConfirmationScreenState();
 }
 
+
 class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   late Map<String, int> productQuantity;
   late Map<String, double> productPrice;
@@ -496,6 +510,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
       isMiniScreenVisible = false;
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -516,7 +531,26 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
       return totalPrice;
     }
 
+    double calculateTotalPrice() {
+      double totalPrice = 0.0;
+      // Logic to calculate total price
+      for (var product in widget.cartItems) {
+        if (productPrice[product.productName] == null) {
+          print("Price for ${product.productName} is null");
+        }
+        if (productQuantity[product.productName] == null) {
+          print("Quantity for ${product.productName} is null");
+        }
+
+        double price = productPrice[product.productName] ?? 0.0;
+        int quantity = productQuantity[product.productName] ?? 0;
+        totalPrice += price * quantity;
+      }
+      return totalPrice;
+    }
+
     double totalPrice = getTotalPrice();
+    
 
     return Scaffold(
       appBar: AppBar(
@@ -704,9 +738,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
           ),
           if (isMiniScreenVisible)
             MiniScreen(
-              onClose:
-                  _closeMiniScreen, // Pass the method to close the MiniScreen
+              totalPrice: totalPrice,
+              onClose: _closeMiniScreen,
             ),
+
           Align(
             alignment: Alignment.topCenter,
             child: SingleChildScrollView(
@@ -804,8 +839,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
 class MiniScreen extends StatelessWidget {
   final VoidCallback onClose;
+  
 
-  MiniScreen({Key? key, required this.onClose}) : super(key: key);
+  MiniScreen({Key? key, required this.onClose, required this.totalPrice})
+      : super(key: key);
+
+  final double totalPrice;
 
   @override
   Widget build(BuildContext context) {
@@ -827,10 +866,12 @@ class MiniScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => CashPayment(),
+                  builder: (BuildContext context) =>
+                      CashPayment(totalPrice: totalPrice),
                 ),
               );
             }),
+
             _buildPaymentButton("M-Pesa", 'lib/assets/MobilePay.jfif', () {
               Navigator.push(
                 context,
@@ -900,7 +941,12 @@ class FullScreenPage extends StatelessWidget {
 
 class CashPayment extends StatefulWidget {
   @override
-  _CashPaymentState createState() => _CashPaymentState(totalPrice: 0);
+final double totalPrice;
+
+  CashPayment({Key? key, required this.totalPrice}) : super(key: key);
+
+  @override
+  _CashPaymentState createState() => _CashPaymentState();
 }
 
 class _CashPaymentState extends State<CashPayment> {
@@ -908,10 +954,38 @@ class _CashPaymentState extends State<CashPayment> {
   TextEditingController customerPhoneController = TextEditingController();
   double cashPaid = 0.0;
   //double totalPrice = 0.0; // You should set this based on your total price logic
-  late final double totalPrice;
+  double getBalance() {
+    return cashPaid - widget.totalPrice;
+  }
 
-  _CashPaymentState({required this.totalPrice});
-
+  void completeAndSendReceipt() {
+    if (customerPhoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Customer phone number is required!")),
+      );
+    } else if (getBalance() >= 0) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          // Automatically close the dialog after 5 seconds
+          Future.delayed(Duration(seconds: 5), () {
+            Navigator.of(context).pop(); // Close the dialog
+            // Clear the cart items
+            setState(() {
+              cartItems.clear();
+            });
+            Navigator.of(context).popUntil(
+                (route) => route.isFirst); // Navigate back to the Sales screen
+          });
+          return AlertDialog(
+            title: Icon(Icons.check_circle, color: Colors.green, size: 60),
+            content: Text("Order completed successfully",
+                textAlign: TextAlign.center),
+          );
+        },
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -924,6 +998,7 @@ class _CashPaymentState extends State<CashPayment> {
           },
         ),
       ),
+      
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -995,6 +1070,7 @@ class _CashPaymentState extends State<CashPayment> {
                           },
                         ),
                       ),
+
                     ],
                   ),
 
@@ -1079,18 +1155,19 @@ class _CashPaymentState extends State<CashPayment> {
                               ),
                             ),
                             Text(
-                              "${cashPaid - totalPrice}",
+                              "${getBalance().toStringAsFixed(2)}",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 // Other styles as needed
                               ),
                             ),
+
                           ],
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 20), // Adjust the height for spacing
+                  SizedBox(height: 30), // Adjust the height for spacing
 
                   SizedBox(height: 30),
                   SizedBox(height: 30),
@@ -1099,9 +1176,7 @@ class _CashPaymentState extends State<CashPayment> {
                   // Complete and Send Receipt Button
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Add your receipt sending logic here
-                      },
+                      onPressed: completeAndSendReceipt,
                       child: Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
                         primary: Colors.green,

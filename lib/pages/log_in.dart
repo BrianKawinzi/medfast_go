@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -14,7 +16,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
   bool loading = false;
 
   Future<void> signUserIn() async {
@@ -28,34 +29,70 @@ class _LoginPageState extends State<LoginPage> {
     final url =
         Uri.parse('https://medrxapi.azurewebsites.net/api/Account/login');
 
-    // Store the context in a local variable
-    BuildContext currentContext = context;
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': enteredEmail,
+          'password': enteredPassword,
+        }),
+      );
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'email': enteredEmail,
-        'password': enteredPassword,
-      }),
-    );
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final token =
+            responseData['token']; // Replace with your actual token key
 
-    if (response.statusCode == 200) {
-      Navigator.of(currentContext).pushReplacementNamed('/bottom');
-    } else {
-      ScaffoldMessenger.of(currentContext).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid email or password'),
-          duration: Duration(milliseconds: 1),
+        // Decode the JWT token
+        final payload = decodeJwtPayload(token);
+
+        // Extract the email address
+        final email = payload[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+
+        // Save the token and email using SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('jwt_token', token);
+        await prefs.setString('user_email', email); // Save the email
+
+        Navigator.of(context).pushReplacementNamed('/bottom');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid email or password'),
+            duration: Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: $e'),
+          duration: Duration(milliseconds: 1500),
         ),
       );
+    } finally {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  Map<String, dynamic> decodeJwtPayload(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) {
+      throw Exception('Invalid token');
     }
 
-    setState(() {
-      loading = false;
-    });
+    final payload = parts[1];
+    final normalized = base64Url.normalize(payload);
+    final resp = utf8.decode(base64Url.decode(normalized));
+    final payloadMap = json.decode(resp);
+
+    return payloadMap;
   }
 
   @override
@@ -154,10 +191,9 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            // Loading Overlay
             if (loading)
               Container(
-                color: Colors.black.withOpacity(0.5), // Darkens the screen
+                color: Colors.black.withOpacity(0.5),
                 child: Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
