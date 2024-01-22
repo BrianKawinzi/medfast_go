@@ -1,6 +1,5 @@
-// ignore_for_file: override_on_non_overriding_member
-
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/faq.dart';
 import 'package:medfast_go/pages/home_page.dart';
@@ -16,45 +15,57 @@ class NavigationDrawerWidget extends StatelessWidget {
   final padding = const EdgeInsets.symmetric(horizontal: 20);
 
   const NavigationDrawerWidget({super.key});
-  @override
+
+  Future<String> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_email') ?? 'No email';
+  }
+
   Widget buildHeader({
     required String urlImage,
     required String name,
-    required String email,
     required VoidCallback onClicked,
-  }) =>
-      InkWell(
-        onTap: onClicked,
-        child: Container(
-          padding: padding.add(const EdgeInsets.symmetric(vertical: 40)),
-          child: Row(
-            children: [
-              CircleAvatar(radius: 30, backgroundImage: NetworkImage(urlImage)),
-              const SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontSize: 20, color: Colors.white),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    email,
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color.fromRGBO(30, 60, 168, 1),
-                child: Icon(Icons.add_comment_outlined, color: Colors.white),
-              )
-            ],
+  }) {
+    return FutureBuilder<String>(
+      future: getUserEmail(),
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        String email = snapshot.hasData ? snapshot.data! : 'Loading...';
+        return InkWell(
+          onTap: onClicked,
+          child: Container(
+            padding: padding.add(const EdgeInsets.symmetric(vertical: 40)),
+            child: Row(
+              children: [
+                CircleAvatar(
+                    radius: 30, backgroundImage: NetworkImage(urlImage)),
+                const SizedBox(width: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      email,
+                      style: const TextStyle(fontSize: 14, color: Colors.white),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                const CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color.fromRGBO(30, 60, 168, 1),
+                  child: Icon(Icons.add_comment_outlined, color: Colors.white),
+                )
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      },
+    );
+  }
 
   Widget buildSearchField() {
     const color = Colors.white;
@@ -99,10 +110,9 @@ class NavigationDrawerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const name = 'Tala Chemist';
-    const email = 'talachemist@gmail.com';
     const urlImage =
         'https://images.unsplash.com/photo-1603706580932-6befcf7d8521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80';
+    const name = 'Tala Chemist';
 
     return Drawer(
       child: Material(
@@ -112,7 +122,6 @@ class NavigationDrawerWidget extends StatelessWidget {
             buildHeader(
               urlImage: urlImage,
               name: name,
-              email: email,
               onClicked: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => const PharmacyProfile(),
               )),
@@ -130,11 +139,10 @@ class NavigationDrawerWidget extends StatelessWidget {
                     onClicked: () {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            const BottomNavigation(), // Navigate to the HomePage
+                        builder: (context) => const BottomNavigation(),
                       ));
                     },
-                  ),
+                  ),  
                   buildMenuItem(
                     text: 'Profile',
                     icon: Icons.person_2,
@@ -209,14 +217,14 @@ class NavigationDrawerWidget extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 10),
+                  // ... other menu items
                   buildMenuItem(
                     text: 'Log Out',
                     icon: Icons.logout,
                     onClicked: () {
                       Navigator.of(context).pop(); // Close the drawer
                       Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            const LogOutPage(), // Navigate to the HomePage
+                        builder: (context) => const LogOutPage(),
                       ));
                     },
                   ),
