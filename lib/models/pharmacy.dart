@@ -1,13 +1,13 @@
 class Pharmacy {
   String pharmacyName;
-  String email;
+  String county;
   String phoneNumber;
   double latitude;
   double longitude;
 
   Pharmacy({
     required this.pharmacyName,
-    required this.email,
+    required this.county,
     required this.phoneNumber,
     required this.latitude,
     required this.longitude,
@@ -16,7 +16,7 @@ class Pharmacy {
   Map<String, dynamic> toJson() {
     return {
       'PharmacyName': pharmacyName,
-      'Email': email,
+      'County': county,
       'PhoneNumber': phoneNumber,
       'Latitude': latitude,
       'Longitude': longitude,
