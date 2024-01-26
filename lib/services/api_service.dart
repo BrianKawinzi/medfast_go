@@ -8,7 +8,7 @@ class ApiService {
   Future<void> registerPharmacy(BuildContext context, pharmacy) async {
     final url = Uri.parse('$baseUrl/api/pharmacies?'
         'PharmacyName=${pharmacy.pharmacyName}&'
-        'Email=${pharmacy.email}&'
+        'County=${pharmacy.county}&'
         'PhoneNumber=${pharmacy.phoneNumber}&'
         'Latitude=${pharmacy.latitude}&'
         'Longitude=${pharmacy.longitude}');

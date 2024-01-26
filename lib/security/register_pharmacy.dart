@@ -12,11 +12,61 @@ class RegisterPharmacyScreen extends StatefulWidget {
   _RegisterPharmacyScreenState createState() => _RegisterPharmacyScreenState();
 }
 
+List<String> counties = [
+  'Mombasa',
+  'Kwale',
+  'Kilifi',
+  'Tana River',
+  'Lamu',
+  'Taita-Taveta',
+  'Garissa',
+  'Wajir',
+  'Mandera',
+  'Marsabit',
+  'Isiolo',
+  'Meru',
+  'Tharaka-Nithi',
+  'Embu',
+  'Kitui',
+  'Machakos',
+  'Makueni',
+  'Nyandarua',
+  'Nyeri',
+  'Kirinyaga',
+  'Muranga',
+  'Kiambu',
+  'Turkana',
+  'West Pokot',
+  'Samburu',
+  'Trans Nzoia',
+  'Uasin Gishu',
+  'Elgeyo-Marakwet',
+  'Nandi',
+  'Baringo',
+  'Laikipia',
+  'Nakuru',
+  'Narok',
+  'Kajiado',
+  'Kericho',
+  'Bomet',
+  'Kakamega',
+  'Vihiga',
+  'Bungoma',
+  'Busia',
+  'Siaya',
+  'Kisumu',
+  'Homa Bay',
+  'Migori',
+  'Kisii',
+  'Nyamira',
+  'Nairobi'
+];
+
 class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
   String pharmacyName = '';
-  String email = '';
+  String county = '';
   String phoneNumber = '';
   Position? pharmacyLocation;
   bool isLoading = false;
@@ -130,9 +180,21 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
                     onSaved: (value) => pharmacyName = value ?? '',
                   ),
                   const SizedBox(height: 10),
-                  TextFormField(
+                  DropdownButtonFormField<String>(
+                    // Remove the 'value' attribute
+                    items: counties.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        county = newValue ?? '';
+                      });
+                    },
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'County',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -141,11 +203,10 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a valid email';
+                        return 'Choose county';
                       }
                       return null;
                     },
-                    onSaved: (value) => email = value ?? '',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
@@ -173,7 +234,7 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
 
                         final pharmacy = Pharmacy(
                           pharmacyName: pharmacyName,
-                          email: email,
+                          county: county,
                           phoneNumber: phoneNumber,
                           latitude: pharmacyLocation?.latitude ?? 0.0,
                           longitude: pharmacyLocation?.longitude ?? 0.0,

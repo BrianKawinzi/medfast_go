@@ -23,6 +23,9 @@ dependencies:
   path_provider_foundation: ^2.3.1
   qr_code_scanner: ^1.0.1
   provider: ^6.1.1
+  
+
+
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +44,11 @@ flutter:
     - lib/assets/Financial Insights.png
     - lib/assets/bar-code.png
     - lib/assets/pharmacy-store.png
+    - lib/assets/PaymentIcon.png
+    - lib/assets/no-barcode.png
+    - lib/assets/barcode.png
+    - lib/assets/cash.png
+    - lib/assets/MobilePay.jfif
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
