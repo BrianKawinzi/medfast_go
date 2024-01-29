@@ -36,9 +36,18 @@ class ApiService {
             (key, value) => MapEntry(key, value.toString()),
           ));
         } else if (validationErrors is String) {
-          throw {
-            'error': validationErrors
-          }; // Handle the case where validationErrors is a String
+          // Handle the case where validationErrors is a String
+          print('Error registering pharmacy: $validationErrors');
+          final snackBar = SnackBar(
+            content:
+                Text(validationErrors, style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          // throw the error after displaying the SnackBar
+          throw {'error': validationErrors};
         } else if (validationErrors is List) {
           throw {
             'error': validationErrors.join('\n')
@@ -47,24 +56,36 @@ class ApiService {
           print(
               'Failed to register pharmacy. Status code: ${response.statusCode}');
           print('Response body: ${response.body}');
+          throw validationErrors; // Throw the exact errors received from the server
         }
       }
     } catch (error) {
-      print('Error registering pharmacy: $error');
+      if (error is FormatException) {
+        // Handle FormatException separately
+        print('Caught FormatException: $error');
+        final errorMessage =
+            'A pharmacy with the same name and phone number already exists';
+        final snackBar = SnackBar(
+          content: Text(errorMessage, style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        );
 
-      final errorMessage = error is Map<String, dynamic>
-          ? error.values.join('\n')
-          : error is String
-              ? error
-              : 'Unexpected error occurred';
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        // throw the error after displaying the SnackBar
+        throw {'error': errorMessage};
+      } else {
+        print('Caught other error: $error');
+        final snackBar = SnackBar(
+          content: Text('$error', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-        ),
-      );
-
-      rethrow;
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        // rethrow the error after displaying the SnackBar
+        rethrow;
+      }
     }
   }
 }
