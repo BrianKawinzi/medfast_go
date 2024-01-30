@@ -3,6 +3,7 @@ import 'package:medfast_go/business/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:medfast_go/pages/auth_page.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/brand_intro.dart';
 import 'package:medfast_go/pages/forgot_password.dart';
@@ -28,14 +29,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/HomePage',
+      initialRoute: '/auth',
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
 
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/auth':(context) => const AuthPage(),
         '/signUp': (context) {
           final Map<String, dynamic> args = ModalRoute.of(context)! 
               .settings
