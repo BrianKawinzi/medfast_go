@@ -162,20 +162,38 @@ class _ProductsState extends State<Products> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
+
+                _showProductList(); // Close the dialog
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                _deleteProduct(product);
+                // Reverse the swipe action
                 Navigator.of(context).pop(); // Close the dialog
+                _deleteProduct(
+                    product); // Call a method to simulate the swipe action
               },
               child: const Text('Delete'),
             ),
           ],
         );
       },
+    );
+  }
+
+  void _showProductList() {
+    // Simulate the swipe action or any other action needed
+    // You can add the logic to update the state or perform any other action
+    // For example, you can use Navigator.push to navigate to the same page again
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Products(
+          productName: '',
+        ),
+      ),
     );
   }
 
