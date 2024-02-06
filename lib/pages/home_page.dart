@@ -137,12 +137,16 @@ class _HomePageState extends State<HomePage> {
   void navigateToDetailScreen(BuildContext context, String name) {
     switch (name) {
       case 'Sales':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) =>  Sales(initialProducts: [],)));
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => Sales(
+                  initialProducts: [],
+                )));
         break;
       case 'Products':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Products(productName: '',)));
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => Products(
+                  productName: '',
+                )));
         break;
       case 'Reports':
         Navigator.of(context)
@@ -181,8 +185,10 @@ class _HomePageState extends State<HomePage> {
             .push(MaterialPageRoute(builder: (context) => OtherIncome()));
         break;
       case 'Sale History':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const SaleOrder()));
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) =>
+              saleOrder(), // No need to pass orderDetails if it's optional
+        ));
         break;
       default:
         Navigator.of(context)

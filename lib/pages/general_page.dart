@@ -12,60 +12,61 @@ import 'package:medfast_go/business/suppliers.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/components/tile.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
-
+import 'package:medfast_go/business/sale_order.dart';
 
 class GeneralPage extends StatelessWidget {
   const GeneralPage({super.key});
 
-
   //Function for navigation tile
-  void navigateToPage(BuildContext context, String pageTitle){
-
+  void navigateToPage(BuildContext context, String pageTitle) {
     switch (pageTitle) {
-
       case 'Sales':
-        Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => Sales(initialProducts: [],)));
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => Sales(
+                  initialProducts: [],
+                )));
         break;
       case 'Expenses':
         Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => Expenses()));
+            .push(MaterialPageRoute(builder: (context) => Expenses()));
         break;
       case 'Stores':
         Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const Stores()));
+            .push(MaterialPageRoute(builder: (context) => const Stores()));
         break;
       case 'Purchase Order':
-        Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const PurchaseOrder()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const PurchaseOrder()));
         break;
       case 'Supplier':
         Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => Supplier()));
+            .push(MaterialPageRoute(builder: (context) => Supplier()));
         break;
       case 'Activity':
         Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const Activity()));
+            .push(MaterialPageRoute(builder: (context) => const Activity()));
         break;
       case 'Customers':
         Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => Customers()));
+            .push(MaterialPageRoute(builder: (context) => Customers()));
         break;
       case 'Representative':
-        Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const Representative()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const Representative()));
         break;
       case 'Other Income':
         Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => OtherIncome()));
+            .push(MaterialPageRoute(builder: (context) => OtherIncome()));
         break;
       case 'Sale History':
-        Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const SaleOrder()));
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) =>
+              saleOrder(), // No need to pass orderDetails if it's optional
+        ));
         break;
       default:
-        Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const BottomNavigation()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const BottomNavigation()));
     }
   }
 
@@ -77,7 +78,6 @@ class GeneralPage extends StatelessWidget {
         backgroundColor: Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
         title: Row(
-
           children: [
             Padding(
               padding: const EdgeInsets.only(right: 13),
@@ -89,34 +89,24 @@ class GeneralPage extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            
-          ),
+            ),
           ],
         ),
-
         actions: [
-
           IconButton(
-            onPressed: () {
-
-            }, 
+            onPressed: () {},
             icon: Icon(
               Icons.notifications,
               color: Colors.white,
             ),
           ),
-
-           IconButton(
-            onPressed: () {
-
-            }, 
+          IconButton(
+            onPressed: () {},
             icon: Icon(
               Icons.help_outline_rounded,
               color: Colors.white,
             ),
           ),
-
-          
         ],
       ),
       drawer: Drawer(
@@ -126,43 +116,35 @@ class GeneralPage extends StatelessWidget {
       body: GridView.count(
         crossAxisCount: 2,
         children: [
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Sales"),
             child: buildTile("Sales", Icons.attach_money_outlined),
           ),
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Expenses"),
             child: buildTile("Expenses", Icons.money_off),
           ),
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Stores"),
             child: buildTile("Stores", Icons.store),
           ),
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Purchase Order"),
             child: buildTile("Purchase Order", Icons.shopping_cart),
           ),
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Supplier"),
             child: buildTile("Supplier", Icons.person),
           ),
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Activity"),
             child: buildTile("Activity", Icons.notifications_active_outlined),
           ),
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Customers"),
             child: buildTile("Customers", Icons.people),
           ),
-          GestureDetector
-          (
+          GestureDetector(
             onTap: () => navigateToPage(context, "Representative"),
             child: buildTile("Representative", Icons.person_add_alt_1_sharp),
           ),

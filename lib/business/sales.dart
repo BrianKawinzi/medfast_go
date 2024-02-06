@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
+import 'package:medfast_go/pages/home_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:flutter/material.dart';
@@ -236,11 +238,21 @@ class _SalesState extends State<Sales> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                  builder: (context) =>
+                      BottomNavigation()), // Adjust with your HomePage widget
+              (Route<dynamic> route) => false,
+            );
+          },
+        ),
         title: const Text('Sales'),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         actions: [
-          // Cart button with icon and item count
           Padding(
             padding: const EdgeInsets.all(5.0),
             child: Container(
@@ -256,21 +268,18 @@ class _SalesState extends State<Sales> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(
-                          Icons.shopping_cart,
-                          color: Colors.black,
-                        ),
+                        icon: Icon(Icons.shopping_cart, color: Colors.black),
                         onPressed: () {
-                          // Add your logic for navigating to the cart or showing a cart dialog
+                          // Logic for navigating to the cart or showing a cart dialog
                         },
                       ),
-                      // Display the number of items in the cart
                       Text(
                         '$cartItemCount items',
                         style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20),
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
                       ),
                     ],
                   ),
@@ -286,11 +295,10 @@ class _SalesState extends State<Sales> {
           decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage(
-                'lib/assets/pharmacy-store.png', // Replace with the actual path to your background image
-              ),
+                  'lib/assets/pharmacy-store.png'), // Replace with the actual path to your background image
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
-                const Color.fromARGB(255, 255, 255, 255)
+                Color.fromARGB(255, 255, 255, 255)
                     .withOpacity(0.1), // 10% transparency
                 BlendMode.dstATop,
               ),
@@ -343,13 +351,35 @@ class _SalesState extends State<Sales> {
                       bottom: 0.25 * 150 / 2.54), // Adjusted bottom padding
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (BuildContext context) =>
-                              OrderConfirmationScreen(cartItems: cartItems),
-                        ),
-                      );
+                      if (cartItems.isEmpty) {
+                        // Show an error message
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Error'),
+                            content: Text(
+                                'The cart is empty!!\nAdd items and try again.'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        // Existing logic to navigate to the OrderConfirmationScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                OrderConfirmationScreen(cartItems: cartItems),
+                          ),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       primary: const Color.fromRGBO(114, 194, 117, 1),
@@ -442,6 +472,20 @@ class _SalesState extends State<Sales> {
     if (!_isProductInCart(product)) {
       cartItems.add(product);
     }
+  }
+}
+
+class OrderRepository {
+  static final List<OrderDetails> completedOrders = [];
+
+  // Adds a completed order to the repository
+  static void addCompletedOrder(OrderDetails order) {
+    completedOrders.add(order);
+  }
+
+  // Retrieves all completed orders
+  static List<OrderDetails> getCompletedOrders() {
+    return completedOrders;
   }
 }
 
@@ -948,23 +992,31 @@ class _CashPaymentState extends State<CashPayment> {
   }
 
   void completeAndSendReceipt() {
-    if (customerPhoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Customer phone number is required!")),
+    if (getBalance() >= 0) {
+      // Construct the order details
+      final String orderId = Random().nextInt(1000).toString();
+      final double totalPrice = widget.totalPrice;
+      final List<Product> products = [...cartItems]; // Clone the cart items
+
+      // Create an OrderDetails instance
+      OrderDetails orderDetails = OrderDetails(
+        orderId: orderId,
+        totalPrice: totalPrice,
+        products: products,
+        completedAt: DateTime.now(),
       );
-    } else if (getBalance() >= 0) {
+
+      // Add the completed order to the repository
+      OrderRepository.addCompletedOrder(orderDetails);
+
+      // Show confirmation dialog
       showDialog(
         context: context,
+        barrierDismissible: false, // Dialog will not close on tap outside
         builder: (BuildContext context) {
           // Automatically close the dialog after 5 seconds
           Future.delayed(Duration(seconds: 5), () {
-            Navigator.of(context).pop(); // Close the dialog
-            // Clear the cart items
-            setState(() {
-              cartItems.clear();
-            });
-            Navigator.of(context).popUntil(
-                (route) => route.isFirst); // Navigate back to the Sales screen
+            Navigator.of(context).pop(true); // Close the dialog
           });
           return AlertDialog(
             title: Icon(Icons.check_circle, color: Colors.green, size: 60),
@@ -972,8 +1024,32 @@ class _CashPaymentState extends State<CashPayment> {
                 textAlign: TextAlign.center),
           );
         },
-      );
+      ).then((_) {
+        // Clear the cart items and navigate back to the Sales screen
+        setState(() {
+          cartItems.clear();
+        });
+        // Clear any existing navigation stack and navigate to the Sales screen
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => Sales(initialProducts: [])),
+          (Route<dynamic> route) =>
+              false, // This will remove all the routes below the Sales screen
+        );
+      });
+    } else {
+      // Handle insufficient balance...
     }
+  }
+
+  void navigateToSalesScreen() {
+    // Clear any existing navigation stack and navigate to the Sales screen
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => Sales(initialProducts: []),
+      ),
+      (Route<dynamic> route) =>
+          true, // Remove all routes below the Sales screen
+    );
   }
 
   @override
@@ -1318,7 +1394,7 @@ class _MobilePaymentState extends State<MobilePayment> {
 
                   // PaymentInfoDisplay(), // Before payment
                   PaymentInfoDisplay(
-                      customerName: "John Doe",
+                      customerName: "John Michael",
                       amountPaid: "Ksh. 500"), // After payment
                   Spacer(),
 
@@ -1470,4 +1546,28 @@ class PaymentInfoDisplay extends StatelessWidget {
       ),
     );
   }
+}
+
+class OrderDetails {
+  final String orderId;
+  final double totalPrice;
+  final List<Product> products;
+  DateTime completedAt; // Add this line
+
+  OrderDetails({
+    required this.orderId,
+    required this.totalPrice,
+    required this.products,
+    required this.completedAt, // Initialize this in the constructor
+  });
+}
+
+class ProductOrder {
+  final Product product;
+  final int quantity;
+  // Assuming you have a quantity field
+  List<Product> _products = [];
+  List<Product> get products => _products;
+  List<Product> cartItems = [];
+  ProductOrder({required this.product, required this.quantity});
 }
