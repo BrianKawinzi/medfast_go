@@ -37,9 +37,9 @@ class MyApp extends StatelessWidget {
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
         '/home': (context) => const HomeScreen(),
-        '/auth':(context) => const AuthPage(),
+        '/auth': (context) => const AuthPage(),
         '/signUp': (context) {
-          final Map<String, dynamic> args = ModalRoute.of(context)! 
+          final Map<String, dynamic> args = ModalRoute.of(context)!
               .settings
               .arguments as Map<String, dynamic>;
           final int? pharmacyId = args['pharmacyId'] as int?;
