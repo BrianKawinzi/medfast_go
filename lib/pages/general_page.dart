@@ -3,6 +3,7 @@ import 'package:medfast_go/business/activity.dart';
 import 'package:medfast_go/business/customers.dart';
 import 'package:medfast_go/business/expenses.dart';
 import 'package:medfast_go/business/other_incomes.dart';
+import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/business/purchase_order.dart';
 import 'package:medfast_go/business/representative.dart';
 import 'package:medfast_go/business/sales.dart';
@@ -23,9 +24,9 @@ class GeneralPage extends StatelessWidget {
 
     switch (pageTitle) {
 
-      case 'Sales':
+      case 'Products':
         Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => Sales(initialProducts: [],)));
+          .push(MaterialPageRoute(builder: (context) => const Products(productName: ''),));
         break;
       case 'Expenses':
         Navigator.of(context)
@@ -128,8 +129,8 @@ class GeneralPage extends StatelessWidget {
         children: [
           GestureDetector
           (
-            onTap: () => navigateToPage(context, "Sales"),
-            child: buildTile("Sales", Icons.attach_money_outlined),
+            onTap: () => navigateToPage(context, "Products"),
+            child: buildTile("Products", Icons.shopping_bag),
           ),
           GestureDetector
           (
