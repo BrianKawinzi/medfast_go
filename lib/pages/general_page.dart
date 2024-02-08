@@ -3,16 +3,16 @@ import 'package:medfast_go/business/activity.dart';
 import 'package:medfast_go/business/customers.dart';
 import 'package:medfast_go/business/expenses.dart';
 import 'package:medfast_go/business/other_incomes.dart';
+import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/business/purchase_order.dart';
 import 'package:medfast_go/business/representative.dart';
-import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/business/sale_order.dart';
 import 'package:medfast_go/business/stores.dart';
 import 'package:medfast_go/business/suppliers.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/components/tile.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
-import 'package:medfast_go/business/sale_order.dart';
+
 
 class GeneralPage extends StatelessWidget {
   const GeneralPage({super.key});
@@ -20,11 +20,9 @@ class GeneralPage extends StatelessWidget {
   //Function for navigation tile
   void navigateToPage(BuildContext context, String pageTitle) {
     switch (pageTitle) {
-      case 'Sales':
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => Sales(
-                  initialProducts: [],
-                )));
+      case 'Products':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const Products(productName: '')));
         break;
       case 'Expenses':
         Navigator.of(context)
@@ -61,7 +59,7 @@ class GeneralPage extends StatelessWidget {
       case 'Sale History':
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) =>
-              saleOrder(), // No need to pass orderDetails if it's optional
+              const saleOrder(), // No need to pass orderDetails if it's optional
         ));
         break;
       default:
@@ -75,12 +73,12 @@ class GeneralPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 16, 253, 44),
+        backgroundColor: const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
-        title: Row(
+        title: const Row(
           children: [
             Padding(
-              padding: const EdgeInsets.only(right: 13),
+              padding: EdgeInsets.only(right: 13),
               child: Text(
                 'Tala Chemist',
                 style: TextStyle(
@@ -95,14 +93,14 @@ class GeneralPage extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: Icon(
+            icon: const Icon(
               Icons.notifications,
               color: Colors.white,
             ),
           ),
           IconButton(
             onPressed: () {},
-            icon: Icon(
+            icon: const Icon(
               Icons.help_outline_rounded,
               color: Colors.white,
             ),
@@ -117,8 +115,8 @@ class GeneralPage extends StatelessWidget {
         crossAxisCount: 2,
         children: [
           GestureDetector(
-            onTap: () => navigateToPage(context, "Sales"),
-            child: buildTile("Sales", Icons.attach_money_outlined),
+            onTap: () => navigateToPage(context, "Products"),
+            child: buildTile("Products", Icons.shopping_bag),
           ),
           GestureDetector(
             onTap: () => navigateToPage(context, "Expenses"),
