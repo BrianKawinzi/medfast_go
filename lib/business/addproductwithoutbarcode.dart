@@ -62,6 +62,8 @@ class _AddProductFormState extends State<AddProductForm> {
         productName: _productName,
         medicineDescription: '', // Set an appropriate value if needed
         buyingPrice: _buyingPrice,
+        sellingPrice: _sellingPrice,
+        quantity: _quantity,
         image: _image != null ? _image!.path : null,
         expiryDate: _expiryDateController.text,
         manufactureDate: _manufactureDateController.text,
