@@ -21,6 +21,8 @@ class _AddProductFormState extends State<AddProductForm> {
   String _productName = '';
   double _buyingPrice = 0.0;
   String _unit = 'piece';
+  double _sellingPrice = 0.0;
+  int _quantity = 0;
 
   DatabaseHelper _databaseHelper = DatabaseHelper(); // Initialize your database helper
 
@@ -127,7 +129,7 @@ class _AddProductFormState extends State<AddProductForm> {
             borderSide: BorderSide(color: Colors.green[800]!, width: 2.0),
           ),
         ),
-        keyboardType: isNumeric ? TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+        keyboardType: isNumeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
         validator: (value) => value!.isEmpty ? errorText : null,
         onSaved: (value) {
           switch (label) {
@@ -136,6 +138,12 @@ class _AddProductFormState extends State<AddProductForm> {
               break;
             case 'Buying Price':
               _buyingPrice = double.tryParse(value!) ?? 0.0;
+              break;
+            case 'Selling Price':
+              _sellingPrice = double.tryParse(value!) ?? 0.0;
+              break;
+            case 'Quantity':
+              _quantity = int.tryParse(value!) ?? 0;
               break;
           }
         },
@@ -207,6 +215,8 @@ class _AddProductFormState extends State<AddProductForm> {
             SizedBox(height: 30.0),
             _buildTextField('Product Name', 'Please enter the product name'),
             _buildTextField('Buying Price', 'Please enter a valid buying price', isNumeric: true),
+             _buildTextField('Selling Price', 'Please enter a valid selling price', isNumeric: true),
+              _buildTextField('Quantity', 'Please enter a valid quantity', isNumeric: true),
             _buildDropdown(),
             _buildDatePicker(_manufactureDateController, 'Manufacture Date'),
             _buildDatePicker(_expiryDateController, 'Expiry Date'),
