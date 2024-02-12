@@ -590,7 +590,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${Random().nextInt(1000)}'), // Random order number
+        title: Text('Order #${OrderManager().orderId}'), // Random order number
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
         leading: IconButton(
@@ -994,13 +994,12 @@ class _CashPaymentState extends State<CashPayment> {
   void completeAndSendReceipt() {
     if (getBalance() >= 0) {
       // Construct the order details
-      final String orderId = Random().nextInt(1000).toString();
+      final int orderId = OrderManager().orderId;
       final double totalPrice = widget.totalPrice;
       final List<Product> products = [...cartItems]; // Clone the cart items
 
       // Create an OrderDetails instance
       OrderDetails orderDetails = OrderDetails(
-        orderId: orderId,
         totalPrice: totalPrice,
         products: products,
         completedAt: DateTime.now(),
@@ -1549,13 +1548,12 @@ class PaymentInfoDisplay extends StatelessWidget {
 }
 
 class OrderDetails {
-  final String orderId;
+  final int orderId = OrderManager().orderId;
   final double totalPrice;
   final List<Product> products;
   DateTime completedAt; // Add this line
 
   OrderDetails({
-    required this.orderId,
     required this.totalPrice,
     required this.products,
     required this.completedAt, // Initialize this in the constructor
@@ -1570,4 +1568,19 @@ class ProductOrder {
   List<Product> get products => _products;
   List<Product> cartItems = [];
   ProductOrder({required this.product, required this.quantity});
+}
+
+// Singleton class to manage the order number
+class OrderManager {
+  static final OrderManager _instance = OrderManager._internal();
+  late final int orderId;
+
+  factory OrderManager() {
+    return _instance;
+  }
+
+  OrderManager._internal() {
+    // Generate a random order number when the singleton is first created
+    orderId = Random().nextInt(1000);
+  }
 }
