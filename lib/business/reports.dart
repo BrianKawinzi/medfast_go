@@ -157,7 +157,7 @@ class _ReportsState extends State<Reports> {
       appBar: AppBar(
         title: const Text('Reports'),
         centerTitle: false,
-        backgroundColor: Colors.green,
+        backgroundColor: const Color.fromARGB(255, 8, 100, 11),
         leading: GestureDetector(
           onTap: () {
             Navigator.of(context).pushReplacement(
@@ -221,7 +221,7 @@ class _ReportsState extends State<Reports> {
                   TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             ),
             style: TextButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: Color.fromARGB(255, 30, 136, 9),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
@@ -231,7 +231,7 @@ class _ReportsState extends State<Reports> {
             margin: const EdgeInsets.symmetric(horizontal: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Color.fromARGB(255, 29, 122, 11),
               borderRadius: BorderRadius.circular(10),
             ),
             child: DropdownButtonHideUnderline(
@@ -239,6 +239,7 @@ class _ReportsState extends State<Reports> {
                 value: _selectedFilterOption,
                 icon: const Icon(Icons.filter_alt),
                 iconSize: 24,
+                iconEnabledColor: Color.fromARGB(255, 233, 223, 223),
                 elevation: 16,
                 style: const TextStyle(
                     color: Colors.black, fontWeight: FontWeight.bold),
@@ -264,7 +265,7 @@ class _ReportsState extends State<Reports> {
           ),
         ],
       ),
-      backgroundColor: Colors.green,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -373,7 +374,7 @@ class _ReportsState extends State<Reports> {
               ],
             ),
             style: ElevatedButton.styleFrom(
-              primary: Colors.white,
+              primary: const Color.fromARGB(255, 214, 212, 212),
               onPrimary: Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
