@@ -3,8 +3,6 @@ class Product {
   String productName;
   String medicineDescription;
   double buyingPrice;
-  double sellingPrice;
-  int quantity;
   String? image;
   String expiryDate;
   final String manufactureDate;
@@ -15,8 +13,6 @@ class Product {
     required this.productName,
     required this.medicineDescription,
     required this.buyingPrice,
-    required this.sellingPrice,
-    required this.quantity,
     this.image,
     required this.expiryDate,
     required this.manufactureDate,
@@ -29,14 +25,12 @@ class Product {
         productName = map['productName'],
         medicineDescription = map['medicineDescription'],
         buyingPrice = map['buyingPrice'].toDouble(),
-        sellingPrice = map['sellingPrice'].toDouble(),
-        quantity = map['quantity'],
         image = map['image'],
         expiryDate = map['expiryDate'],
         manufactureDate = map['manufactureDate'],
         unit = map['unit'];
 
-  
+  get sellingPrice => null;
 
   // Method to convert a Product object to a map
   Map<String, dynamic> toMap({bool excludeId = false}) {
@@ -45,8 +39,6 @@ class Product {
       'productName': productName,
       'medicineDescription': medicineDescription,
       'buyingPrice': buyingPrice,
-      'sellingPrice': sellingPrice,
-      'quantity': quantity,
       'image': image,
       'expiryDate': expiryDate,
       'manufactureDate': manufactureDate,

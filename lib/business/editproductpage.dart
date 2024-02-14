@@ -16,9 +16,7 @@ class EditProductPage extends StatefulWidget {
 class EditProductPageState extends State<EditProductPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController buyingPriceController = TextEditingController();
-  final TextEditingController sellingPriceController = TextEditingController();
-  final TextEditingController quantityController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
   final TextEditingController expiryDateController = TextEditingController();
 
   File? _image;
@@ -29,14 +27,13 @@ class EditProductPageState extends State<EditProductPage> {
     // Initialize the text controllers with the product data
     nameController.text = widget.product.productName;
     descriptionController.text = widget.product.medicineDescription;
-    buyingPriceController.text = widget.product.buyingPrice.toString();
-    sellingPriceController.text = widget.product.sellingPrice.toString();
-    quantityController.text = widget.product.quantity.toString();
+    priceController.text = widget.product.buyingPrice.toString();
     expiryDateController.text = widget.product.expiryDate;
   }
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
+    // ignore: deprecated_member_use
     final pickedFile = await picker.getImage(source: source);
 
     if (pickedFile != null) {
@@ -52,9 +49,7 @@ class EditProductPageState extends State<EditProductPage> {
     // Get the updated values from the text controllers
     final updatedName = nameController.text;
     final updatedDescription = descriptionController.text;
-    final updatedBuyingPrice = double.parse(buyingPriceController.text);
-    final updatedSellingPrice = double.parse(sellingPriceController.text);
-    final updatedQuantity = int.parse(quantityController.text);
+    final updatedPrice = double.parse(priceController.text);
     final updatedExpiryDate = expiryDateController.text;
 
     // Create an updated Product object
@@ -62,9 +57,7 @@ class EditProductPageState extends State<EditProductPage> {
       id: widget.product.id,
       productName: updatedName,
       medicineDescription: updatedDescription,
-      buyingPrice: updatedBuyingPrice,
-      sellingPrice: updatedSellingPrice,
-      quantity: updatedQuantity,
+      buyingPrice: updatedPrice,
       expiryDate: updatedExpiryDate,
       manufactureDate: '',
       image: _image?.path, // Update the image path
@@ -78,9 +71,7 @@ class EditProductPageState extends State<EditProductPage> {
     setState(() {
       widget.product.productName = updatedName;
       widget.product.medicineDescription = updatedDescription;
-      widget.product.buyingPrice = updatedBuyingPrice;
-      widget.product.sellingPrice = updatedSellingPrice;
-      widget.product.quantity = updatedQuantity;
+      widget.product.buyingPrice = updatedPrice;
       widget.product.expiryDate = updatedExpiryDate;
       widget.product.image = _image?.path;
     });
@@ -171,38 +162,10 @@ class EditProductPageState extends State<EditProductPage> {
             ),
             const SizedBox(height: 16), // Add padding between text fields
             TextField(
-              controller: buyingPriceController,
+              controller: priceController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: 'Buying Price',
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green, width: 2.0),
-                ),
-                contentPadding:
-                    EdgeInsets.all(12.0), // Adjust padding as needed
-              ),
-            ),
-            const SizedBox(height: 16), // Add padding between text fields
-            TextField(
-              controller: sellingPriceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Selling Price',
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green, width: 2.0),
-                ),
-                contentPadding:
-                    EdgeInsets.all(12.0), // Adjust padding as needed
-              ),
-            ),
-            const SizedBox(height: 16), // Add padding between text fields
-            TextField(
-              controller: quantityController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Quantity',
+                labelText: 'Price',
                 border: OutlineInputBorder(),
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.green, width: 2.0),
