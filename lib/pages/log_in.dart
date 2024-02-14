@@ -7,7 +7,7 @@ import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
 
 class LoginPage extends StatefulWidget {
-  LoginPage({Key? key}) : super(key: key);
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();

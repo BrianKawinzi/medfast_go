@@ -16,6 +16,7 @@ import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
 import 'package:medfast_go/pages/profile.dart';
+import 'package:medfast_go/pages/without_barcode.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -29,11 +30,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/auth',
+      initialRoute: '/without',
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
-
+        '/without': (context) => WithoutBar(),
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
         '/home': (context) => const HomeScreen(),

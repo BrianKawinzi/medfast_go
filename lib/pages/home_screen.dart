@@ -46,15 +46,15 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _scaffoldKey,
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 16, 253, 44),
+        backgroundColor:const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
-        title: Row(
+        title: const Row(
           children: [
 
 
             //chemist name this is an example later on it will be connected so as to change with the specific chemist
             Padding(
-              padding: const EdgeInsets.only(right: 13),
+              padding: EdgeInsets.only(right: 13),
               child: Text(
                 'Tala Chemist',
                 style: TextStyle(
