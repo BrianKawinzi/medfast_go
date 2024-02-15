@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/models/product.dart';
 
@@ -214,7 +215,7 @@ class _ProductsState extends State<Products> {
           onTap: () {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => const HomePage(),
+                builder: (context) => const BottomNavigation(),
               ),
             );
           },
