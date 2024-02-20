@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/pages/home_page.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class Supplier extends StatelessWidget {
   final TextEditingController supplierNameController = TextEditingController();
@@ -271,7 +271,7 @@ class Supplier extends StatelessWidget {
           leading: GestureDetector(
             onTap: () {
               Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const HomePage(),
+                builder: (context) => const BottomNavigation(),
               ));
             },
             child: const Icon(Icons.arrow_back),
