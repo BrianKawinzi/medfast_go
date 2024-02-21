@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/pages/home_page.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class Reports extends StatefulWidget {
   const Reports({Key? key}) : super(key: key);
@@ -162,7 +162,7 @@ class _ReportsState extends State<Reports> {
           onTap: () {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => const HomePage(),
+                builder: (context) => const BottomNavigation(),
               ),
             );
           },
@@ -213,25 +213,25 @@ class _ReportsState extends State<Reports> {
                 });
               }
             },
+            style: TextButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 30, 136, 9),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
             child: Text(
               selectedDateRange != null
                   ? '${_getFormattedDate(selectedDateRange!.start)} - ${_getFormattedDate(selectedDateRange!.end)}'
                   : 'Select Date Range',
-              style:
-                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-            ),
-            style: TextButton.styleFrom(
-              backgroundColor: Color.fromARGB(255, 30, 136, 9),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
+              style: const TextStyle(
+                  color: Colors.black, fontWeight: FontWeight.bold),
             ),
           ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 8),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              color: Color.fromARGB(255, 29, 122, 11),
+              color: const Color.fromARGB(255, 29, 122, 11),
               borderRadius: BorderRadius.circular(10),
             ),
             child: DropdownButtonHideUnderline(
@@ -239,7 +239,7 @@ class _ReportsState extends State<Reports> {
                 value: _selectedFilterOption,
                 icon: const Icon(Icons.filter_alt),
                 iconSize: 24,
-                iconEnabledColor: Color.fromARGB(255, 233, 223, 223),
+                iconEnabledColor: const Color.fromARGB(255, 233, 223, 223),
                 elevation: 16,
                 style: const TextStyle(
                     color: Colors.black, fontWeight: FontWeight.bold),
@@ -274,27 +274,27 @@ class _ReportsState extends State<Reports> {
             _buildReport(
               'Stock Report',
               [
-                DataColumn(label: Text('Product Name')),
-                DataColumn(label: Text('Product ID')),
-                DataColumn(label: Text('Date Added')),
-                DataColumn(label: Text('Price')),
-                DataColumn(label: Text('Stock Status')),
-                DataColumn(label: Text('Quantity')),
+                const DataColumn(label: Text('Product Name')),
+                const DataColumn(label: Text('Product ID')),
+                const DataColumn(label: Text('Date Added')),
+                const DataColumn(label: Text('Price')),
+                const DataColumn(label: Text('Stock Status')),
+                const DataColumn(label: Text('Quantity')),
               ],
               [
-                DataRow(cells: [
+                const DataRow(cells: [
                   DataCell(Text('Product A')),
                   DataCell(Text('ID-001')),
                   DataCell(Text('2023-11-01')),
-                  DataCell(Text('\Ksh70')),
+                  DataCell(Text('Ksh70')),
                   DataCell(Text('In Stock')),
                   DataCell(Text('100')),
                 ]),
-                DataRow(cells: [
+                const DataRow(cells: [
                   DataCell(Text('Product B')),
                   DataCell(Text('ID-002')),
                   DataCell(Text('2023-11-05')),
-                  DataCell(Text('\Ksh50')),
+                  DataCell(Text('Ksh50')),
                   DataCell(Text('Out of Stock')),
                   DataCell(Text('50')),
                 ]),
@@ -304,19 +304,19 @@ class _ReportsState extends State<Reports> {
             _buildReport(
               'Sales Report',
               [
-                DataColumn(label: Text('Product Name')),
-                DataColumn(label: Text('Initial Stock')),
-                DataColumn(label: Text('Current Stock')),
-                DataColumn(label: Text('Sold Stock')),
+                const DataColumn(label: Text('Product Name')),
+                const DataColumn(label: Text('Initial Stock')),
+                const DataColumn(label: Text('Current Stock')),
+                const DataColumn(label: Text('Sold Stock')),
               ],
               [
-                DataRow(cells: [
+                const DataRow(cells: [
                   DataCell(Text('Product A')),
                   DataCell(Text('100')),
                   DataCell(Text('80')),
                   DataCell(Text('20')),
                 ]),
-                DataRow(cells: [
+                const DataRow(cells: [
                   DataCell(Text('Product B')),
                   DataCell(Text('50')),
                   DataCell(Text('30')),
@@ -328,19 +328,19 @@ class _ReportsState extends State<Reports> {
             _buildReport(
               'Orders Report',
               [
-                DataColumn(label: Text('Product Name')),
-                DataColumn(label: Text('Order Stock')),
-                DataColumn(label: Text('Date of Order')),
-                DataColumn(label: Text('Order Status')),
+                const DataColumn(label: Text('Product Name')),
+                const DataColumn(label: Text('Order Stock')),
+                const DataColumn(label: Text('Date of Order')),
+                const DataColumn(label: Text('Order Status')),
               ],
               [
-                DataRow(cells: [
+                const DataRow(cells: [
                   DataCell(Text('Product A')),
                   DataCell(Text('50')),
                   DataCell(Text('2023-11-15')),
                   DataCell(Text('Pending')),
                 ]),
-                DataRow(cells: [
+                const DataRow(cells: [
                   DataCell(Text('Product B')),
                   DataCell(Text('20')),
                   DataCell(Text('2023-11-20')),
@@ -360,9 +360,16 @@ class _ReportsState extends State<Reports> {
           height: 40,
           child: ElevatedButton(
             onPressed: _showExportDialog,
-            child: Row(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: const Color.fromARGB(255, 214, 212, 212),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 Icon(Icons.download),
                 SizedBox(width: 4),
                 Text(
@@ -372,13 +379,6 @@ class _ReportsState extends State<Reports> {
                   ),
                 ),
               ],
-            ),
-            style: ElevatedButton.styleFrom(
-              primary: const Color.fromARGB(255, 214, 212, 212),
-              onPrimary: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
             ),
           ),
         ),
