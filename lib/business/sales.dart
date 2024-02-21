@@ -257,7 +257,7 @@ class _SalesState extends State<Sales> {
             padding: const EdgeInsets.all(5.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Color.fromARGB(255, 20, 197, 4),
                 border: Border.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(5),
               ),
@@ -267,12 +267,54 @@ class _SalesState extends State<Sales> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.shopping_cart, color: Colors.black),
-                        onPressed: () {
-                          // Logic for navigating to the cart or showing a cart dialog
-                        },
+                      CircleAvatar(
+                        backgroundColor:
+                            Colors.white, // White circle background
+                        // To ensure the icon is visually centered in the CircleAvatar, it might be good to adjust padding if necessary
+                        child: IconButton(
+                          padding: EdgeInsets
+                              .zero, // Reduces any default padding to help with centering
+                          icon: Icon(Icons.shopping_cart,
+                              size:
+                                  24, // Adjust size to fit well within the CircleAvatar
+                              color: Colors.black), // Icon with black lines
+                          onPressed: () {
+                            if (cartItems.isEmpty) {
+                              // Show an error message
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Error'),
+                                  content: Text(
+                                      'The cart is empty!!\nAdd items and try again.'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pop(); // Close the dialog
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              // Existing logic to navigate to the OrderConfirmationScreen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      OrderConfirmationScreen(
+                                          cartItems: cartItems),
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ),
+                      SizedBox(
+                          width:
+                              8), // Add some spacing between the icon and text
                       Text(
                         '$cartItemCount items',
                         style: TextStyle(
