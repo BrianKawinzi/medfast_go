@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
+import 'package:medfast_go/main.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
@@ -632,7 +635,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${OrderManager().orderId}'), // Random order number
+        title: Text('Order ${OrderManager().orderId}'), // Random order number
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
         leading: IconButton(
@@ -1017,6 +1020,7 @@ class FullScreenPage extends StatelessWidget {
 class CashPayment extends StatefulWidget {
   @override
   final double totalPrice;
+  String orderNumber = OrderManager().orderId;
 
   CashPayment({Key? key, required this.totalPrice}) : super(key: key);
 
@@ -1033,10 +1037,11 @@ class _CashPaymentState extends State<CashPayment> {
     return cashPaid - widget.totalPrice;
   }
 
-  void completeAndSendReceipt() {
+  Future<void> completeAndSendReceipt() async {
     if (getBalance() >= 0) {
       // Construct the order details
-      final int orderId = OrderManager().orderId;
+      // ignore: unused_local_variable
+      final String orderId = OrderManager().orderId;
       final double totalPrice = widget.totalPrice;
       final List<Product> products = [...cartItems]; // Clone the cart items
 
@@ -1069,6 +1074,8 @@ class _CashPaymentState extends State<CashPayment> {
         // Clear the cart items and navigate back to the Sales screen
         setState(() {
           cartItems.clear();
+          OrderManager().orderId = '#';
+          OrderManager().counter = 1;
         });
         // Clear any existing navigation stack and navigate to the Sales screen
         Navigator.of(context).pushAndRemoveUntil(
@@ -1077,6 +1084,8 @@ class _CashPaymentState extends State<CashPayment> {
               false, // This will remove all the routes below the Sales screen
         );
       });
+
+      //await OrderManager().completeOrder();
     } else {
       // Handle insufficient balance...
     }
@@ -1590,7 +1599,9 @@ class PaymentInfoDisplay extends StatelessWidget {
 }
 
 class OrderDetails {
-  final int orderId = OrderManager().orderId;
+  final String orderId = CashPayment(
+    totalPrice: 0,
+  ).orderNumber;
   final double totalPrice;
   final List<Product> products;
   DateTime completedAt; // Add this line
@@ -1613,16 +1624,40 @@ class ProductOrder {
 }
 
 // Singleton class to manage the order number
+// class OrderManager {
+//   static final OrderManager _instance = OrderManager._internal();
+//   late final int orderId;
+
+//   factory OrderManager() {
+//     return _instance;
+//   }
+
+//   OrderManager._internal() {
+//     // Generate a random order number when the singleton is first created
+//     orderId = Random().nextInt(1000);
+//   }
+// }
+
 class OrderManager {
-  static final OrderManager _instance = OrderManager._internal();
-  late final int orderId;
+  late String orderId = '#';
+  int counter = 1;
+  late final String orderNumber;
 
-  factory OrderManager() {
-    return _instance;
-  }
+  // Constructor
+  OrderManager() {
+    //orderId = '#'; // Initial value for order ID
+    if (orderId == '#' && counter >= 1) {
+      String timestamp = DateTime.now().toUtc().toString();
+      timestamp =
+          timestamp.replaceAll(RegExp(r'[^0-9]'), ''); // Extract digits only
+      timestamp = timestamp.substring(0, 14); // Take only the first 14 digits
+      orderNumber = '#medrx-$timestamp';
 
-  OrderManager._internal() {
-    // Generate a random order number when the singleton is first created
-    orderId = Random().nextInt(1000);
+      // Check conditions before generating a new order number
+
+      // Generate the timestamp part of the order ID
+      orderId = orderNumber;
+    }
+    counter += 1;
   }
 }
