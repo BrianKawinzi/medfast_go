@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:medfast_go/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class PharmacyProfile extends StatefulWidget {
   const PharmacyProfile({Key? key}) : super(key: key);
@@ -167,6 +167,16 @@ class PharmacyProfileState extends State<PharmacyProfile> {
         ),
         centerTitle: true,
         toolbarHeight: 80.0,
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const BottomNavigation(),
+              ),
+            );
+          },
+          child: const Icon(Icons.arrow_back),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(

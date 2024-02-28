@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class OtherIncome extends StatelessWidget {
   final TextEditingController incomeNameController = TextEditingController();
@@ -507,11 +506,7 @@ class OtherIncome extends StatelessWidget {
           centerTitle: true,
           backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
           leading: GestureDetector(
-            onTap: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const BottomNavigation(),
-              ));
-            },
+            onTap: () => Navigator.of(context).pop(),
             child: const Icon(Icons.arrow_back),
           ),
           actions: [

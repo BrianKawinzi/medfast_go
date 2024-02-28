@@ -3,8 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
-import 'package:medfast_go/pages/bottom_navigation.dart';
-import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/models/product.dart';
 
 class Products extends StatefulWidget {
@@ -212,13 +210,7 @@ class _ProductsState extends State<Products> {
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const BottomNavigation(),
-              ),
-            );
-          },
+          onTap: () => Navigator.of(context).pop(),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
