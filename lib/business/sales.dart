@@ -1162,7 +1162,7 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                       SizedBox(width: 30),
                       Container(
-                        width: 287, // Adjust this width as needed
+                        width: 286, // Adjust this width as needed
                         child: TextFormField(
                           controller: cashGivenController,
                           keyboardType: TextInputType.number,
