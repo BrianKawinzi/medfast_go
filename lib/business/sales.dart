@@ -1162,7 +1162,7 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                       SizedBox(width: 30),
                       Container(
-                        width: 120, // Adjust this width as needed
+                        width: 287, // Adjust this width as needed
                         child: TextFormField(
                           controller: cashGivenController,
                           keyboardType: TextInputType.number,
@@ -1171,11 +1171,28 @@ class _CashPaymentState extends State<CashPayment> {
                           ],
                           decoration: InputDecoration(
                             hintText: "Cash Given",
-                            fillColor: Colors.green,
+                            fillColor: const Color.fromARGB(
+                                255, 255, 255, 255), // White background
                             filled: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
+                              borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width: 2.0), // Black border with 2.0 width
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width:
+                                      2.0), // Same black border for the enabled state
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width:
+                                      2.0), // Same black border for the focused state
                             ),
                           ),
                           onChanged: (value) {
@@ -1187,6 +1204,7 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                     ],
                   ),
+
 
                   SizedBox(height: 30), // Space between fields
                   Row(
