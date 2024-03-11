@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/pages/home_page.dart';
 
 class Supplier extends StatelessWidget {
   final TextEditingController supplierNameController = TextEditingController();
@@ -269,11 +268,7 @@ class Supplier extends StatelessWidget {
           centerTitle: true,
           backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
           leading: GestureDetector(
-            onTap: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const HomePage(),
-              ));
-            },
+            onTap: () => Navigator.of(context).pop(),
             child: const Icon(Icons.arrow_back),
           ),
           actions: [

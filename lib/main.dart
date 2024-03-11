@@ -3,6 +3,7 @@ import 'package:medfast_go/business/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:medfast_go/pages/auth_page.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/brand_intro.dart';
 import 'package:medfast_go/pages/forgot_password.dart';
@@ -15,6 +16,7 @@ import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
 import 'package:medfast_go/pages/profile.dart';
+import 'package:medfast_go/pages/without_barcode.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -28,16 +30,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/splash',
+      initialRoute: '/auth',
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
-
+        
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => LoginPage(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/auth': (context) => const AuthPage(),
         '/signUp': (context) {
-          final Map<String, dynamic> args = ModalRoute.of(context)! 
+          final Map<String, dynamic> args = ModalRoute.of(context)!
               .settings
               .arguments as Map<String, dynamic>;
           final int? pharmacyId = args['pharmacyId'] as int?;
