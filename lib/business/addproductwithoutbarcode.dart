@@ -241,7 +241,7 @@ class _AddProductFormState extends State<AddProductForm> {
                 ElevatedButton(
                   onPressed: _captureImage,
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.green[800],
+                    backgroundColor: Colors.green[800],
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                   ),
@@ -250,7 +250,7 @@ class _AddProductFormState extends State<AddProductForm> {
                 ElevatedButton(
                   onPressed: _pickImage,
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.green[800],
+                    backgroundColor: Colors.green[800],
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                   ),
@@ -262,7 +262,7 @@ class _AddProductFormState extends State<AddProductForm> {
             ElevatedButton(
               onPressed: _submitForm,
               style: ElevatedButton.styleFrom(
-                primary: Colors.green[700],
+                backgroundColor: Colors.green[700],
                 padding: EdgeInsets.symmetric(vertical: 15.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
