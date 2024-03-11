@@ -1,9 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
+import 'package:medfast_go/main.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
+import 'package:medfast_go/pages/home_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:flutter/material.dart';
@@ -58,12 +63,11 @@ class _SalesState extends State<Sales> {
     final dbHelper = DatabaseHelper();
     final fetchedProducts = await dbHelper.getProducts();
     if (mounted) {
-    setState(() {
-      products = fetchedProducts;
-    });
+      setState(() {
+        products = fetchedProducts;
+      });
+    }
   }
-}
-
 
   Future<void> _filterProducts(String query) async {
     final dbHelper = DatabaseHelper();
@@ -82,11 +86,7 @@ class _SalesState extends State<Sales> {
   }
 
   void _navigateToEditProduct(Product product) {
-Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => CashPayment(totalPrice: totalPrice)),
-    );
+    Navigator.of(context).push(_createRoute(product));
   }
 
   Route _createRoute(Product product) {
@@ -123,99 +123,99 @@ Navigator.push(
       return RefreshIndicator(
         onRefresh: _fetchProducts, // Refresh action
         child: ListView.builder(
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          var product = products[index];
-          var imageFile = File(product.image ?? '');
-          return Dismissible(
-            key: Key(product.id.toString()),
-            child: Card(
-              margin: const EdgeInsets.all(8.0),
-              child: ListTile(
-                title: Text(product.productName),
-                subtitle: Align(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            var product = products[index];
+            var imageFile = File(product.image ?? '');
+            return Dismissible(
+              key: Key(product.id.toString()),
+              child: Card(
+                margin: const EdgeInsets.all(8.0),
+                child: ListTile(
+                  title: Text(product.productName),
+                  subtitle: Align(
+                    alignment: Alignment.topLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Expiry Date: ${product.expiryDate}"),
+                        Text('Description: ${product.medicineDescription}'),
+                        Text('Price: ${product.buyingPrice}'),
+                      ],
+                    ),
+                  ),
+                  leading: SizedBox(
+                    width: 100,
+                    child: imageFile.existsSync()
+                        ? Image.file(
+                            imageFile,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.error);
+                            },
+                          )
+                        : const Placeholder(),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text("Expiry Date: ${product.expiryDate}"),
-                      Text('Description: ${product.medicineDescription}'),
-                      Text('Price: ${product.buyingPrice}'),
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.green,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 20,
+                              // You can adjust the size of the add icon here
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                cartItemCount++;
+                                // Add the product to the cart
+                                _addToCart(product);
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8), // Adjust the spacing between buttons
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.red,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.remove,
+                              color: Colors.white,
+                              size: 20,
+                              // You can adjust the size of the minus icon here
+                            ),
+                            onPressed: () {
+                              if (_isProductInCart(product)) {
+                                setState(() {
+                                  cartItemCount--;
+                                  // Remove the product from the cart
+                                  _removeFromCart(product);
+                                });
+                              } else {
+                                // Display an error message to the user
+                                _showErrorMessage("Item not in cart");
+                              }
+                            },
+                          ),
+                        ),
+                      ),
                     ],
                   ),
+                  onTap: () => _navigateToEditProduct(product),
                 ),
-                leading: SizedBox(
-                  width: 100,
-                  child: imageFile.existsSync()
-                      ? Image.file(
-                          imageFile,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.error);
-                          },
-                        )
-                      : const Placeholder(),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.green,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 20,
-                            // You can adjust the size of the add icon here
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              cartItemCount++;
-                              // Add the product to the cart
-                              _addToCart(product);
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8), // Adjust the spacing between buttons
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.red,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.remove,
-                            color: Colors.white,
-                            size: 20,
-                            // You can adjust the size of the minus icon here
-                          ),
-                          onPressed: () {
-                            if (_isProductInCart(product)) {
-                              setState(() {
-                                cartItemCount--;
-                                // Remove the product from the cart
-                                _removeFromCart(product);
-                              });
-                            } else {
-                              // Display an error message to the user
-                              _showErrorMessage("Item not in cart");
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                onTap: () => _navigateToEditProduct(product),
               ),
-            ),
-          );
-        },
+            );
+          },
         ),
       );
     }
@@ -241,16 +241,26 @@ Navigator.push(
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                  builder: (context) =>
+                      BottomNavigation()), // Adjust with your HomePage widget
+              (Route<dynamic> route) => false,
+            );
+          },
+        ),
         title: const Text('Sales'),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         actions: [
-          // Cart button with icon and item count
           Padding(
             padding: const EdgeInsets.all(5.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Color.fromARGB(255, 20, 197, 4),
                 border: Border.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(5),
               ),
@@ -260,22 +270,61 @@ Navigator.push(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.shopping_cart,
-                          color: Colors.black,
+                      CircleAvatar(
+                        backgroundColor:
+                            Colors.white, // White circle background
+                        // To ensure the icon is visually centered in the CircleAvatar, it might be good to adjust padding if necessary
+                        child: IconButton(
+                          padding: EdgeInsets
+                              .zero, // Reduces any default padding to help with centering
+                          icon: Icon(Icons.shopping_cart,
+                              size:
+                                  24, // Adjust size to fit well within the CircleAvatar
+                              color: Colors.black), // Icon with black lines
+                          onPressed: () {
+                            if (cartItems.isEmpty) {
+                              // Show an error message
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Error'),
+                                  content: Text(
+                                      'The cart is empty!!\nAdd items and try again.'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pop(); // Close the dialog
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              // Existing logic to navigate to the OrderConfirmationScreen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (BuildContext context) =>
+                                      OrderConfirmationScreen(
+                                          cartItems: cartItems),
+                                ),
+                              );
+                            }
+                          },
                         ),
-                        onPressed: () {
-                          // Add your logic for navigating to the cart or showing a cart dialog
-                        },
                       ),
-                      // Display the number of items in the cart
+                      SizedBox(
+                          width:
+                              8), // Add some spacing between the icon and text
                       Text(
                         '$cartItemCount items',
                         style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20),
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
                       ),
                     ],
                   ),
@@ -291,11 +340,10 @@ Navigator.push(
           decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage(
-                'lib/assets/pharmacy-store.png', // Replace with the actual path to your background image
-              ),
+                  'lib/assets/pharmacy-store.png'), // Replace with the actual path to your background image
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
-                const Color.fromARGB(255, 255, 255, 255)
+                Color.fromARGB(255, 255, 255, 255)
                     .withOpacity(0.1), // 10% transparency
                 BlendMode.dstATop,
               ),
@@ -348,13 +396,35 @@ Navigator.push(
                       bottom: 0.25 * 150 / 2.54), // Adjusted bottom padding
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (BuildContext context) =>
-                              OrderConfirmationScreen(cartItems: cartItems),
-                        ),
-                      );
+                      if (cartItems.isEmpty) {
+                        // Show an error message
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Error'),
+                            content: Text(
+                                'The cart is empty!!\nAdd items and try again.'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        // Existing logic to navigate to the OrderConfirmationScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                OrderConfirmationScreen(cartItems: cartItems),
+                          ),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       primary: const Color.fromRGBO(114, 194, 117, 1),
@@ -450,6 +520,20 @@ Navigator.push(
   }
 }
 
+class OrderRepository {
+  static final List<OrderDetails> completedOrders = [];
+
+  // Adds a completed order to the repository
+  static void addCompletedOrder(OrderDetails order) {
+    completedOrders.add(order);
+  }
+
+  // Retrieves all completed orders
+  static List<OrderDetails> getCompletedOrders() {
+    return completedOrders;
+  }
+}
+
 class OrderConfirmationScreen extends StatefulWidget {
   final List<Product> cartItems;
 
@@ -460,7 +544,6 @@ class OrderConfirmationScreen extends StatefulWidget {
   _OrderConfirmationScreenState createState() =>
       _OrderConfirmationScreenState();
 }
-
 
 class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   late Map<String, int> productQuantity;
@@ -510,7 +593,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
       isMiniScreenVisible = false;
     });
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -550,11 +632,10 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
     }
 
     double totalPrice = getTotalPrice();
-    
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${Random().nextInt(1000)}'), // Random order number
+        title: Text('Order ${OrderManager().orderId}'), // Random order number
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
         leading: IconButton(
@@ -741,7 +822,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
               totalPrice: totalPrice,
               onClose: _closeMiniScreen,
             ),
-
           Align(
             alignment: Alignment.topCenter,
             child: SingleChildScrollView(
@@ -839,7 +919,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 
 class MiniScreen extends StatelessWidget {
   final VoidCallback onClose;
-  
 
   MiniScreen({Key? key, required this.onClose, required this.totalPrice})
       : super(key: key);
@@ -871,7 +950,6 @@ class MiniScreen extends StatelessWidget {
                 ),
               );
             }),
-
             _buildPaymentButton("M-Pesa", 'lib/assets/MobilePay.jfif', () {
               Navigator.push(
                 context,
@@ -941,7 +1019,8 @@ class FullScreenPage extends StatelessWidget {
 
 class CashPayment extends StatefulWidget {
   @override
-final double totalPrice;
+  final double totalPrice;
+  String orderNumber = OrderManager().orderId;
 
   CashPayment({Key? key, required this.totalPrice}) : super(key: key);
 
@@ -958,24 +1037,32 @@ class _CashPaymentState extends State<CashPayment> {
     return cashPaid - widget.totalPrice;
   }
 
-  void completeAndSendReceipt() {
-    if (customerPhoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Customer phone number is required!")),
+  Future<void> completeAndSendReceipt() async {
+    if (getBalance() >= 0) {
+      // Construct the order details
+      // ignore: unused_local_variable
+      final String orderId = OrderManager().orderId;
+      final double totalPrice = widget.totalPrice;
+      final List<Product> products = [...cartItems]; // Clone the cart items
+
+      // Create an OrderDetails instance
+      OrderDetails orderDetails = OrderDetails(
+        totalPrice: totalPrice,
+        products: products,
+        completedAt: DateTime.now(),
       );
-    } else if (getBalance() >= 0) {
+
+      // Add the completed order to the repository
+      OrderRepository.addCompletedOrder(orderDetails);
+
+      // Show confirmation dialog
       showDialog(
         context: context,
+        barrierDismissible: false, // Dialog will not close on tap outside
         builder: (BuildContext context) {
           // Automatically close the dialog after 5 seconds
           Future.delayed(Duration(seconds: 5), () {
-            Navigator.of(context).pop(); // Close the dialog
-            // Clear the cart items
-            setState(() {
-              cartItems.clear();
-            });
-            Navigator.of(context).popUntil(
-                (route) => route.isFirst); // Navigate back to the Sales screen
+            Navigator.of(context).pop(true); // Close the dialog
           });
           return AlertDialog(
             title: Icon(Icons.check_circle, color: Colors.green, size: 60),
@@ -983,9 +1070,38 @@ class _CashPaymentState extends State<CashPayment> {
                 textAlign: TextAlign.center),
           );
         },
-      );
+      ).then((_) {
+        // Clear the cart items and navigate back to the Sales screen
+        setState(() {
+          cartItems.clear();
+          OrderManager().orderId = '#';
+          OrderManager().counter = 1;
+        });
+        // Clear any existing navigation stack and navigate to the Sales screen
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => Sales(initialProducts: [])),
+          (Route<dynamic> route) =>
+              false, // This will remove all the routes below the Sales screen
+        );
+      });
+
+      //await OrderManager().completeOrder();
+    } else {
+      // Handle insufficient balance...
     }
   }
+
+  void navigateToSalesScreen() {
+    // Clear any existing navigation stack and navigate to the Sales screen
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => Sales(initialProducts: []),
+      ),
+      (Route<dynamic> route) =>
+          true, // Remove all routes below the Sales screen
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -998,7 +1114,6 @@ class _CashPaymentState extends State<CashPayment> {
           },
         ),
       ),
-      
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1047,7 +1162,7 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                       SizedBox(width: 30),
                       Container(
-                        width: 120, // Adjust this width as needed
+                        width: 286, // Adjust this width as needed
                         child: TextFormField(
                           controller: cashGivenController,
                           keyboardType: TextInputType.number,
@@ -1056,11 +1171,28 @@ class _CashPaymentState extends State<CashPayment> {
                           ],
                           decoration: InputDecoration(
                             hintText: "Cash Given",
-                            fillColor: Colors.green,
+                            fillColor: const Color.fromARGB(
+                                255, 255, 255, 255), // White background
                             filled: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
+                              borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width: 2.0), // Black border with 2.0 width
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width:
+                                      2.0), // Same black border for the enabled state
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                  color: Colors.black,
+                                  width:
+                                      2.0), // Same black border for the focused state
                             ),
                           ),
                           onChanged: (value) {
@@ -1070,9 +1202,9 @@ class _CashPaymentState extends State<CashPayment> {
                           },
                         ),
                       ),
-
                     ],
                   ),
+
 
                   SizedBox(height: 30), // Space between fields
                   Row(
@@ -1161,7 +1293,6 @@ class _CashPaymentState extends State<CashPayment> {
                                 // Other styles as needed
                               ),
                             ),
-
                           ],
                         ),
                       ),
@@ -1331,7 +1462,7 @@ class _MobilePaymentState extends State<MobilePayment> {
 
                   // PaymentInfoDisplay(), // Before payment
                   PaymentInfoDisplay(
-                      customerName: "John Doe",
+                      customerName: "John Michael",
                       amountPaid: "Ksh. 500"), // After payment
                   Spacer(),
 
@@ -1482,5 +1613,69 @@ class PaymentInfoDisplay extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class OrderDetails {
+  final String orderId = CashPayment(
+    totalPrice: 0,
+  ).orderNumber;
+  final double totalPrice;
+  final List<Product> products;
+  DateTime completedAt; // Add this line
+
+  OrderDetails({
+    required this.totalPrice,
+    required this.products,
+    required this.completedAt, // Initialize this in the constructor
+  });
+}
+
+class ProductOrder {
+  final Product product;
+  final int quantity;
+  // Assuming you have a quantity field
+  List<Product> _products = [];
+  List<Product> get products => _products;
+  List<Product> cartItems = [];
+  ProductOrder({required this.product, required this.quantity});
+}
+
+// Singleton class to manage the order number
+// class OrderManager {
+//   static final OrderManager _instance = OrderManager._internal();
+//   late final int orderId;
+
+//   factory OrderManager() {
+//     return _instance;
+//   }
+
+//   OrderManager._internal() {
+//     // Generate a random order number when the singleton is first created
+//     orderId = Random().nextInt(1000);
+//   }
+// }
+
+class OrderManager {
+  late String orderId = '#';
+  int counter = 1;
+  late final String orderNumber;
+
+  // Constructor
+  OrderManager() {
+    //orderId = '#'; // Initial value for order ID
+    if (orderId == '#' && counter >= 1) {
+      String timestamp = DateTime.now().toUtc().toString();
+      timestamp =
+          timestamp.replaceAll(RegExp(r'[^0-9]'), ''); // Extract digits only
+      timestamp = timestamp.substring(0, 14); // Take only the first 14 digits
+      orderNumber = '#medrx-$timestamp';
+
+      // Check conditions before generating a new order number
+
+      // Generate the timestamp part of the order ID
+      orderId = orderNumber;
+    }
+    counter += 1;
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/pages/home_page.dart';
 
 class Customers extends StatelessWidget {
   final TextEditingController customerNameController = TextEditingController();
@@ -278,11 +277,7 @@ class Customers extends StatelessWidget {
           centerTitle: true,
           backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
           leading: GestureDetector(
-            onTap: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const HomePage(),
-              ));
-            },
+            onTap: () => Navigator.of(context).pop(),
             child: const Icon(Icons.arrow_back),
           ),
           actions: [

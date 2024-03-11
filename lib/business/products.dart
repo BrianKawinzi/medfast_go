@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
-import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/models/product.dart';
 
 class Products extends StatefulWidget {
@@ -162,20 +161,38 @@ class _ProductsState extends State<Products> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
+
+                _showProductList(); // Close the dialog
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                _deleteProduct(product);
+                // Reverse the swipe action
                 Navigator.of(context).pop(); // Close the dialog
+                _deleteProduct(
+                    product); // Call a method to simulate the swipe action
               },
               child: const Text('Delete'),
             ),
           ],
         );
       },
+    );
+  }
+
+  void _showProductList() {
+    // Simulate the swipe action or any other action needed
+    // You can add the logic to update the state or perform any other action
+    // For example, you can use Navigator.push to navigate to the same page again
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Products(
+          productName: '',
+        ),
+      ),
     );
   }
 
@@ -193,13 +210,7 @@ class _ProductsState extends State<Products> {
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const HomePage(),
-              ),
-            );
-          },
+          onTap: () => Navigator.of(context).pop(),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [

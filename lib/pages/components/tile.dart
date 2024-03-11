@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-Widget buildTile(String title) {
+Widget buildTile(String title, IconData iconData) {
   return Container(
-    margin: EdgeInsets.all(6.0),
-    padding: EdgeInsets.all(5.0),
+    margin: const EdgeInsets.all(6.0),
+    padding: const EdgeInsets.all(5.0),
     width: 120.0,
     height: 60.0,
     decoration: BoxDecoration(
@@ -18,15 +18,24 @@ Widget buildTile(String title) {
       ],
     ),
 
-    child: Center(
-      child: Text(
-        title,
-        style: TextStyle(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          iconData,
           color: Colors.white,
-          fontSize: 16.0,
-          fontWeight: FontWeight.bold,
+          size: 40.0,
         ),
-      ),
+        const SizedBox(height: 10.0),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+          ),
+        )
+      ],
     ),
   );
 }
@@ -51,7 +60,7 @@ Widget buildLongTile(String title, BuildContext context) {
     child: Center(
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 16.0,
           fontWeight: FontWeight.bold,

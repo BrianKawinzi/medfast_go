@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/business/reports.dart';
 import 'package:medfast_go/pages/general_page.dart';
-import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/pages/home_screen.dart';
 import 'package:medfast_go/pages/profile.dart';
+import 'package:medfast_go/business/sales.dart';
 
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
@@ -18,7 +17,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
 
   final List<Widget> _pages = [
     HomeScreen(),
-    Products(productName: ''),
+    Sales(initialProducts: [],),
     GeneralPage(),
     Reports(),
     PharmacyProfile(),
@@ -60,8 +59,8 @@ class _BottomNavigationState extends State<BottomNavigation> {
             
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag, color: _currentIndex == 1 ? Colors.green : Colors.lightGreen),
-            label: 'Products',
+            icon: Icon(Icons.point_of_sale, color: _currentIndex == 1 ? Colors.green : Colors.lightGreen),
+            label: 'POS',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.apps, color: _currentIndex == 2 ? Colors.green : Colors.lightGreen),
