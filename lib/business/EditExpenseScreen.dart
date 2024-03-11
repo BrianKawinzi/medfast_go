@@ -77,7 +77,8 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
             ElevatedButton(
               onPressed: () {
                 widget.onUpdate(
-                  Expense(expenseName: '', cost: 0, date: '', expenseDetails: ''
+                  Expense(
+                      expenseName: '', cost: 0, date: ' ', expenseDetails: ''
                       // name: _nameController.text,
                       // details: _detailsController.text,
                       // cost: double.parse(_costController.text),
