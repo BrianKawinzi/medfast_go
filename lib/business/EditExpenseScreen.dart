@@ -21,8 +21,9 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.expense.name);
-    _detailsController = TextEditingController(text: widget.expense.details);
+    _nameController = TextEditingController(text: widget.expense.id.toString());
+    _detailsController =
+        TextEditingController(text: widget.expense.date.toString());
     _costController =
         TextEditingController(text: widget.expense.cost.toString());
     _dateController =
@@ -77,10 +78,11 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
               onPressed: () {
                 widget.onUpdate(
                   Expense(
-                    name: _nameController.text,
-                    details: _detailsController.text,
-                    cost: double.parse(_costController.text),
-                    date: DateTime.parse(_dateController.text),
+                      expenseName: '', cost: 0, date: ' ', expenseDetails: ''
+                      // name: _nameController.text,
+                      // details: _detailsController.text,
+                      // cost: double.parse(_costController.text),
+                      // date: DateTime.parse(_dateController.text),
                   ),
                 );
                 Navigator.pop(context);
