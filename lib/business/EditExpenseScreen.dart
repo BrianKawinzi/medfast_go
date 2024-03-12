@@ -83,13 +83,13 @@ class _EditExpenseScreenState extends State<EditExpenseScreen> {
                       // details: _detailsController.text,
                       // cost: double.parse(_costController.text),
                       // date: DateTime.parse(_dateController.text),
-                  ),
+                      ),
                 );
                 Navigator.pop(context);
               },
               child: Text('Update Expense'),
               style: ElevatedButton.styleFrom(
-                primary: const Color.fromRGBO(58, 205, 50, 1),
+                backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
               ),
             ),
           ],
