@@ -427,7 +427,7 @@ class _SalesState extends State<Sales> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      primary: const Color.fromRGBO(114, 194, 117, 1),
+                      backgroundColor: const Color.fromRGBO(114, 194, 117, 1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20.0),
                       ),
@@ -725,7 +725,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                   2), // Padding to create a border effect around the button
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.green,
+                  backgroundColor: Colors.green,
                   elevation: 10, // Elevation for the button
                   padding: EdgeInsets.symmetric(
                       horizontal: 20,
@@ -787,10 +787,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                     children: [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors
-                              .white, // White background color for the button
-                          onPrimary:
-                              Colors.black, // Text color (if you have text)
+                          foregroundColor: Colors.black,
+                          backgroundColor:
+                              Colors.white, // Text color (if you have text)
                         ),
                         onPressed: () {
                           // Add your action for the first button
@@ -800,10 +799,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors
-                              .white, // White background color for the button
-                          onPrimary:
-                              Colors.black, // Text color (if you have text)
+                          foregroundColor: Colors.black,
+                          backgroundColor:
+                              Colors.white, // Text color (if you have text)
                         ),
                         onPressed: () {
                           // Add your action for the second button
@@ -1205,7 +1203,6 @@ class _CashPaymentState extends State<CashPayment> {
                     ],
                   ),
 
-
                   SizedBox(height: 30), // Space between fields
                   Row(
                     children: [
@@ -1310,8 +1307,8 @@ class _CashPaymentState extends State<CashPayment> {
                       onPressed: completeAndSendReceipt,
                       child: Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.green,
-                        onPrimary: Colors.white,
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.green,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                           side: BorderSide(color: Colors.black),
@@ -1553,7 +1550,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                   // SizedBox(height: 0), // Adjust the height for spacing
 
                   //SizedBox(height: 20),
-                  SizedBox(height: 20),
+                  SizedBox(height: 5),
                   Spacer(),
 
                   // Complete and Send Receipt Button
@@ -1564,8 +1561,8 @@ class _MobilePaymentState extends State<MobilePayment> {
                       },
                       child: Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.green,
-                        onPrimary: Colors.white,
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.green,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                           side: BorderSide(color: Colors.black),

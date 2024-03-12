@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 
-
 class AddProductForm extends StatefulWidget {
   @override
   _AddProductFormState createState() => _AddProductFormState();
@@ -14,7 +13,8 @@ class AddProductForm extends StatefulWidget {
 class _AddProductFormState extends State<AddProductForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _expiryDateController = TextEditingController();
-  final TextEditingController _manufactureDateController = TextEditingController();
+  final TextEditingController _manufactureDateController =
+      TextEditingController();
   final ImagePicker _picker = ImagePicker();
   File? _image;
 
@@ -22,10 +22,12 @@ class _AddProductFormState extends State<AddProductForm> {
   double _buyingPrice = 0.0;
   String _unit = 'piece';
 
-  DatabaseHelper _databaseHelper = DatabaseHelper(); // Initialize your database helper
+  DatabaseHelper _databaseHelper =
+      DatabaseHelper(); // Initialize your database helper
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -34,7 +36,8 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Future<void> _captureImage() async {
-    final XFile? capturedFile = await _picker.pickImage(source: ImageSource.camera);
+    final XFile? capturedFile =
+        await _picker.pickImage(source: ImageSource.camera);
     if (capturedFile != null) {
       setState(() {
         _image = File(capturedFile.path);
@@ -104,7 +107,8 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -116,7 +120,8 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  Widget _buildTextField(String label, String errorText, {bool isNumeric = false}) {
+  Widget _buildTextField(String label, String errorText,
+      {bool isNumeric = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -127,7 +132,9 @@ class _AddProductFormState extends State<AddProductForm> {
             borderSide: BorderSide(color: Colors.green[800]!, width: 2.0),
           ),
         ),
-        keyboardType: isNumeric ? TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+        keyboardType: isNumeric
+            ? TextInputType.numberWithOptions(decimal: true)
+            : TextInputType.text,
         validator: (value) => value!.isEmpty ? errorText : null,
         onSaved: (value) {
           switch (label) {
@@ -201,12 +208,16 @@ class _AddProductFormState extends State<AddProductForm> {
           children: <Widget>[
             Text(
               'Add New Product',
-              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.green[800]),
+              style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[800]),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 30.0),
             _buildTextField('Product Name', 'Please enter the product name'),
-            _buildTextField('Buying Price', 'Please enter a valid buying price', isNumeric: true),
+            _buildTextField('Buying Price', 'Please enter a valid buying price',
+                isNumeric: true),
             _buildDropdown(),
             _buildDatePicker(_manufactureDateController, 'Manufacture Date'),
             _buildDatePicker(_expiryDateController, 'Expiry Date'),
@@ -241,18 +252,20 @@ class _AddProductFormState extends State<AddProductForm> {
                 ElevatedButton(
                   onPressed: _captureImage,
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.green[800],
+                    backgroundColor: Colors.green[800],
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
                   ),
                   child: Text('Capture Image'),
                 ),
                 ElevatedButton(
                   onPressed: _pickImage,
                   style: ElevatedButton.styleFrom(
-                    primary: Colors.green[800],
+                    backgroundColor: Colors.green[800],
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
                   ),
                   child: Text('Select Image'),
                 ),
@@ -262,13 +275,14 @@ class _AddProductFormState extends State<AddProductForm> {
             ElevatedButton(
               onPressed: _submitForm,
               style: ElevatedButton.styleFrom(
-                primary: Colors.green[700],
+                backgroundColor: Colors.green[700],
                 padding: EdgeInsets.symmetric(vertical: 15.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0),
                 ),
               ),
-              child: Text('Submit', style: TextStyle(fontSize: 18.0, color: Colors.white)),
+              child: Text('Submit',
+                  style: TextStyle(fontSize: 18.0, color: Colors.white)),
             ),
           ],
         ),
