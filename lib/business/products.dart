@@ -222,52 +222,55 @@ class _ProductsState extends State<Products> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            height: 48,
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 3,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: (query) => _filterProducts(query),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      labelText: 'Search Products',
-                      labelStyle: TextStyle(color: Colors.green),
-                      prefixIcon: Icon(Icons.search),
+      body: RefreshIndicator(
+        onRefresh: _fetchProducts, // Function to call when refreshed
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              height: 48,
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 3,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: (query) => _filterProducts(query),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        labelText: 'Search Products',
+                        labelStyle: TextStyle(color: Colors.green),
+                        prefixIcon: Icon(Icons.search),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.qr_code_scanner),
-                  onPressed: () {
-                    if (kDebugMode) {
-                      print("Retrieving product by barcode...");
-                    }
-                  },
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: () {
+                      if (kDebugMode) {
+                        print("Retrieving product by barcode...");
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(child: _buildProductList()),
-        ],
+            Expanded(child: _buildProductList()),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
