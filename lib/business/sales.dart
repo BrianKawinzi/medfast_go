@@ -370,21 +370,26 @@ class _SalesState extends State<Sales> {
                         weight: 18,
                         size: 35,
                         semanticLabel: 'Search Icon'),
-                    suffixIcon: GestureDetector(
-                      onTap: () {
-                        // Open barcode scanner here
-                        _openBarcodeScanner();
-                      },
-                      child: Image.asset(
-                        'lib/assets/bar-code.png', // Replace with the actual path to your custom barcode image
-                        width: 20,
-                        height: 20,
+                    suffixIcon: Padding(
+                      padding: EdgeInsets.only(
+                          right:
+                              10.0), // Adjusted to leave space between barcode and border
+                      child: GestureDetector(
+                        onTap: () {
+                          // Open barcode scanner here
+                          _openBarcodeScanner();
+                        },
+                        child: Image.asset(
+                          'lib/assets/bar-code.png', // Replace with the actual path to your custom barcode image
+                          width: 30,
+                          height: 30,
+                        ),
                       ),
                     ),
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 20.5),
+                    contentPadding: EdgeInsets.fromLTRB(
+                        20.5, 0, 4.0, 0), // Adjust right padding here
                   ),
                 ),
               ),
