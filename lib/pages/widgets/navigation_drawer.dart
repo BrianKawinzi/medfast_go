@@ -14,22 +14,28 @@ import 'package:medfast_go/pages/themes.dart';
 class NavigationDrawerWidget extends StatelessWidget {
   final padding = const EdgeInsets.symmetric(horizontal: 20);
 
-  const NavigationDrawerWidget({super.key});
+  const NavigationDrawerWidget({Key? key}) : super(key: key);
 
-  Future<String> getUserEmail() async {
+  Future<Map<String, String>> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_email') ?? 'No email';
+    final email = prefs.getString('user_email') ?? 'No email';
+    final pharmacyName =
+        prefs.getString('pharmacy_name') ?? 'Pharmacy Name';
+    return {'email': email, 'pharmacyName': pharmacyName};
   }
 
-  Widget buildHeader({
-    required String urlImage,
-    required String name,
-    required VoidCallback onClicked,
-  }) {
-    return FutureBuilder<String>(
-      future: getUserEmail(),
-      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-        String email = snapshot.hasData ? snapshot.data! : 'Loading...';
+  Widget buildHeader(VoidCallback onClicked) {
+    const urlImage =
+        'https://images.unsplash.com/photo-1603706580932-6befcf7d8521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1287&q=80';
+
+    return FutureBuilder<Map<String, String>>(
+      future: getUserDetails(),
+      builder: (context, snapshot) {
+        final email = snapshot.data?['email'] ?? 'Loading...';
+        final pharmacyName =
+            snapshot.data?['pharmacyName'] ?? 'Loading..'; // Adjusted key
+        // final pharmacyName = prefs.getString('pharmacy_name') ?? 'Pharmacy Name'; // Adjusted key
+        // return {'email': email, 'pharmacyName': pharmacyName};
         return InkWell(
           onTap: onClicked,
           child: Container(
@@ -43,7 +49,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      pharmacyName, // Dynamic pharmacy name
                       style: const TextStyle(fontSize: 20, color: Colors.white),
                     ),
                     const SizedBox(height: 4),
@@ -110,126 +116,70 @@ class NavigationDrawerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const urlImage =
-        'https://images.unsplash.com/photo-1603706580932-6befcf7d8521?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1287&q=80';
-    const name = 'Tala Chemist';
-
     return Drawer(
       child: Material(
         color: const Color.fromRGBO(58, 205, 50, 1),
         child: ListView(
           children: <Widget>[
-            buildHeader(
-              urlImage: urlImage,
-              name: name,
-              onClicked: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const PharmacyProfile(),
-              )),
+            buildHeader(() => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) =>
+                      const HomeScreen(/* Add arguments here */),
+                ))),
+            const SizedBox(height: 10),
+            buildSearchField(),
+            const SizedBox(height: 16),
+            // Repeat for each item as needed
+            buildMenuItem(
+              text: 'Home',
+              icon: Icons.home,
+              onClicked: () => Navigator.of(context).popAndPushNamed('/home'),
             ),
-            Container(
-              padding: padding,
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  buildSearchField(),
-                  const SizedBox(height: 16),
-                  buildMenuItem(
-                    text: 'Home',
-                    icon: Icons.home,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const BottomNavigation(),
-                      ));
-                    },
-                  ),  
-                  buildMenuItem(
-                    text: 'Profile',
-                    icon: Icons.person_2,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const PharmacyProfile(),
-                      ));
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  buildMenuItem(
-                    text: 'Themes',
-                    icon: Icons.color_lens_outlined,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            const Themes(), // Navigate to the HomePage
-                      ));
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  buildMenuItem(
-                    text: 'Language',
-                    icon: Icons.language,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            const Language(), // Navigate to the HomePage
-                      ));
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  buildMenuItem(
-                    text: 'Support',
-                    icon: Icons.support_agent_rounded,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            
-                             Support(),
-                      ));
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  buildMenuItem(
-                    text: 'FAQ',
-                    icon: Icons.question_answer_outlined,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            const FAQ(), // Navigate to the HomePage
-                      ));
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  const Divider(color: Colors.white70),
-                  const SizedBox(height: 10),
-                  buildMenuItem(
-                    text: 'Settings',
-                    icon: Icons.settings,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            const SettingsPage(), // Navigate to the HomePage
-                      ));
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  // ... other menu items
-                  buildMenuItem(
-                    text: 'Log Out',
-                    icon: Icons.logout,
-                    onClicked: () {
-                      Navigator.of(context).pop(); // Close the drawer
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) => const LogOutPage(),
-                      ));
-                    },
-                  ),
-                ],
-              ),
+            buildMenuItem(
+              text: 'Profile',
+              icon: Icons.person,
+              onClicked: () =>
+                  Navigator.of(context).popAndPushNamed('/profile'),
+            ),
+            buildMenuItem(
+              text: 'Themes',
+              icon: Icons.color_lens,
+              onClicked: () => Navigator.of(context).popAndPushNamed('/themes'),
+            ),
+            buildMenuItem(
+              text: 'Language',
+              icon: Icons.language,
+              onClicked: () =>
+                  Navigator.of(context).popAndPushNamed('/language'),
+            ),
+            buildMenuItem(
+              text: 'Support',
+              icon: Icons.support,
+              onClicked: () =>
+                  Navigator.of(context).popAndPushNamed('/support'),
+            ),
+            buildMenuItem(
+              text: 'FAQ',
+              icon: Icons.question_answer,
+              onClicked: () => Navigator.of(context).popAndPushNamed('/faq'),
+            ),
+            const Divider(color: Colors.white70),
+            buildMenuItem(
+              text: 'Settings',
+              icon: Icons.settings,
+              onClicked: () =>
+                  Navigator.of(context).popAndPushNamed('/settings'),
+            ),
+            buildMenuItem(
+              text: 'Log Out',
+              icon: Icons.exit_to_app,
+              onClicked: () async {
+                // Implement the log out functionality
+                // For example, clear shared preferences, navigate to login screen, etc.
+                final prefs = await SharedPreferences.getInstance();
+                await prefs
+                    .clear(); // This clears all data in shared preferences
+                Navigator.of(context).popAndPushNamed('/login');
+              },
             ),
           ],
         ),
@@ -237,3 +187,5 @@ class NavigationDrawerWidget extends StatelessWidget {
     );
   }
 }
+
+           
