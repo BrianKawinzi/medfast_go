@@ -53,10 +53,15 @@ class _LoginPageState extends State<LoginPage> {
         final email = payload[
             "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
 
-        // Save the token and email using SharedPreferences
+        // Extract the pharmacy name
+        final pharmacyName = payload['PharmacyName'];
+
+        // Save the token, email, and pharmacy name using SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', token);
         await prefs.setString('user_email', email); // Save the email
+        await prefs.setString(
+            'pharmacy_name', pharmacyName); // Save the pharmacy name
 
         Navigator.of(context).pushReplacementNamed('/bottom');
       } else {
