@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/business/activity.dart';
 import 'package:medfast_go/business/customers.dart';
 import 'package:medfast_go/business/expenses.dart';
@@ -18,6 +19,7 @@ void main() {
   runApp(const MaterialApp(
     home: HomePage(),
   ));
+
 }
 
 class HomePage extends StatefulWidget {
@@ -58,14 +60,19 @@ class _HomePageState extends State<HomePage> {
     Icons.monetization_on,
   ];
 
+  Future<String> getPharmacyName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
+  }
+
   int getCrossAxisCount(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     if (screenWidth > 1200) {
-      return 4; // Large screens
+      return 4; // large screen
     } else if (screenWidth > 600) {
-      return 3; // Medium-sized screens
+      return 3; // medium screen
     } else {
-      return 2; // Smaller screens
+      return 2; // small screen
     }
   }
 
@@ -73,51 +80,66 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tala Chemist'),
+        title: FutureBuilder<String>(
+          future: getPharmacyName(),
+          builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+            return Text(snapshot.hasData ? snapshot.data! : 'Loading...');
+          },
+        ),
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              // Handle notification icon click here
               Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) =>
-                    const NotificationsPage(), // Navigate to the NotificationsPage
-              ));
+                  builder: (context) => const NotificationsPage()));
             },
           ),
           IconButton(
             icon: const Icon(Icons.help_outline),
             onPressed: () {
-              // Handle question mark icon click here
+              // Define help action
             },
           ),
         ],
       ),
-      body: Container(
-        color: const Color.fromRGBO(58, 205, 50, 1),
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: getCrossAxisCount(context),
-                    childAspectRatio: 1.0, // Adjust as needed
-                    crossAxisSpacing: 16.0, // Add spacing between tiles
-                    mainAxisSpacing: 16.0,
-                  ),
-                  itemCount: tileNames.length,
-                  itemBuilder: (context, index) {
-                    return buildClickableTile(
-                        context, tileNames[index], tileIcons[index]);
-                  },
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: getCrossAxisCount(context),
+            childAspectRatio: 1.0,
+            crossAxisSpacing: 20,
+            mainAxisSpacing: 20,
+          ),
+          itemCount: tileNames.length,
+          itemBuilder: (context, index) {
+            return Card(
+              color: Colors.white,
+              elevation: 5,
+              child: InkWell(
+                onTap: () {
+                  // Implement onTap functionality based on the item
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(tileIcons[index],
+                        size: 48, color: Theme.of(context).primaryColor),
+                    SizedBox(height: 10),
+                    Text(
+                      tileNames[index],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
       drawer: Drawer(
@@ -127,13 +149,12 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         onPressed: () {
-          // Handle floating action button click here
+          // Implement FAB action
         },
         child: const Icon(Icons.add, size: 40),
       ),
     );
   }
-
   void navigateToDetailScreen(BuildContext context, String name) {
     switch (name) {
       case 'Sales':
