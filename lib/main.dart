@@ -30,13 +30,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/auth',
+      initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
         
         '/HomePage': (context) => const HomePage(),
-        '/login': (context) => LoginPage(),
+        '/login': (context) => const LoginPage(),
         '/home': (context) => const HomeScreen(),
         '/auth': (context) => const AuthPage(),
         '/signUp': (context) {
@@ -46,7 +46,6 @@ class MyApp extends StatelessWidget {
           final int? pharmacyId = args['pharmacyId'] as int?;
           return signUpPage(pharmacyId: pharmacyId);
         },
-        // '/invent': (context) => InventoryPage(),
         '/password': (context) => forgotPassword(),
         '/success': (context) => const SuccessfulPassword(),
         '/verify': (context) => const VerificationPage(),

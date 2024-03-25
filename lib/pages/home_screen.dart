@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:medfast_go/bargraph/individual_bar.dart';
 import 'package:medfast_go/pages/widgets/progress_indicator.dart';
-
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -39,7 +39,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return totalRevenue;
   }
-
+// Fetch pharmacy name from SharedPreferences
+  Future<String> getPharmacyName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,23 +52,24 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor:const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
-        title: const Row(
-          children: [
-
-
-            //chemist name this is an example later on it will be connected so as to change with the specific chemist
-            Padding(
-              padding: EdgeInsets.only(right: 13),
-              child: Text(
-                'Tala Chemist',
-                style: TextStyle(
+        title: FutureBuilder<String>(
+          future: getPharmacyName(), // Fetch pharmacy name dynamically
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Text(
+                snapshot.data!,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-            ),
-          ],
+              );
+            }
+            // Display a placeholder or loading indicator as needed
+            return const CircularProgressIndicator(
+              color: Colors.white,
+            );
+          },
         ),
         actions: [
           //Notification button
@@ -349,8 +354,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       
-
-
                     ],
                   )
                 ),

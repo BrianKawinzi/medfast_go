@@ -262,11 +262,12 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/business/EXPENSES/expense_detail_page.dart';
 import 'package:medfast_go/business/Expenses/custom_expense_details_page.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
-import 'package:medfast_go/pages/home_page.dart';
 
 import '../models/expenses.dart';
 
 class Expenses extends StatefulWidget {
+  const Expenses({super.key});
+
   @override
   _ExpensesState createState() => _ExpensesState();
 }
@@ -306,7 +307,7 @@ class _ExpensesState extends State<Expenses> {
         expenses = allExpenses;
       } else {
         expenses = allExpenses.where((expense) {
-          final expenseName = expense.expenseName ?? '';
+          final expenseName = expense.expenseName;
           return expenseName.toLowerCase().contains(query.toLowerCase());
         }).toList();
       }
@@ -327,8 +328,7 @@ class _ExpensesState extends State<Expenses> {
 
   Widget _buildExpenseList() {
     // Calculate total expenses
-    double totalCost =
-        expenses.fold(0, (sum, expense) => sum + (expense.cost ?? 0));
+    double totalCost = expenses.fold(0, (sum, expense) => sum + (expense.cost));
 
     if (expenses.isEmpty) {
       return const Center(
@@ -346,17 +346,17 @@ class _ExpensesState extends State<Expenses> {
         itemBuilder: (context, index) {
           var expense = expenses[index];
           // Calculate percentage
-          double expensePercentage = (expense.cost ?? 0) / totalCost * 100;
+          double expensePercentage = (expense.cost) / totalCost * 100;
           return Card(
             margin: const EdgeInsets.all(8.0),
             child: ListTile(
-              title: Text(expense.expenseName ?? ''),
+              title: Text(expense.expenseName),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Date: ${expense.date ?? ''}"),
-                  Text('Details: ${expense.expenseDetails ?? ''}'),
-                  Text('Cost: ${expense.cost ?? ''}'),
+                  Text("Date: ${expense.date}"),
+                  Text('Details: ${expense.expenseDetails}'),
+                  Text('Cost: ${expense.cost}'),
                   Text('Percentage: ${expensePercentage.toStringAsFixed(2)}%'),
                 ],
               ),
@@ -594,13 +594,7 @@ class _ExpensesState extends State<Expenses> {
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const HomePage(),
-              ),
-            );
-          },
+          onTap: () => Navigator.of(context).pop(),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [

@@ -12,10 +12,15 @@ import 'package:medfast_go/business/suppliers.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/components/tile.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GeneralPage extends StatelessWidget {
   const GeneralPage({super.key});
+
+  Future<String> getPharmacyName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
+  }
 
   //Function for navigation tile
   void navigateToPage(BuildContext context, String pageTitle) {
@@ -75,20 +80,24 @@ class GeneralPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
-        title: const Row(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(right: 13),
-              child: Text(
-                'Tala Chemist',
-                style: TextStyle(
+        title: FutureBuilder<String>(
+          future: getPharmacyName(), // Fetch pharmacy name dynamically
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Text(
+                snapshot.data!,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-            ),
-          ],
+              );
+            }
+            // Display a placeholder or loading indicator as needed
+            return const CircularProgressIndicator(
+              color: Colors.white,
+            );
+          },
         ),
         actions: [
           IconButton(
