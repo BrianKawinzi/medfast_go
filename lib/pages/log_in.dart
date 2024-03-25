@@ -18,6 +18,31 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool loading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkForToken();
+  }
+
+  Future<void> _checkForToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    if (token != null) {
+      final payload = decodeJwtPayload(token);
+      final iat = payload['iat'];
+      if (iat != null) {
+        final issuedAt = DateTime.fromMillisecondsSinceEpoch(iat * 1000);
+        final currentDateTime = DateTime.now();
+        final expiryDate = issuedAt.add(const Duration(hours: 24));
+        if (currentDateTime.isBefore(expiryDate)) {
+          Navigator.of(context).pushReplacementNamed('/home');
+          return;
+        }
+      }
+    }
+    // If no token, token is invalid, or token has expired, stay on login page.
+  }
+
   Future<void> signUserIn() async {
     setState(() {
       loading = true;
@@ -43,20 +68,22 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        final token =
-            responseData['token']; // Replace with your actual token key
+        final token = responseData[
+            'token']; // Assuming 'token' is the key in the response
 
         // Decode the JWT token
         final payload = decodeJwtPayload(token);
 
-        // Extract the email address
+        // Extract the email address and pharmacy name
         final email = payload[
             "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+        final pharmacyName = payload['PharmacyName'];
 
-        // Save the token and email using SharedPreferences
+        // Save the token, email, and pharmacy name using SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', token);
-        await prefs.setString('user_email', email); // Save the email
+        await prefs.setString('user_email', email);
+        await prefs.setString('pharmacy_name', pharmacyName);
 
         Navigator.of(context).pushReplacementNamed('/bottom');
       } else {
@@ -91,7 +118,6 @@ class _LoginPageState extends State<LoginPage> {
     final normalized = base64Url.normalize(payload);
     final resp = utf8.decode(base64Url.decode(normalized));
     final payloadMap = json.decode(resp);
-
     return payloadMap;
   }
 
@@ -118,6 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 50),
                     Text(
                       'Welcome back to MedRx',
