@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/business/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products.dart';
+import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/auth_page.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
@@ -17,9 +18,16 @@ import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
 import 'package:medfast_go/pages/profile.dart';
 import 'package:medfast_go/pages/without_barcode.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CartProvider(),
+      child: const MyApp(),
+    ),
+  );
+    
 }
 
 class MyApp extends StatelessWidget {

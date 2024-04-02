@@ -210,7 +210,7 @@ class _HomePageState extends State<HomePage> {
       case 'Sale History':
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) =>
-              saleOrder(), // No need to pass orderDetails if it's optional
+              SaleOrder(), // No need to pass orderDetails if it's optional
         ));
         break;
       default:

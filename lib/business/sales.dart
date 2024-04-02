@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/main.dart';
+import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
@@ -18,10 +19,20 @@ import 'package:medfast_go/data/DatabaseHelper.dart';
 
 //import 'package:sms/sms.dart';
 
-List<Product> cartItems = [];
+//List<Product> cartItems = [];
 
+class CartProvider with ChangeNotifier {
+  final List<Product> _cartItems = [];
+
+  List<Product> get cartItems => _cartItems;
+
+  void add(Product product) {
+    _cartItems.add(product);
+    notifyListeners();
+  }
+}
 class ProductNotifier with ChangeNotifier {
-  List<Product> _products = [];
+  final List<Product> _products = [];
   List<Product> get products => _products;
   List<Product> cartItems = [];
 
@@ -173,7 +184,8 @@ class _SalesState extends State<Sales> {
                             ),
                             onPressed: () {
                               setState(() {
-                                cartItemCount++;
+                                //cartItemCount++;
+                                ProductNotifier().addProduct(product);
                                 // Add the product to the cart
                                 _addToCart(product);
                               });
@@ -197,7 +209,9 @@ class _SalesState extends State<Sales> {
                             onPressed: () {
                               if (_isProductInCart(product)) {
                                 setState(() {
-                                  cartItemCount--;
+                                  
+                                  ProductNotifier().addProduct(product);
+
                                   // Remove the product from the cart
                                   _removeFromCart(product);
                                 });
@@ -235,7 +249,8 @@ class _SalesState extends State<Sales> {
     });
   }
 
-  int cartItemCount = 0;
+ 
+  int get cartItemCount => Provider.of<CartProvider>(context).cartItems.length;
 
   @override
   Widget build(BuildContext context) {
@@ -282,7 +297,10 @@ class _SalesState extends State<Sales> {
                                   24, // Adjust size to fit well within the CircleAvatar
                               color: Colors.black), // Icon with black lines
                           onPressed: () {
-                            if (cartItems.isEmpty) {
+                            if (Provider.of<CartProvider>(context,
+                                    listen: false)
+                                .cartItems
+                                .isEmpty) {
                               // Show an error message
                               showDialog(
                                 context: context,
@@ -308,7 +326,10 @@ class _SalesState extends State<Sales> {
                                 MaterialPageRoute(
                                   builder: (BuildContext context) =>
                                       OrderConfirmationScreen(
-                                          cartItems: cartItems),
+                                          cartItems: Provider.of<CartProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .cartItems),
                                 ),
                               );
                             }
@@ -401,7 +422,9 @@ class _SalesState extends State<Sales> {
                       bottom: 0.25 * 150 / 2.54), // Adjusted bottom padding
                   child: ElevatedButton(
                     onPressed: () {
-                      if (cartItems.isEmpty) {
+                      if (Provider.of<CartProvider>(context, listen: false)
+                          .cartItems
+                          .isEmpty) {
                         // Show an error message
                         showDialog(
                           context: context,
@@ -426,7 +449,11 @@ class _SalesState extends State<Sales> {
                           context,
                           MaterialPageRoute(
                             builder: (BuildContext context) =>
-                                OrderConfirmationScreen(cartItems: cartItems),
+                                OrderConfirmationScreen(
+                                    cartItems: Provider.of<CartProvider>(
+                                            context,
+                                            listen: false)
+                                        .cartItems),
                           ),
                         );
                       }
@@ -504,11 +531,13 @@ class _SalesState extends State<Sales> {
   }
 
   bool _isProductInCart(Product product) {
-    return cartItems.contains(product);
+    return Provider.of<CartProvider>(context, listen: false)
+        .cartItems
+        .contains(product);
   }
 
   void _removeFromCart(Product product) {
-    cartItems.remove(product);
+    Provider.of<CartProvider>(context, listen: false).cartItems.remove(product);
   }
 
   void _showErrorMessage(String message) {
@@ -519,30 +548,32 @@ class _SalesState extends State<Sales> {
   }
 
   void _addToCart(Product product) {
-    if (!_isProductInCart(product)) {
-      cartItems.add(product);
-    }
+  
+    Provider.of<CartProvider>(context, listen: false).add(product);
+    
   }
 }
 
 class OrderRepository {
-  static final List<OrderDetails> completedOrders = [];
+static final DatabaseHelper _dbhelper = DatabaseHelper();
 
-  // Adds a completed order to the repository
-  static void addCompletedOrder(OrderDetails order) {
-    completedOrders.add(order);
+static Future<void> addCompletedOrder(OrderDetails order) async {
+    await _dbhelper.insertCompletedOrder(order);
   }
 
+  
+  
+
   // Retrieves all completed orders
-  static List<OrderDetails> getCompletedOrders() {
-    return completedOrders;
+  static Future<List<OrderDetails>> getCompletedOrders() async {
+    return await _dbhelper.getCompletedOrders();
   }
 }
 
 class OrderConfirmationScreen extends StatefulWidget {
   final List<Product> cartItems;
 
-  OrderConfirmationScreen({Key? key, required this.cartItems})
+  const OrderConfirmationScreen({Key? key, required this.cartItems})
       : super(key: key);
 
   @override
@@ -568,6 +599,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
           (productQuantity[product.productName] ?? 0) + 1;
 
       // Check if sellingPrice is not null before assigning
+      // ignore: unnecessary_null_comparison
       if (product.buyingPrice != null) {
         productPrice[product.productName] = product.buyingPrice;
       } else {
@@ -1046,10 +1078,18 @@ class _CashPaymentState extends State<CashPayment> {
       // ignore: unused_local_variable
       final String orderId = OrderManager().orderId;
       final double totalPrice = widget.totalPrice;
-      final List<Product> products = [...cartItems]; // Clone the cart items
+      final List<Product> products =
+          Provider.of<CartProvider>(context, listen: false).cartItems;
 
-      // Create an OrderDetails instance
+      // // Create an OrderDetails instance
+      // OrderDetails orderDetails = OrderDetails(
+      //   totalPrice: totalPrice,
+      //   products: products,
+      //   completedAt: DateTime.now(),
+      // );
+      //create an order details instance
       OrderDetails orderDetails = OrderDetails(
+        orderId: Random().nextInt(1000).toString(),
         totalPrice: totalPrice,
         products: products,
         completedAt: DateTime.now(),
@@ -1076,7 +1116,8 @@ class _CashPaymentState extends State<CashPayment> {
       ).then((_) {
         // Clear the cart items and navigate back to the Sales screen
         setState(() {
-          cartItems.clear();
+          //cartItems.clear();
+          Provider.of<CartProvider>(context, listen: false).cartItems.clear();
           OrderManager().orderId = '#';
           OrderManager().counter = 1;
         });
@@ -1165,7 +1206,7 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                       SizedBox(width: 30),
                       Container(
-                        width: 286, // Adjust this width as needed
+                        width: 200, // Adjust this width as needed
                         child: TextFormField(
                           controller: cashGivenController,
                           keyboardType: TextInputType.number,
@@ -1464,7 +1505,7 @@ class _MobilePaymentState extends State<MobilePayment> {
 
                   // PaymentInfoDisplay(), // Before payment
                   PaymentInfoDisplay(
-                      customerName: "John Michael",
+                      customerName: "John doe",
                       amountPaid: "Ksh. 500"), // After payment
                   Spacer(),
 
@@ -1618,20 +1659,20 @@ class PaymentInfoDisplay extends StatelessWidget {
   }
 }
 
-class OrderDetails {
-  final String orderId = CashPayment(
-    totalPrice: 0,
-  ).orderNumber;
-  final double totalPrice;
-  final List<Product> products;
-  DateTime completedAt; // Add this line
+// class OrderDetails {
+//   final String orderId = CashPayment(
+//     totalPrice: 0,
+//   ).orderNumber;
+//   final double totalPrice;
+//   final List<Product> products;
+//   DateTime completedAt; // Add this line
 
-  OrderDetails({
-    required this.totalPrice,
-    required this.products,
-    required this.completedAt, // Initialize this in the constructor
-  });
-}
+//   OrderDetails({
+//     required this.totalPrice,
+//     required this.products,
+//     required this.completedAt, // Initialize this in the constructor
+//   });
+// }
 
 class ProductOrder {
   final Product product;
