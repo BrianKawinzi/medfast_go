@@ -17,9 +17,13 @@ class _BottomNavigationState extends State<BottomNavigation> {
 
   final List<Widget> _pages = [
     HomeScreen(),
-    Sales(initialProducts: [],),
+    Sales(
+      initialProducts: [],
+    ),
     GeneralPage(),
-    Reports(),
+    Reports(
+      products: [],
+    ),
     PharmacyProfile(),
   ];
 
@@ -54,24 +58,28 @@ class _BottomNavigationState extends State<BottomNavigation> {
         unselectedItemColor: Color.fromARGB(255, 37, 234, 6),
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard, color: _currentIndex == 0 ? Colors.green : Colors.lightGreen),
+            icon: Icon(Icons.dashboard,
+                color: _currentIndex == 0 ? Colors.green : Colors.lightGreen),
             label: 'Board',
-            
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.point_of_sale, color: _currentIndex == 1 ? Colors.green : Colors.lightGreen),
+            icon: Icon(Icons.point_of_sale,
+                color: _currentIndex == 1 ? Colors.green : Colors.lightGreen),
             label: 'POS',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.apps, color: _currentIndex == 2 ? Colors.green : Colors.lightGreen),
+            icon: Icon(Icons.apps,
+                color: _currentIndex == 2 ? Colors.green : Colors.lightGreen),
             label: 'General',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart, color: _currentIndex == 3 ? Colors.green : Colors.lightGreen),
+            icon: Icon(Icons.bar_chart,
+                color: _currentIndex == 3 ? Colors.green : Colors.lightGreen),
             label: 'Reports',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: _currentIndex == 4 ? Colors.green : Colors.lightGreen),
+            icon: Icon(Icons.person,
+                color: _currentIndex == 4 ? Colors.green : Colors.lightGreen),
             label: 'Profile',
           ),
         ],
