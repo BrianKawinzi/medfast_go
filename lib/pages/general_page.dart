@@ -64,7 +64,7 @@ class GeneralPage extends StatelessWidget {
       case 'Sale History':
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) =>
-              const saleOrder(), // No need to pass orderDetails if it's optional
+              const SaleOrder(), // No need to pass orderDetails if it's optional
         ));
         break;
       default:
