@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:medfast_go/business/products.dart';
+import 'package:medfast_go/data/DatabaseHelper.dart';
+import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class Reports extends StatefulWidget {
-  const Reports({Key? key}) : super(key: key);
+  const Reports({Key? key, required List products}) : super(key: key);
 
   @override
   _ReportsState createState() => _ReportsState();
@@ -11,12 +14,12 @@ class Reports extends StatefulWidget {
 class _ReportsState extends State<Reports> {
   DateTimeRange? selectedDateRange;
   int? expandedIndex;
+  String _selectedFilterOption = 'Filter by';
+  List<DataRow> stockRows = [];
 
   String _getFormattedDate(DateTime dateTime) {
     return '${dateTime.year}-${dateTime.month}';
   }
-
-  String _selectedFilterOption = 'Filter by';
 
   void _changeFilterOption(String option) {
     setState(() {
@@ -41,19 +44,16 @@ class _ReportsState extends State<Reports> {
             child: ListBody(
               children: <Widget>[
                 _buildExportTile('Stock Reports', () {
-                  // Logic to export stock reports
+                  _fetchProductsDetails();
                   Navigator.pop(context);
                 }),
                 _buildExportTile('Sales Reports', () {
-                  // Logic to export sales reports
                   Navigator.pop(context);
                 }),
                 _buildExportTile('Order Reports', () {
-                  // Logic to export order reports
                   Navigator.pop(context);
                 }),
                 _buildExportTile('All Reports', () {
-                  // Logic to export all reports
                   Navigator.pop(context);
                 }),
               ],
@@ -74,12 +74,42 @@ class _ReportsState extends State<Reports> {
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchProductsDetails(); // Fetch product details when the widget is created
+  }
+
+  Future<void> _fetchProductsDetails() async {
+    final dbHelper = DatabaseHelper();
+    final fetchedProducts = await dbHelper.getProducts();
+
+    _updateStockRows(fetchedProducts);
+  }
+
+  void _updateStockRows(List<Product> productList) {
+    setState(() {
+      stockRows = productList
+          .map((product) => DataRow(cells: [
+                DataCell(Text(product.productName)),
+                const DataCell(Text('1')), // Placeholder for Quantity
+                DataCell(Text(product.expiryDate)),
+                DataCell(Text('${product.buyingPrice}')),
+              ]))
+          .toList();
+    });
+  }
+
   Widget _buildReport(
     String title,
     List<DataColumn> columns,
     List<DataRow> rows,
     int index,
   ) {
+    if (title == 'Stock Report') {
+      rows = stockRows; // Use the state variable stockRows
+    }
+
     return GestureDetector(
       onTap: () {
         if (expandedIndex == null) {
@@ -129,6 +159,7 @@ class _ReportsState extends State<Reports> {
             ),
             if (expandedIndex == index)
               SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: DataTable(
                   columns: columns,
                   rows: rows,
@@ -138,17 +169,6 @@ class _ReportsState extends State<Reports> {
         ),
       ),
     );
-  }
-
-  int getCrossAxisCount(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth > 1200) {
-      return 4; // Large screens
-    } else if (screenWidth > 600) {
-      return 3; // Medium-sized screens
-    } else {
-      return 2; // Smaller screens
-    }
   }
 
   @override
@@ -169,22 +189,6 @@ class _ReportsState extends State<Reports> {
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
-          /*Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-                ),
-              ),
-            ),
-          ),*/
           TextButton(
             onPressed: () async {
               final DateTimeRange? pickedDateRange = await showDateRangePicker(
@@ -275,30 +279,11 @@ class _ReportsState extends State<Reports> {
               'Stock Report',
               [
                 const DataColumn(label: Text('Product Name')),
-                const DataColumn(label: Text('Product ID')),
-                const DataColumn(label: Text('Date Added')),
-                const DataColumn(label: Text('Price')),
-                const DataColumn(label: Text('Stock Status')),
                 const DataColumn(label: Text('Quantity')),
+                const DataColumn(label: Text('Expiry Date')),
+                const DataColumn(label: Text('Price')),
               ],
-              [
-                const DataRow(cells: [
-                  DataCell(Text('Product A')),
-                  DataCell(Text('ID-001')),
-                  DataCell(Text('2023-11-01')),
-                  DataCell(Text('Ksh70')),
-                  DataCell(Text('In Stock')),
-                  DataCell(Text('100')),
-                ]),
-                const DataRow(cells: [
-                  DataCell(Text('Product B')),
-                  DataCell(Text('ID-002')),
-                  DataCell(Text('2023-11-05')),
-                  DataCell(Text('Ksh50')),
-                  DataCell(Text('Out of Stock')),
-                  DataCell(Text('50')),
-                ]),
-              ],
+              stockRows, // Use stockRows directly here
               0,
             ),
             _buildReport(

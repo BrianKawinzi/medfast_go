@@ -19,7 +19,6 @@ void main() {
   runApp(const MaterialApp(
     home: HomePage(),
   ));
-
 }
 
 class HomePage extends StatefulWidget {
@@ -155,6 +154,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   void navigateToDetailScreen(BuildContext context, String name) {
     switch (name) {
       case 'Sales':
@@ -170,8 +170,10 @@ class _HomePageState extends State<HomePage> {
                 )));
         break;
       case 'Reports':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const Reports()));
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const Reports(
+                  products: [],
+                )));
         break;
       case 'Expenses':
         Navigator.of(context)
