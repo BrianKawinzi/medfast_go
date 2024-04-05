@@ -13,6 +13,7 @@ import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/components/tile.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:medfast_go/pages/notification.dart';
 
 class GeneralPage extends StatelessWidget {
   const GeneralPage({super.key});
@@ -26,12 +27,12 @@ class GeneralPage extends StatelessWidget {
   void navigateToPage(BuildContext context, String pageTitle) {
     switch (pageTitle) {
       case 'Products':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const Products(productName: '')));
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const Products(productName: '')));
         break;
       case 'Expenses':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Expenses()));
+            .push(MaterialPageRoute(builder: (context) => const Expenses()));
         break;
       case 'Stores':
         Navigator.of(context)
@@ -64,7 +65,7 @@ class GeneralPage extends StatelessWidget {
       case 'Sale History':
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) =>
-              const saleOrder(), // No need to pass orderDetails if it's optional
+              const SaleOrder(), // No need to pass orderDetails if it's optional
         ));
         break;
       default:
@@ -101,7 +102,12 @@ class GeneralPage extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationsPage()),
+              );
+            },
             icon: const Icon(
               Icons.notifications,
               color: Colors.white,

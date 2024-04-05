@@ -1,122 +1,9 @@
-// import 'package:sqflite/sqflite.dart';
-// import 'package:path/path.dart';
 
-// import '../models/product.dart';
-
-// class DatabaseHelper {
-//   static DatabaseHelper? _databaseHelper; // Singleton DatabaseHelper
-//   static Database? _database; // Singleton Database
-
-//   // Define your database table and column names
-//   final String tableName = 'products';
-//   final String columnId = 'id';
-//   final String columnProductName = 'productName';
-//   final String columnMedicineDescription = 'medicineDescription'; // Added this line
-//   final String columnBuyingPrice = 'buyingPrice';
-//   final String columnSellingPrice = 'sellingPrice';
-//   final String columnQuantity = 'quantity';
-//   final String columnUnit = 'unit';
-//   final String columnManufactureDate = 'manufactureDate';
-//   final String columnExpiryDate = 'expiryDate';
-//   final String columnImage = 'image';
-
-//   // Singleton constructor
-//   factory DatabaseHelper() {
-//     if (_databaseHelper == null) {
-//       _databaseHelper = DatabaseHelper._createInstance();
-//     }
-//     return _databaseHelper!;
-//   }
-
-//   DatabaseHelper._createInstance();
-
-//   // Get a reference to the database and create it if necessary
-//   Future<Database?> get database async {
-//     if (_database == null) {
-//       _database = await initializeDatabase();
-//     }
-//     return _database;
-//   }
-
-//   // Initialize the database
-//   Future<Database> initializeDatabase() async {
-//     final String path = join(await getDatabasesPath(), 'medfast_go.db');
-//     final Database database = await openDatabase(
-//       path,
-//       version: 1,
-//       onCreate: _createDb,
-//     );
-//     return database;
-//   }
-
-//   // Create the database table
-//   void _createDb(Database db, int newVersion) async {
-//     await db.execute('''
-//       CREATE TABLE $tableName (
-//         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-//         $columnProductName TEXT,
-//         $columnMedicineDescription TEXT,
-//         $columnBuyingPrice REAL,
-//         $columnSellingPrice REAL,
-//         $columnQuantity INTEGER,
-//         $columnUnit TEXT,
-//         $columnManufactureDate TEXT,
-//         $columnExpiryDate TEXT,
-//         $columnImage TEXT
-//       )
-//     ''');
-//   }
-
-//   // Insert a product into the database
-//   Future<int> insertProduct(Product product) async {
-//     final Database? db = await database;
-//     final int result = await db!.insert(tableName, product.toMap());
-//     return result;
-//   }
-
-//   // Query all products from the database
-//   Future<List<Product>> getProducts() async {
-//     final Database? db = await database;
-//     final List<Map<String, dynamic>> maps = await db!.query(tableName);
-//     return List.generate(maps.length, (i) {
-//       return Product.fromMap(maps[i]);
-//     });
-//   }
-
-//   // Update a product in the database
-//   Future<int> updateProduct(Product product) async {
-//     final Database? db = await database;
-//     final int result = await db!.update(
-//       tableName,
-//       product.toMap(),
-//       where: '$columnId = ?',
-//       whereArgs: [product.id],
-//     );
-//     return result;
-//   }
-
-//   // Delete a product from the database
-//   Future<int> deleteProduct(int id) async {
-//     final Database? db = await database;
-//     final int result = await db!.delete(
-//       tableName,
-//       where: '$columnId = ?',
-//       whereArgs: [id],
-//     );
-//     return result;
-//   }
-
-//   // Close the database
-//   Future<void> close() async {
-//     final Database? db = await database;
-//     db?.close();
-//   }
-// }
-
+import 'package:medfast_go/models/OrderDetails.dart';
+import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/expenses.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-
 import '../models/product.dart';
 
 class DatabaseHelper {
@@ -124,9 +11,11 @@ class DatabaseHelper {
   static Database? _database; // Singleton Database
 
   // Define your database table and column names
-  final String productTableName = 'products'; // Table name for products
-  final String expenseTableName = 'expenses'; // Table name for expenses
+
   final String columnId = 'id';
+
+  // Table name for products
+  final String productTableName = 'products';
   final String columnProductName = 'productName';
   final String columnMedicineDescription = 'medicineDescription';
   final String columnBuyingPrice = 'buyingPrice';
@@ -137,15 +26,30 @@ class DatabaseHelper {
   final String columnExpiryDate = 'expiryDate';
   final String columnImage = 'image';
   final String columnDate = 'date';
+
+  // Table name for expenses
+  final String expenseTableName = 'expenses';
+
   final String columnExpenseName = 'expenseName';
   final String columnExpenseDetails = 'expenseDetails';
   final String columnCost = 'cost';
 
+  // Table name for Customers
+  final String customerTableName = 'customers'; // Table name for customers
+  final String columnName = 'name';
+  final String columnContactNo = 'contactNo';
+  final String columnEmailAddress = 'emailAddress';
+
+  //Table for completed orders
+  final String completedOrderTableName = 'completedOrders';
+  final String columnTotalPrice = 'totalPrice';
+  final String columnProducts =
+      'products'; // This will store a JSON string of products
+  final String columnCompletedAt = 'completedAt';
+
   // Singleton constructor
   factory DatabaseHelper() {
-    if (_databaseHelper == null) {
-      _databaseHelper = DatabaseHelper._createInstance();
-    }
+    _databaseHelper ??= DatabaseHelper._createInstance();
     return _databaseHelper!;
   }
 
@@ -153,22 +57,25 @@ class DatabaseHelper {
 
   // Get a reference to the database and create it if necessary
   Future<Database?> get database async {
-    if (_database == null) {
-      _database = await initializeDatabase();
-    }
+    _database ??= await initializeDatabase();
     return _database;
   }
 
   // Initialize the database
   Future<Database> initializeDatabase() async {
-    final String path = join(await getDatabasesPath(), 'medfast_go.db');
-    final Database database = await openDatabase(
-      path,
-      version: 2, // Increase the version to recreate the database
-      onCreate: _createDb,
-      onUpgrade: _upgradeDb,
-    );
-    return database;
+    try {
+      final String path = join(await getDatabasesPath(), 'medfast_go.db');
+      final Database database = await openDatabase(
+        path,
+        version: 3,
+        onCreate: _createDb,
+        onUpgrade: _upgradeDb,
+      );
+      return database;
+    } catch (e) {
+      print('Error initializing database: $e');
+      throw e; // Rethrow the exception to propagate it further
+    }
   }
 
   // Create the database tables for products and expenses
@@ -198,23 +105,32 @@ class DatabaseHelper {
         $columnCost REAL
       )
     ''');
+
+    // Create the database table for customers
+    await db.execute('''
+      CREATE TABLE $customerTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnName TEXT,
+        $columnContactNo TEXT,
+        $columnEmailAddress TEXT,
+        $columnDate TEXT
+      )
+    ''');
   }
 
   // Handle database upgrades
   void _upgradeDb(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
+    if (oldVersion < 3) {
       // Upgrade logic for version 2
-      Batch batch = db.batch();
-      batch.execute('''
-      CREATE TABLE $expenseTableName (
+      await db.execute('''
+      CREATE TABLE completedOrders (
         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-        $columnDate TEXT,
-        $columnExpenseName TEXT,
-        $columnExpenseDetails TEXT,
-        $columnCost REAL
+        orderId TEXT,
+        $columnTotalPrice REAL,
+        $columnProducts TEXT,
+        $columnCompletedAt TEXT
       )
     ''');
-      batch.commit();
     }
   }
 
@@ -262,6 +178,17 @@ class DatabaseHelper {
     return result;
   }
 
+  // Delete a notification from the database
+  Future<int> deleteNotification(String notification) async {
+    final Database? db = await database;
+    final int result = await db!.delete(
+      productTableName,
+      where: '$columnProductName = ?',
+      whereArgs: [notification],
+    );
+    return result;
+  }
+
   // Delete a product from the products table
   Future<int> deleteProduct(int id) async {
     final Database? db = await database;
@@ -295,6 +222,65 @@ class DatabaseHelper {
     );
     return result;
   }
+
+  // Insert a customer into the customers table
+  Future<int> insertCustomer(Customer customer) async {
+    final Database? db = await database;
+    final int result = await db!.insert(
+      customerTableName,
+      customer.toMap(),
+      conflictAlgorithm:
+          ConflictAlgorithm.replace, // Specify conflict algorithm
+    );
+    return result;
+  }
+
+  // Query all customers from the customers table
+  Future<List<Customer>> getCustomers() async {
+    final Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(customerTableName);
+    return List.generate(maps.length, (i) {
+      return Customer.fromMap(maps[i]);
+    });
+  }
+
+  // Update a customer in the customers table
+  Future<int> updateCustomer(Customer customer) async {
+    final Database? db = await database;
+    final int result = await db!.update(
+      customerTableName,
+      customer.toMap(),
+      where: '$columnId = ?',
+      whereArgs: [customer.id],
+    );
+    return result;
+  }
+
+  // Delete a customer from the customers table
+  Future<int> deleteCustomer(int id) async {
+    final Database? db = await database;
+    final int result = await db!.delete(
+      customerTableName,
+      where: '$columnId = ?',
+      whereArgs: [id],
+    );
+    return result;
+  }
+
+  // Insert a completed order into the completedOrders table
+  Future<int> insertCompletedOrder(OrderDetails order) async {
+    final db = await database;
+    return await db!.insert(completedOrderTableName, order.toMap());
+  }
+
+  // Query all completed orders from the completedOrders table
+  Future<List<OrderDetails>> getCompletedOrders() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps =
+        await db!.query(completedOrderTableName);
+    return List.generate(maps.length, (i) => OrderDetails.fromMap(maps[i]));
+  }
+
 
   // Close the database
   Future<void> close() async {
