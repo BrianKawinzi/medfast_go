@@ -1,8 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:medfast_go/data/DatabaseHelper.dart';
+import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:csv/csv.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 
 class Reports extends StatefulWidget {
-  const Reports({Key? key}) : super(key: key);
+  const Reports({Key? key, required this.products}) : super(key: key);
+  final List<Product> products;
 
   @override
   _ReportsState createState() => _ReportsState();
@@ -11,12 +19,37 @@ class Reports extends StatefulWidget {
 class _ReportsState extends State<Reports> {
   DateTimeRange? selectedDateRange;
   int? expandedIndex;
+  String _selectedFilterOption = 'Filter by';
+  List<DataRow> stockRows = [];
 
-  String _getFormattedDate(DateTime dateTime) {
-    return '${dateTime.year}-${dateTime.month}';
+  @override
+  void initState() {
+    super.initState();
+    _fetchProductsDetails(); // Fetch product details when the widget is created
   }
 
-  String _selectedFilterOption = 'Filter by';
+   Future<void> _fetchProductsDetails() async {
+    final dbHelper = DatabaseHelper();
+    final fetchedProducts = await dbHelper.getProducts();
+
+    _updateStockRows(fetchedProducts);
+  }
+  void _updateStockRows(List<Product> productList) {
+    setState(() {
+      stockRows = productList
+          .map((product) => DataRow(cells: [
+                DataCell(Text(product.productName)),
+                DataCell(Text('1')), 
+                DataCell(Text(product.expiryDate)),
+                DataCell(Text('${product.buyingPrice}')),
+              ]))
+          .toList();
+    });
+  }
+
+  String _getFormattedDate(DateTime dateTime) {
+    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+  }
 
   void _changeFilterOption(String option) {
     setState(() {
@@ -27,7 +60,7 @@ class _ReportsState extends State<Reports> {
   Widget _buildExportTile(String title, Function() onPressed) {
     return ListTile(
       title: Text(title),
-      onTap: onPressed,
+      onTap: () => onPressed(),
     );
   }
 
@@ -40,20 +73,14 @@ class _ReportsState extends State<Reports> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                _buildExportTile('Stock Reports', () {
-                  // Logic to export stock reports
-                  Navigator.pop(context);
-                }),
+                _buildExportTile('Stock Reports', _exportStockReport),
                 _buildExportTile('Sales Reports', () {
-                  // Logic to export sales reports
                   Navigator.pop(context);
                 }),
                 _buildExportTile('Order Reports', () {
-                  // Logic to export order reports
                   Navigator.pop(context);
                 }),
                 _buildExportTile('All Reports', () {
-                  // Logic to export all reports
                   Navigator.pop(context);
                 }),
               ],
@@ -63,6 +90,50 @@ class _ReportsState extends State<Reports> {
       },
     );
   }
+
+ Future<void> _exportStockReport() async {
+  final status = await Permission.storage.status;
+  if (!status.isGranted) {
+    await Permission.storage.request();
+  }
+
+  if (await Permission.storage.isGranted) {
+    final List<List<dynamic>> rows = [
+      ['Product Name', 'Quantity', 'Expiry Date', 'Price (Ksh)']
+    ];
+
+    // Populate rows with data from stockRows
+    for (var dataRow in stockRows) {
+      List<dynamic> row = dataRow.cells.map((cell) {
+        String cellContent = cell.child.toString();
+        cellContent = cellContent.replaceAll("Text(", "").replaceAll(")", "");
+        cellContent = cellContent.replaceAll('"', '').trim();
+
+        return cellContent;
+      }).toList();
+
+      rows.add(row);
+    }
+
+    String timeStamp = DateTime.now().toString(); 
+    String csv = const ListToCsvConverter().convert(rows);
+    final String dir = (await getApplicationDocumentsDirectory()).path;
+    final String path = '$dir/stock_reports$timeStamp.csv';
+
+    final File file = File(path);
+    await file.writeAsString(csv);
+
+    await FlutterFileDialog.saveFile(
+        params: SaveFileDialogParams(
+          sourceFilePath: path,
+        ));
+    Navigator.pop(context);
+  } else {
+    // Handle the case where permission is denied
+    print("Storage permission denied");
+  }
+}
+
 
   void _toggleExpand(int index) {
     setState(() {
@@ -80,6 +151,10 @@ class _ReportsState extends State<Reports> {
     List<DataRow> rows,
     int index,
   ) {
+    if (title == 'Stock Report') {
+      rows = stockRows; // Use the state variable stockRows
+    }
+
     return GestureDetector(
       onTap: () {
         if (expandedIndex == null) {
@@ -101,34 +176,31 @@ class _ReportsState extends State<Reports> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
                     title,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    _toggleExpand(index);
-                  },
-                  icon: Icon(
-                    expandedIndex == index
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    color: Colors.black,
+                  IconButton(
+                    onPressed: () => _toggleExpand(index),
+                    icon: Icon(
+                      expandedIndex == index ? Icons.expand_less : Icons.expand_more,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             if (expandedIndex == index)
               SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: DataTable(
                   columns: columns,
                   rows: rows,
@@ -138,17 +210,6 @@ class _ReportsState extends State<Reports> {
         ),
       ),
     );
-  }
-
-  int getCrossAxisCount(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth > 1200) {
-      return 4; // Large screens
-    } else if (screenWidth > 600) {
-      return 3; // Medium-sized screens
-    } else {
-      return 2; // Smaller screens
-    }
   }
 
   @override
@@ -169,22 +230,6 @@ class _ReportsState extends State<Reports> {
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
-          /*Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-                ),
-              ),
-            ),
-          ),*/
           TextButton(
             onPressed: () async {
               final DateTimeRange? pickedDateRange = await showDateRangePicker(
@@ -275,30 +320,11 @@ class _ReportsState extends State<Reports> {
               'Stock Report',
               [
                 const DataColumn(label: Text('Product Name')),
-                const DataColumn(label: Text('Product ID')),
-                const DataColumn(label: Text('Date Added')),
-                const DataColumn(label: Text('Price')),
-                const DataColumn(label: Text('Stock Status')),
                 const DataColumn(label: Text('Quantity')),
+                const DataColumn(label: Text('Expiry Date')),
+                const DataColumn(label: Text('Price (Ksh)')),
               ],
-              [
-                const DataRow(cells: [
-                  DataCell(Text('Product A')),
-                  DataCell(Text('ID-001')),
-                  DataCell(Text('2023-11-01')),
-                  DataCell(Text('Ksh70')),
-                  DataCell(Text('In Stock')),
-                  DataCell(Text('100')),
-                ]),
-                const DataRow(cells: [
-                  DataCell(Text('Product B')),
-                  DataCell(Text('ID-002')),
-                  DataCell(Text('2023-11-05')),
-                  DataCell(Text('Ksh50')),
-                  DataCell(Text('Out of Stock')),
-                  DataCell(Text('50')),
-                ]),
-              ],
+              stockRows, // Use stockRows directly here
               0,
             ),
             _buildReport(

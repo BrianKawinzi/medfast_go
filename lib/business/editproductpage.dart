@@ -75,6 +75,7 @@ class EditProductPageState extends State<EditProductPage> {
       widget.product.expiryDate = updatedExpiryDate;
       widget.product.image = _image?.path;
     });
+    Navigator.pop(context);
   }
 
   @override
