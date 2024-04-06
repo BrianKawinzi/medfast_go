@@ -105,7 +105,9 @@ class _ReportsState extends State<Reports> {
     // Populate rows with data from stockRows
     for (var dataRow in stockRows) {
       List<dynamic> row = dataRow.cells.map((cell) {
-        String cellContent = cell.child.toString();
+        String cellContent = cell.child.runtimeType == Text 
+                             ? (cell.child as Text).data ?? '' 
+                             : '';
         cellContent = cellContent.replaceAll("Text(", "").replaceAll(")", "");
         cellContent = cellContent.replaceAll('"', '').trim();
 
@@ -133,6 +135,7 @@ class _ReportsState extends State<Reports> {
     print("Storage permission denied");
   }
 }
+
 
 
   void _toggleExpand(int index) {
