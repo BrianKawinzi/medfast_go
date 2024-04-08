@@ -32,6 +32,8 @@ class Product {
 
   get sellingPrice => null;
 
+  get quantity => null;
+
   // Method to convert a Product object to a map
   Map<String, dynamic> toMap({bool excludeId = false}) {
     return {
