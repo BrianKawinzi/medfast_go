@@ -16,7 +16,7 @@ class Product {
     this.image,
     required this.expiryDate,
     required this.manufactureDate,
-    this.unit,
+    this.unit, required double sellingPrice, required int quantity,
   });
 
   // Named constructor to create a Product object from a map
