@@ -60,7 +60,7 @@ class EditProductPageState extends State<EditProductPage> {
       buyingPrice: updatedPrice,
       expiryDate: updatedExpiryDate,
       manufactureDate: '',
-      image: _image?.path, // Update the image path
+      image: _image?.path, sellingPrice: 0, quantity: 0, // Update the image path
       // Add other fields as needed
     );
 
