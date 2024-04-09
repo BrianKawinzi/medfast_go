@@ -123,7 +123,7 @@ class NavigationDrawerWidget extends StatelessWidget {
           children: <Widget>[
             buildHeader(() => Navigator.of(context).push(MaterialPageRoute(
                   builder: (context) =>
-                      const HomeScreen(/* Add arguments here */),
+                      const HomeScreen(completedOrders: [],/* Add arguments here */),
                 ))),
             const SizedBox(height: 10),
             buildSearchField(),

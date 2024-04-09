@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:medfast_go/bargraph/individual_bar.dart';
 import 'package:medfast_go/pages/widgets/progress_indicator.dart';
@@ -6,8 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart'; // Import shared_pr
 import 'package:medfast_go/pages/notification.dart';
 
 class HomeScreen extends StatefulWidget {
+  final List<OrderDetails> completedOrders;
   const HomeScreen({
-    super.key,
+    super.key, required this.completedOrders,
   });
 
   @override
@@ -15,29 +17,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late List<OrderDetails> _completedOrders;
+  late List<int> _years = [2022, 2023, 2024, 2025, 2026, 2027];
+  late int _selectedYear = 2022;
+
+  @override
+  void initState() {
+    super.initState();
+    _completedOrders = widget.completedOrders;
+  }
+  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   //calculate revenue method
-  Future<double> calculateTotalRevenue() async {
+  Future<double> calculateTotalRevenue(int year) async {
     double totalRevenue = 0;
 
-    List<double> monthlyAmounts = [
-      10000,
-      20000,
-      15000,
-      25000,
-      18000,
-      22000,
-      30500,
-      28000,
-      35000,
-      32000,
-      28000,
-      40000
-    ];
-
-    for (double amount in monthlyAmounts) {
-      totalRevenue += amount;
+   for (OrderDetails order in _completedOrders) {
+    if (order.completedAt.year == year) {
+      totalRevenue += order.totalPrice;
     }
+   }
 
     return totalRevenue;
   }
@@ -187,9 +186,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           //Calculation of monthly ammounts
                           FutureBuilder<double>(
-                              future: calculateTotalRevenue(),
+                              future: calculateTotalRevenue(_selectedYear),
                               builder: (context, snapshot) {
-                                if (snapshot.hasData) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Text(
+                                    'Loading...',
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                } else if (snapshot.hasData) {
                                   return Text(
                                     'KSH \n ${snapshot.data!.toStringAsFixed(0)}',
                                     style: const TextStyle(
@@ -199,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   );
                                 } else {
                                   return const Text(
-                                    'Loading...',
+                                    'Error', 
                                     style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
@@ -208,24 +215,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                 }
                               }),
 
-                          DropdownButton<String>(
-                            items: <String>[
-                              '2022',
-                              '2023',
-                              '2024',
-                              '2025',
-                              '2026',
-                              '2027'
-                            ].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
+                          DropdownButton<int>(
+                            items: _years.map((int year) {
+                              return DropdownMenuItem<int>(
+                                value: year,
+                                child: Text(year.toString()),
                               );
                             }).toList(),
-                            onChanged: (String? newValue) {
-                              //Handle dropdown value change logic
+                            onChanged: (int? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedYear = newValue;
+                                });
+                              }
                             },
-                            value: '2022',
+                            value: _selectedYear,
                           ),
                         ],
                       ),
