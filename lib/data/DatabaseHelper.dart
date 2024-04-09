@@ -1,5 +1,4 @@
 
-import 'package:flutter/foundation.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/expenses.dart';
@@ -100,6 +99,17 @@ class DatabaseHelper {
       )
     ''');
 
+
+    // Create the completed orders table
+    await db.execute('''
+      CREATE TABLE $completedOrderTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        orderId TEXT,
+        $columnTotalPrice REAL,
+        $columnProducts TEXT,
+        $columnCompletedAt TEXT
+      )
+    ''');
     // Create the expenses table
     await db.execute('''
       CREATE TABLE $expenseTableName (
