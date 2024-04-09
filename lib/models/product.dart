@@ -5,7 +5,7 @@ class Product {
   double buyingPrice;
   String? image;
   String expiryDate;
-  double sellingPrice;
+  double sellingPrice = 0;
   int quantity;
   final String manufactureDate;
   final String? unit; 
@@ -29,8 +29,9 @@ class Product {
         productName = map['productName'],
         medicineDescription = map['medicineDescription'],
         buyingPrice = map['buyingPrice'].toDouble(),
-        sellingPrice = map['sellingPrice'].toDouble(),
-        quantity = map['quantity'],
+        sellingPrice = map['sellingPrice']?.toDouble() ?? 0.0,
+
+        quantity = map['quantity']?.toInt() ??0,
         image = map['image'],
         expiryDate = map['expiryDate'],
         manufactureDate = map['manufactureDate'],

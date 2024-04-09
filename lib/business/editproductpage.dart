@@ -187,6 +187,23 @@ class EditProductPageState extends State<EditProductPage> {
                 style: TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 16),
+
+              TextField(
+              controller: quantityController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Quantity',
+                labelStyle: TextStyle(color: Colors.black),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black, width: 2.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black, width: 2.0),
+                ),
+              ),
+              style: TextStyle(color: Colors.black),
+            ),
+            const SizedBox(height: 16),
               TextField(
                 controller: priceController,
                 keyboardType: TextInputType.number,

@@ -121,110 +121,114 @@ class _SalesState extends State<Sales> {
   }
 
   Widget _buildProductList() {
-    if (products.isEmpty) {
-      return const Center(
-        child: Text(
-          "No added items for a sale",
-          style: TextStyle(fontSize: 18.0),
-        ),
-      );
-    } else {
-      //return ListView.builder(
-      return RefreshIndicator(
-        onRefresh: _fetchProducts, // Refresh action
-        child: ListView.builder(
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            var product = products[index];
-            var imageFile = File(product.image ?? '');
-            return Dismissible(
-              key: Key(product.id.toString()),
-              child: Card(
-                margin: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  title: Text(product.productName),
-                  subtitle: Align(
-                    alignment: Alignment.topLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Expiry Date: ${product.expiryDate}"),
-                        Text('Description: ${product.medicineDescription}'),
-                        Text('Price: ${product.buyingPrice}'),
-                      ],
-                    ),
-                  ),
-                  leading: SizedBox(
-                    width: 100,
-                    child: imageFile.existsSync()
-                        ? Image.file(
-                            imageFile,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.error);
-                            },
-                          )
-                        : const Placeholder(),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+  if (products.isEmpty) {
+    return const Center(
+      child: Text(
+        "No added items for a sale",
+        style: TextStyle(fontSize: 18.0),
+      ),
+    );
+  } else {
+    return RefreshIndicator(
+      onRefresh: _fetchProducts,
+      child: ListView.builder(
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          var product = products[index];
+          var imageFile = File(product.image ?? '');
+          return Dismissible(
+            key: Key(product.id.toString()),
+            child: Card(
+              margin: const EdgeInsets.all(8.0),
+              child: ListTile(
+                title: Text(product.productName),
+                subtitle: Align(
+                  alignment: Alignment.topLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.green,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                              // You can adjust the size of the add icon here
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                //cartItemCount++;
-                                ProductNotifier().addProduct(product);
-                                // Add the product to the cart
-                                _addToCart(product);
-                              });
-                            },
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 8), // Adjust the spacing between buttons
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.red,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.remove,
-                              color: Colors.white,
-                              size: 20,
-                              // You can adjust the size of the minus icon here
-                            ),
-                            onPressed: () {
-                              if (_isProductInCart(product)) {
-                                setState(() {
-                                  
-                                  ProductNotifier().addProduct(product);
-
-                                  // Remove the product from the cart
-                                  _removeFromCart(product);
-                                });
-                              } else {
-                                // Display an error message to the user
-                                _showErrorMessage("Item not in cart");
-                              }
-                            },
-                          ),
+                      Text("Expiry Date: ${product.expiryDate}"),
+                      Text('Price: ${product.buyingPrice}'),
+                      // Add stock quantity information here
+                      Text(
+                        "${product.quantity} units",
+                        style: TextStyle(
+                          color: product.quantity > 10 ? Colors.green : Colors.red,
                         ),
                       ),
                     ],
                   ),
-                  onTap: () => _navigateToEditProduct(product),
+                ),
+                leading: SizedBox(
+                  width: 100,
+                  child: imageFile.existsSync()
+                      ? Image.file(
+                          imageFile,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error);
+                          },
+                        )
+                      : const Placeholder(),
+                ),
+                 trailing: Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    // Add button
+    CircleAvatar(
+      radius: 18,
+      backgroundColor: Colors.green,
+      child: IconButton(
+        icon: const Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 20,
+        ),
+        onPressed: () {
+          setState(() {
+            ProductNotifier().addProduct(product);
+            // Assuming this method adds the product to the cart and updates the quantity
+            _addToCart(product);
+          });
+        },
+      ),
+    ),
+    // This SizedBox provides some spacing between the add button and the quantity text
+    SizedBox(width: 8),
+    // Displaying the quantity in the cart for this product
+    Text(
+      '${cartItemCount}', // This method should return the current quantity of the product in the cart
+      style: TextStyle(fontSize: 18.0),
+    ),
+    // This SizedBox provides some spacing between the quantity text and the subtract button
+    SizedBox(width: 8),
+    // Subtract button
+    CircleAvatar(
+      radius: 18,
+      backgroundColor: Colors.red,
+      child: IconButton(
+        icon: const Icon(
+          Icons.remove,
+          color: Colors.white,
+          size: 20,
+        ),
+        onPressed: () {
+          setState(() {
+            if (_isProductInCart(product)) {
+              ProductNotifier().addProduct(product);
+              // Assuming this method removes the product from the cart or decrements the quantity
+              _removeFromCart(product);
+            } else {
+              // Display an error message if the product is not in the cart
+              _showErrorMessage("Item not in cart");
+            }
+          });
+        },
+      ),
+    ),
+  ],
+),
+               onTap: () => _navigateToEditProduct(product),
                 ),
               ),
             );
