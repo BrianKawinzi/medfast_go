@@ -47,6 +47,10 @@ class DatabaseHelper {
       'products'; // This will store a JSON string of products
   final String columnCompletedAt = 'completedAt';
 
+  final String appStateTableName = 'AppState';
+  final String columRouteID = 'id';
+  final String columnLastRoute = 'lastRoute';
+
   // Singleton constructor
   factory DatabaseHelper() {
     _databaseHelper ??= DatabaseHelper._createInstance();
@@ -67,7 +71,7 @@ class DatabaseHelper {
       final String path = join(await getDatabasesPath(), 'medfast_go.db');
       final Database database = await openDatabase(
         path,
-        version: 3,
+        version: 4,
         onCreate: _createDb,
         onUpgrade: _upgradeDb,
       );
@@ -95,6 +99,17 @@ class DatabaseHelper {
       )
     ''');
 
+
+    // Create the completed orders table
+    await db.execute('''
+      CREATE TABLE $completedOrderTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        orderId TEXT,
+        $columnTotalPrice REAL,
+        $columnProducts TEXT,
+        $columnCompletedAt TEXT
+      )
+    ''');
     // Create the expenses table
     await db.execute('''
       CREATE TABLE $expenseTableName (
@@ -116,11 +131,17 @@ class DatabaseHelper {
         $columnDate TEXT
       )
     ''');
+    await db.execute('''
+    CREATE TABLE AppState (
+      id INTEGER PRIMARY KEY,
+      lastRoute TEXT
+    )
+  ''');
   }
 
   // Handle database upgrades
   void _upgradeDb(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
+    if (oldVersion < 4) {
       // Upgrade logic for version 2
       await db.execute('''
       CREATE TABLE completedOrders (
@@ -131,8 +152,15 @@ class DatabaseHelper {
         $columnCompletedAt TEXT
       )
     ''');
+      await db.execute('''
+      CREATE TABLE AppState (
+        id INTEGER PRIMARY KEY,
+        lastRoute TEXT
+      )
+    ''');
     }
   }
+
 
   // Insert a product into the products table
   Future<int> insertProduct(Product product) async {
@@ -281,10 +309,40 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => OrderDetails.fromMap(maps[i]));
   }
 
+  Future<void> saveLastRoute(String routeName) async {
+    print("Saving last route: $routeName"); // Debug print
+    final db = await database;
+    await db!.insert(
+      appStateTableName,
+      {'id': 1, 'lastRoute': routeName},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
 
-  // Close the database
+
+  Future<String?> getLastRoute() async {
+    final db = await database;
+    final List<Map<String, dynamic>> results = await db!.query(
+      appStateTableName,
+      columns: ['lastRoute'],
+      where: 'id = ?',
+      whereArgs: [1],
+    );
+
+    print(
+        "Retrieved route: ${results.isNotEmpty ? results.first['lastRoute'] : 'None'}");
+    if (results.isNotEmpty) {
+      return results.first['lastRoute'] as String?;
+    }
+    return null;
+  }
+
+
+
+// Close the database
   Future<void> close() async {
     final Database? db = await database;
     db?.close();
   }
+
 }
