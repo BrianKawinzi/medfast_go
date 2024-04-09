@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
         '/bottom': (context) => const BottomNavigation(),
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const HomeScreen(completedOrders: [],),
         '/auth': (context) => const AuthPage(),
         '/signUp': (context) {
           final Map<String, dynamic> args = ModalRoute.of(context)!

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
+import 'package:medfast_go/pages/home_screen.dart';
 
 
 class SaleOrder extends StatelessWidget {
@@ -56,7 +57,11 @@ class SaleOrder extends StatelessWidget {
                 );
               },
             );
-          } else {
+          }
+          else if (snapshot.hasData) {
+            List<OrderDetails> completedOrders = snapshot.data ?? [];
+            return HomeScreen(completedOrders: completedOrders);
+          }else {
             // Show message when there's no data
             return const Center(child: Text("No sales history found."));
           }
