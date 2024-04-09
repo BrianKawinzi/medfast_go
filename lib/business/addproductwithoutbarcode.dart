@@ -13,20 +13,21 @@ class AddProductForm extends StatefulWidget {
 class _AddProductFormState extends State<AddProductForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _expiryDateController = TextEditingController();
-  final TextEditingController _manufactureDateController = TextEditingController();
+  final TextEditingController _manufactureDateController =
+      TextEditingController();
   final ImagePicker _picker = ImagePicker();
   File? _image;
 
   String _productName = '';
   double _buyingPrice = 0.0;
-  double _sellingPrice = 0.0;
   String _unit = 'piece';
-  int _quantity = 0; // Added Quantity
 
-  DatabaseHelper _databaseHelper = DatabaseHelper();
+  DatabaseHelper _databaseHelper =
+      DatabaseHelper(); // Initialize your database helper
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -35,7 +36,8 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Future<void> _captureImage() async {
-    final XFile? capturedFile = await _picker.pickImage(source: ImageSource.camera);
+    final XFile? capturedFile =
+        await _picker.pickImage(source: ImageSource.camera);
     if (capturedFile != null) {
       setState(() {
         _image = File(capturedFile.path);
@@ -54,30 +56,36 @@ class _AddProductFormState extends State<AddProductForm> {
           maxId = product.id;
         }
       }
-      final newProductId = maxId + 1;
+      final newProductId = maxId + 1; // Generate a unique id
 
       final newProduct = Product(
-        id: newProductId,
+        id: newProductId, // Set the unique id
         productName: _productName,
-        medicineDescription: '',
+        medicineDescription: '', // Set an appropriate value if needed
         buyingPrice: _buyingPrice,
-        sellingPrice: _sellingPrice,
         image: _image != null ? _image!.path : null,
         expiryDate: _expiryDateController.text,
         manufactureDate: _manufactureDateController.text,
         unit: _unit,
-        quantity: _quantity, // Added Quantity
       );
 
+      // Insert the new product into the database
       final result = await _databaseHelper.insertProduct(newProduct);
 
       if (result != -1) {
+        // Product was successfully inserted
+        // Clear the form and show a success message if needed
         setState(() {
           _image = null;
+          // Clear other form fields
           _formKey.currentState!.reset();
         });
+
+        // Route to the '/product' screen
         Navigator.pushReplacementNamed(context, '/product');
       } else {
+        // Error occurred while inserting the product
+        // Show an error message if needed
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -99,7 +107,8 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -111,7 +120,8 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  Widget _buildTextField(String label, String errorText, {bool isNumeric = false}) {
+  Widget _buildTextField(String label, String errorText,
+      {bool isNumeric = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -134,9 +144,6 @@ class _AddProductFormState extends State<AddProductForm> {
             case 'Buying Price':
               _buyingPrice = double.tryParse(value!) ?? 0.0;
               break;
-            case 'Selling Price':
-              _sellingPrice = double.tryParse(value!) ?? 0.0;
-              break;
           }
         },
       ),
@@ -144,54 +151,26 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Widget _buildDropdown() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          width: MediaQuery.of(context).size.width * 0.4,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: DropdownButtonFormField<String>(
-              value: _unit,
-              decoration: InputDecoration(
-                labelText: 'Unit',
-                labelStyle: TextStyle(color: Colors.green[800]),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green[800]!, width: 2.0),
-                ),
-              ),
-              items: <String>['piece', 'packet', 'bottle', 'sheet', 'tablet', 'set']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (String? newValue) => setState(() => _unit = newValue!),
-            ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        value: _unit,
+        decoration: InputDecoration(
+          labelText: 'Unit',
+          labelStyle: TextStyle(color: Colors.green[800]),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.green[800]!, width: 2.0),
           ),
         ),
-        Container(
-          width: MediaQuery.of(context).size.width * 0.4,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Quantity',
-                labelStyle: TextStyle(color: Colors.green[800]),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.green[800]!, width: 2.0),
-                ),
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) => value!.isEmpty ? 'Please enter quantity' : null,
-              onSaved: (value) {
-                _quantity = int.tryParse(value!) ?? 0;
-              },
-            ),
-          ),
-        ),
-      ],
+        items: <String>['piece', 'packet', 'bottle', 'sheet', 'tablet', 'set']
+            .map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: (String? newValue) => setState(() => _unit = newValue!),
+      ),
     );
   }
 
@@ -229,13 +208,16 @@ class _AddProductFormState extends State<AddProductForm> {
           children: <Widget>[
             Text(
               'Add New Product',
-              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.green[800]),
+              style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[800]),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 30.0),
             _buildTextField('Product Name', 'Please enter the product name'),
-            _buildTextField('Buying Price', 'Please enter a valid buying price', isNumeric: true),
-            _buildTextField('Selling Price', 'Please enter a valid selling price', isNumeric: true),
+            _buildTextField('Buying Price', 'Please enter a valid buying price',
+                isNumeric: true),
             _buildDropdown(),
             _buildDatePicker(_manufactureDateController, 'Manufacture Date'),
             _buildDatePicker(_expiryDateController, 'Expiry Date'),
@@ -272,7 +254,8 @@ class _AddProductFormState extends State<AddProductForm> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green[800],
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
                   ),
                   child: Text('Capture Image'),
                 ),
@@ -281,7 +264,8 @@ class _AddProductFormState extends State<AddProductForm> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green[800],
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
                   ),
                   child: Text('Select Image'),
                 ),
@@ -293,12 +277,12 @@ class _AddProductFormState extends State<AddProductForm> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green[700],
                 padding: EdgeInsets.symmetric(vertical: 15.0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
-              child: Text(
-                'Submit',
-                style: TextStyle(fontSize: 18.0, color: Colors.white),
-              ),
+              child: Text('Submit',
+                  style: TextStyle(fontSize: 18.0, color: Colors.white)),
             ),
           ],
         ),
