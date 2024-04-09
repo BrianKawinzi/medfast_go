@@ -21,7 +21,7 @@ class PharmacyProfileState extends State<PharmacyProfile> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String selectedCounty = "";
   final ImagePicker _imagePicker =
-      ImagePicker(); // Create an instance of ImagePicker
+      ImagePicker(); // Create an instance for ImagePicker
   File? selectedImage;
 
   final List<String> kenyanCounties = [
