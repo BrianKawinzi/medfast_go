@@ -22,12 +22,37 @@ import 'package:medfast_go/data/DatabaseHelper.dart';
 
 class CartProvider with ChangeNotifier {
   final List<Product> _cartItems = [];
+  Map<int, int> _productQuantities = {};
 
   List<Product> get cartItems => _cartItems;
-
+  Map<int, int> get productQuantities => _productQuantities;
   void add(Product product) {
     _cartItems.add(product);
+    _productQuantities.update(product.id, (value) => value + 1,
+        ifAbsent: () => 1);
     notifyListeners();
+  }
+
+  void remove(Product product) {
+    // Assuming _cartItems is a list of Product objects
+    final int index = _cartItems.indexWhere((p) => p.id == product.id);
+    if (index != -1) {
+      _cartItems.removeAt(index);
+      // Assuming _productQuantities is a map with product.id as key and quantity as value
+      if (_productQuantities.containsKey(product.id)) {
+        final int currentQuantity = _productQuantities[product.id]!;
+        if (currentQuantity > 1) {
+          _productQuantities.update(product.id, (value) => value - 1);
+        } else {
+          _productQuantities.remove(product.id);
+        }
+      }
+      notifyListeners();
+    }
+  }
+
+  int getCartQuantity(Product product) {
+    return _productQuantities[product.id] ?? 0;
   }
 }
 class ProductNotifier with ChangeNotifier {
@@ -197,8 +222,8 @@ class _SalesState extends State<Sales> {
     SizedBox(width: 8),
     // Displaying the quantity in the cart for this product
     Text(
-      '${cartItemCount}', // This method should return the current quantity of the product in the cart
-      style: TextStyle(fontSize: 18.0),
+                        '${Provider.of<CartProvider>(context, listen: true).getCartQuantity(product) == 0 ? "" : Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)}',
+                        style: TextStyle(fontSize: 18.0),
     ),
     // This SizedBox provides some spacing between the quantity text and the subtract button
     SizedBox(width: 8),
@@ -216,8 +241,12 @@ class _SalesState extends State<Sales> {
           setState(() {
             if (_isProductInCart(product)) {
               ProductNotifier().addProduct(product);
-              // Assuming this method removes the product from the cart or decrements the quantity
-              _removeFromCart(product);
+                                // Assuming this method removes the product from the cart and updates the quantity
+                                Provider.of<CartProvider>(context,
+                                        listen: false)
+                                    .remove(product);
+                                   
+
             } else {
               // Display an error message if the product is not in the cart
               _showErrorMessage("Item not in cart");
