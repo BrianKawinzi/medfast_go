@@ -58,14 +58,12 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomeScreen(),
         '/auth': (context) => const AuthPage(),
-        '/signUp': (context) {
-          final Map<String, dynamic> args = ModalRoute.of(context)!
-              .settings
-              .arguments as Map<String, dynamic>;
-          final int? pharmacyId = args['pharmacyId'] as int?;
-          return signUpPage(
-              pharmacyId: pharmacyId); // Ensure SignUpPage is correctly named
-        },
+       '/signUp': (context) {
+  final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic> ?? {};
+  final int? pharmacyId = args['pharmacyId'];
+  return SignUpPage(pharmacyId: pharmacyId); // Make sure this matches the class and constructor
+},
+
         '/password': (context) =>
             forgotPassword(), // Ensure ForgotPassword is correctly named
         '/success': (context) => const SuccessfulPassword(),
