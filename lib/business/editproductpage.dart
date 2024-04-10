@@ -86,7 +86,7 @@ class EditProductPageState extends State<EditProductPage> {
       sellingPrice: double.parse(sellingPriceController.text),
       manufactureDate: '',
       image: _image?.path,
-      quantity: 0,
+      quantity: int.parse(quantityController.text),
     );
 
     await dbHelper.updateProduct(updatedProduct);
