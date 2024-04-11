@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/models/expenses.dart'; // Ensure this points to your Expense model
+import 'package:medfast_go/models/expenses.dart'; // Ensure this poits to your Expense model
 
 class EditExpenseScreen extends StatefulWidget {
   final Expense expense;
