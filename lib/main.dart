@@ -23,6 +23,7 @@ import 'package:medfast_go/pages/themes.dart';
 import 'package:medfast_go/pages/language.dart';
 import 'package:medfast_go/pages/support.dart';
 import 'package:medfast_go/pages/faq.dart';
+import 'package:medfast_go/pages/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,11 +60,16 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomeScreen(),
         '/auth': (context) => const AuthPage(),
-       '/signUp': (context) {
-  final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic> ?? {};
-  final int? pharmacyId = args['pharmacyId'];
-  return SignUpPage(pharmacyId: pharmacyId); // Make sure this matches the class and constructor
-},
+        '/signUp': (context) {
+          final Map<String, dynamic> args = ModalRoute.of(context)!
+                  .settings
+                  .arguments as Map<String, dynamic> ??
+              {};
+          final int? pharmacyId = args['pharmacyId'];
+          return SignUpPage(
+              pharmacyId:
+                  pharmacyId); // Make sure this matches the class and constructor
+        },
 
         '/password': (context) =>
             forgotPassword(), // Ensure ForgotPassword is correctly named
@@ -87,6 +93,7 @@ class MyApp extends StatelessWidget {
         '/language': (context) => const Language(),
         '/support': (context) => const Support(),
         '/faq': (context) => const FAQ(),
+        '/SettingsPage': (context) => const SettingsPage(),
       },
     );
   }
