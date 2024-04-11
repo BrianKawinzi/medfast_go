@@ -25,8 +25,7 @@ class _SupportState extends State<Support> {
         child: NavigationDrawerWidget(),
       ),
       backgroundColor:
-          Colors.green, // Set the background color of the entire screen
-
+          Colors.green, // Set the background c 
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
