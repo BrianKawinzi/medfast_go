@@ -55,7 +55,7 @@ class _SignUpPageState extends State<SignUpPage> {
       Navigator.of(context).pushReplacementNamed('/login');
     } else {
       final Map<String, dynamic> responseBody = json.decode(response.body);
-      String apiErrorMessage = responseBody['message'] ?? 'Failed to register user.';
+      String apiErrorMessage = responseBody['message'] ?? 'Password needs: 6+ characters, A-Z, a-z, 0-9, and  \nsymbols like #, @.';
       setState(() {
         errorMessage = apiErrorMessage;
         showErrorMessage = true;
