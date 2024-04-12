@@ -336,7 +336,6 @@ class _SalesState extends State<Sales> {
                               showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: Text('Error'),
                                   content: Text(
                                       'The cart is empty!!\nAdd items and try again.'),
                                   actions: <Widget>[
@@ -423,7 +422,7 @@ class _SalesState extends State<Sales> {
                         size: 35,
                         semanticLabel: 'Search Icon'),
                     suffixIcon: Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                           right:
                               10.0), // Adjusted to leave space between barcode and border
                       child: GestureDetector(
@@ -677,27 +676,13 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         double price = productPrice[product.productName] ?? 0.0;
         int quantity = productQuantity[product.productName] ?? 0;
         totalPrice += price * quantity;
+        break;
       }
+      
       return totalPrice;
+      
     }
 
-    double calculateTotalPrice() {
-      double totalPrice = 0.0;
-      // Logic to calculate total price
-      for (var product in widget.cartItems) {
-        if (productPrice[product.productName] == null) {
-          print("Price for ${product.productName} is null");
-        }
-        if (productQuantity[product.productName] == null) {
-          print("Quantity for ${product.productName} is null");
-        }
-
-        double price = productPrice[product.productName] ?? 0.0;
-        int quantity = productQuantity[product.productName] ?? 0;
-        totalPrice += price * quantity;
-      }
-      return totalPrice;
-    }
 
     double totalPrice = getTotalPrice();
 
