@@ -16,7 +16,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    HomeScreen(),
+    HomeScreen(completedOrders: [],),
     Sales(
       initialProducts: [],
     ),
