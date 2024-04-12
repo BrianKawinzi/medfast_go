@@ -171,8 +171,11 @@ class NavigationDrawerWidget extends StatelessWidget {
             buildMenuItem(
               text: 'Settings',
               icon: Icons.settings,
-              onClicked: () =>
-                  Navigator.of(context).popAndPushNamed('/settings'),
+              onClicked: () {
+                Navigator.of(context).pop(); // Close the drawer
+                Navigator.of(context).pushNamed(
+                    '/SettingsPage'); // Navigate to the settings page
+              },
             ),
             buildMenuItem(
               text: 'Log Out',
