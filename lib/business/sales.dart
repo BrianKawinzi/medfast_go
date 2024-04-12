@@ -1754,3 +1754,65 @@ class OrderManager {
     counter += 1;
   }
 }
+
+class SalesHistoryClass {
+  final String productName;
+  int quantitySold;
+  int currentStock;
+  double unitPrice;
+
+  SalesHistoryClass({
+    required this.productName,
+    required this.quantitySold,
+    required this.currentStock,
+    required this.unitPrice, required totalPrice,
+  });
+
+  double get totalPrice => unitPrice * quantitySold;
+
+  void updateSalesHistory(int soldQuantity) {
+    quantitySold += soldQuantity;
+    currentStock -= soldQuantity;
+  }
+}
+
+
+class SalesHistoryManager {
+  List<SalesHistoryClass> salesHistory = [];
+  final DatabaseHelper dbHelper = DatabaseHelper();
+
+  Future<void> initializeSalesHistory() async {
+    List<Product> products = await dbHelper.getProducts();
+    for (var product in products) {
+      var existingHistoryIndex = salesHistory.indexWhere(
+        (history) => history.productName == product.productName);
+
+      if (existingHistoryIndex == -1) {
+        salesHistory.add(SalesHistoryClass(
+          productName: product.productName,
+          quantitySold: 0,
+          currentStock: product.quantity,
+          unitPrice: product.buyingPrice, totalPrice: 0,
+        ));
+      }
+    }
+  }
+
+  void updateHistoryForCompletedOrder(List<Product> orderedProducts) {
+    for (var orderedProduct in orderedProducts) {
+      var historyIndex = salesHistory.indexWhere(
+        (h) => h.productName == orderedProduct.productName);
+
+      if (historyIndex != -1) {
+        salesHistory[historyIndex].updateSalesHistory(orderedProduct.quantity);
+      } else {
+        salesHistory.add(SalesHistoryClass(
+          productName: orderedProduct.productName,
+          quantitySold: orderedProduct.quantity,
+          currentStock: orderedProduct.quantity - orderedProduct.quantity,
+          unitPrice: orderedProduct.buyingPrice, totalPrice: 0,
+        ));
+      }
+    }
+  }
+}
