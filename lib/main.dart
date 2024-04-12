@@ -18,14 +18,16 @@ import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
 import 'package:medfast_go/pages/profile.dart';
-import 'package:medfast_go/pages/without_barcode.dart';
 import 'package:provider/provider.dart';
+import 'package:medfast_go/pages/themes.dart';
+import 'package:medfast_go/pages/language.dart';
+import 'package:medfast_go/pages/support.dart';
+import 'package:medfast_go/pages/faq.dart';
+import 'package:medfast_go/pages/settings_page.dart';
 
 void main() async {
-  WidgetsFlutterBinding
-      .ensureInitialized(); 
-  final String initialRoute =
-      await getInitialRoute(); 
+  WidgetsFlutterBinding.ensureInitialized();
+  final String initialRoute = await getInitialRoute();
 
   runApp(
     ChangeNotifierProvider(
@@ -58,11 +60,16 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomeScreen(),
         '/auth': (context) => const AuthPage(),
-       '/signUp': (context) {
-  final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic> ?? {};
-  final int? pharmacyId = args['pharmacyId'];
-  return SignUpPage(pharmacyId: pharmacyId); // Make sure this matches the class and constructor
-},
+        '/signUp': (context) {
+          final Map<String, dynamic> args = ModalRoute.of(context)!
+                  .settings
+                  .arguments as Map<String, dynamic> ??
+              {};
+          final int? pharmacyId = args['pharmacyId'];
+          return SignUpPage(
+              pharmacyId:
+                  pharmacyId); // Make sure this matches the class and constructor
+        },
 
         '/password': (context) =>
             forgotPassword(), // Ensure ForgotPassword is correctly named
@@ -70,18 +77,23 @@ class MyApp extends StatelessWidget {
         '/verify': (context) => const VerificationPage(),
         '/brandintro': (context) => const BrandIntroPage(),
         '/registerpharmacy': (context) =>
-            RegisterPharmacyScreen(), // Ensure RegisterPharmacyScreen is correctly named
+            const RegisterPharmacyScreen(), // Ensure RegisterPharmacyScreen is correctly named
         '/profile': (context) =>
             const PharmacyProfile(), // Ensure PharmacyProfile is correctly named
         '/productwithoutbarcode': (context) =>
-            AddProductForm(), // Ensure AddProductWithoutBarcode is correctly named
-        '/product': (context) => Products(productName: ''),
+            const AddProductForm(), // Ensure AddProductWithoutBarcode is correctly named
+        '/product': (context) => const Products(productName: ''),
         '/editProduct': (context) {
           final Product product =
               ModalRoute.of(context)!.settings.arguments as Product;
           return EditProductPage(
               product: product); // Ensure EditProductPage is correctly named
         },
+        '/themes': (context) => const Themes(),
+        '/language': (context) => const Language(),
+        '/support': (context) => const Support(),
+        '/faq': (context) => const FAQ(),
+        '/SettingsPage': (context) => const SettingsPage(),
       },
     );
   }

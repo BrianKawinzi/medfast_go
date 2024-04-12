@@ -18,7 +18,6 @@ import 'package:medfast_go/data/DatabaseHelper.dart';
 
 //import 'package:sms/sms.dart';
 
-//List<Product> cartItems = [];
 
 class CartProvider with ChangeNotifier {
   final List<Product> _cartItems = [];
