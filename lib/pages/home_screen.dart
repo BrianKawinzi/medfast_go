@@ -11,8 +11,11 @@ import 'package:shared_preferences/shared_preferences.dart'; // Import shared_pr
 import 'package:medfast_go/pages/notification.dart';
 
 class HomeScreen extends StatefulWidget {
+  final List<OrderDetails> completedOrders;
+
   const HomeScreen({
     super.key,
+    required this.completedOrders
   });
 
   @override
@@ -20,30 +23,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late List<OrderDetails> _completedOrders;
+  late List<int> _years = [2022, 2023, 2024, 2025, 2026, 2027];
+  late int _selectedYear = 2022;
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+
+  @override
+  void initState() {
+    super.initState();
+    _completedOrders = widget.completedOrders;
+  }
   //calculate revenue method
-  Future<double> calculateTotalRevenue() async {
+  Future<double> calculateTotalRevenue(int year) async {
     double totalRevenue = 0;
 
-    List<double> monthlyAmounts = [
-      10000,
-      20000,
-      15000,
-      25000,
-      18000,
-      22000,
-      30500,
-      28000,
-      35000,
-      32000,
-      28000,
-      40000
-    ];
-
-    for (double amount in monthlyAmounts) {
-      totalRevenue += amount;
+    for (OrderDetails order in _completedOrders) {
+      if (order.completedAt.year == year) {
+        totalRevenue += order.totalPrice;
+      }
     }
-
     return totalRevenue;
   }
 // Example of using the aggregated product sales in a UI component
@@ -288,9 +288,9 @@ Widget buildTopProductsSection() {
 
                           //Calculation of monthly ammounts
                           FutureBuilder<double>(
-                              future: calculateTotalRevenue(),
+                              future: calculateTotalRevenue(_selectedYear),
                               builder: (context, snapshot) {
-                                if (snapshot.hasData) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
                                   return Text(
                                     'KSH \n ${snapshot.data!.toStringAsFixed(0)}',
                                     style: const TextStyle(
@@ -298,9 +298,17 @@ Widget buildTopProductsSection() {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   );
-                                } else {
+                                } else if (snapshot.connectionState == ConnectionState.waiting){
                                   return const Text(
                                     'Loading...',
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                } else {
+                                  return const Text(
+                                    'Error',
                                     style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
@@ -309,24 +317,22 @@ Widget buildTopProductsSection() {
                                 }
                               }),
 
-                          DropdownButton<String>(
-                            items: <String>[
-                              '2022',
-                              '2023',
-                              '2024',
-                              '2025',
-                              '2026',
-                              '2027'
-                            ].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
+                          DropdownButton<int>(
+                            items: _years.map((int year) {
+                              return DropdownMenuItem<int>(
+                                value: year,
+                                child: Text(year.toString()),
                               );
                             }).toList(),
-                            onChanged: (String? newValue) {
+                            onChanged: (int? newValue) {
                               //Handle dropdown value change logic
+                              if(newValue != null) {
+                                setState(() {
+                                  _selectedYear = newValue;
+                                });
+                              }
                             },
-                            value: '2022',
+                            value: _selectedYear,
                           ),
                         ],
                       ),
