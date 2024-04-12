@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) =>
             const PharmacyProfile(), // Ensure PharmacyProfile is correctly named
         '/productwithoutbarcode': (context) =>
-            const AddProductForm(), // Ensure AddProductWithoutBarcode is correctly named
+            AddProductForm(), // Ensure AddProductWithoutBarcode is correctly named
         '/product': (context) => const Products(productName: ''),
         '/editProduct': (context) {
           final Product product =
@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
         },
         '/themes': (context) => const Themes(),
         '/language': (context) => const Language(),
-        '/support': (context) => const Support(),
+        '/support': (context) =>  Support(),
         '/faq': (context) => const FAQ(),
         '/SettingsPage': (context) => const SettingsPage(),
       },
