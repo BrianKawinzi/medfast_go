@@ -50,6 +50,12 @@ class CartProvider with ChangeNotifier {
     }
   }
 
+    void resetCart() {
+    _cartItems.clear();
+    _productQuantities.clear();
+    notifyListeners();
+  }
+
   int getCartQuantity(Product product) {
     return _productQuantities[product.id] ?? 0;
   }
@@ -1138,6 +1144,7 @@ class _CashPaymentState extends State<CashPayment> {
           OrderManager().counter = 1;
         });
         // Clear any existing navigation stack and navigate to the Sales screen
+        Provider.of<CartProvider>(context, listen: false).resetCart();
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => Sales(initialProducts: [])),
           (Route<dynamic> route) =>
