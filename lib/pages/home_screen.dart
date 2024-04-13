@@ -292,7 +292,7 @@ Widget buildTopProductsSection() {
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                   return Text(
-                                    'KSH \n ${snapshot.data!.toStringAsFixed(0)}',
+                                    'KSH \n ${snapshot.data?.toStringAsFixed(0)}',
                                     style: const TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
