@@ -55,14 +55,6 @@ class DatabaseHelper {
 
 
 
-// Table name and columns for Sales History
-// final String salesHistoryTableName = 'salesHistory';
-// final String columnSoldProductName = 'productName';
-// final String columnQuantitySold = 'quantitySold';
-// final String columnCurrentStock = 'currentStock';
-// final String columnUnitPrice = 'unitPrice';
-// final String columnSoldTotalPrice = 'totalPrice1';
-// final String columnProfit = 'profit';
 
 
 
@@ -197,18 +189,6 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
     ''');
      
 
-   
-      // await db.execute('''
-      //   CREATE TABLE $salesHistoryTableName (
-      //     $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-      //     $columnSoldProductName TEXT,
-      //     $columnQuantitySold INTEGER,
-      //     $columnCurrentStock INTEGER,
-      //     $columnUnitPrice REAL,
-      //     $columnSoldTotalPrice REAL,
-      //     $columnProfit REAL
-      //   )
-      // ''');
 
     }
   }
@@ -360,40 +340,6 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
         await db!.query(completedOrderTableName);
     return List.generate(maps.length, (i) => OrderDetails.fromMap(maps[i]));
   }
-
-  
-
-  
-
-// Insert a record into the sales history table
-// Future<int> insertSalesHistory(SalesHistoryClass salesHistory) async {
-//   final Database? db = await database;
-//   final Map<String, dynamic> data = {
-//     columnSoldProductName: salesHistory.productName,
-//     columnQuantitySold: salesHistory.quantitySold,
-//     columnCurrentStock: salesHistory.currentStock,
-//     columnUnitPrice: salesHistory.unitPrice,
-//     columnSoldTotalPrice: salesHistory.totalPrice,
-//       columnProfit: salesHistory.profit,
-//   };
-//   return await db!.insert(salesHistoryTableName, data);
-// }
-
-// // Retrieve all sales history records
-// Future<List<SalesHistoryClass>> getSalesHistory() async {
-//   final Database? db = await database;
-//   final List<Map<String, dynamic>> maps = await db!.query(salesHistoryTableName);
-//   return List.generate(maps.length, (i) {
-//     return SalesHistoryClass(
-//       productName: maps[i][columnSoldProductName],
-//       quantitySold: maps[i][columnQuantitySold],
-//       currentStock: maps[i][columnCurrentStock],
-//       unitPrice: maps[i][columnUnitPrice],
-//       totalPrice: maps[i][columnSoldTotalPrice],
-//         profit: maps[i][columnProfit],
-//     );
-//   });
-// }
 
   
 
