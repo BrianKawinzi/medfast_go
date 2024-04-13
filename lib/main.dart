@@ -27,32 +27,32 @@ import 'package:medfast_go/pages/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final String initialRoute = await getInitialRoute();
+  
 
   runApp(
     ChangeNotifierProvider(
+      
       create: (context) => CartProvider(),
-      child: MyApp(initialRoute: initialRoute), // Pass the initialRoute here
+      child: const MyApp(),
     ),
   );
 }
 
-Future<String> getInitialRoute() async {
-  DatabaseHelper dbHelper = DatabaseHelper(); // Initialize your database helper
-  String? lastRoute = await dbHelper.getLastRoute();
-  return lastRoute ?? '/splash'; // Default to '/splash' if null
-}
+// Future<String> getInitialRoute() async {
+//   DatabaseHelper dbHelper = DatabaseHelper(); // Initialize your database helper
+//   String? lastRoute = await dbHelper.getLastRoute();
+//   return lastRoute ?? '/splash'; // Default to '/splash' if null
+// }
 
 class MyApp extends StatelessWidget {
-  final String initialRoute;
-  const MyApp({super.key, required this.initialRoute});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: initialRoute, // Use the passed initial route
+      initialRoute: '/splash', 
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
@@ -63,8 +63,7 @@ class MyApp extends StatelessWidget {
         '/signUp': (context) {
           final Map<String, dynamic> args = ModalRoute.of(context)!
                   .settings
-                  .arguments as Map<String, dynamic> ??
-              {};
+              .arguments as Map<String, dynamic>;
           final int? pharmacyId = args['pharmacyId'];
           return SignUpPage(
               pharmacyId:

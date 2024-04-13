@@ -27,6 +27,7 @@ dependencies:
   csv: ^5.0.1
   fluttertoast: ^8.0.7
   flutter_file_dialog: ^3.0.2
+  collection: ^1.15.0
   
   
 

@@ -1,6 +1,7 @@
 
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
@@ -50,22 +51,11 @@ class DatabaseHelper {
       'products'; // This will store a JSON string of products
   final String columnCompletedAt = 'completedAt';
 
-  final String appStateTableName = 'AppState';
-  final String columRouteID = 'id';
-  final String columnLastRoute = 'lastRoute';
-
-  final String bestSellingProductsTableName = 'bestSellingProducts';
-final String columnSalesQuantity = 'salesQuantity';
-final String columnSalesRevenue = 'salesRevenue';
 
 
-// Table name and columns for Sales History
-final String salesHistoryTableName = 'salesHistory';
-final String columnSoldProductName = 'productName';
-final String columnQuantitySold = 'quantitySold';
-final String columnCurrentStock = 'currentStock';
-final String columnUnitPrice = 'unitPrice';
-final String columnSoldTotalPrice = 'totalPrice1';
+
+
+
 
 
   // Singleton constructor
@@ -197,31 +187,8 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
         $columnCompletedAt TEXT
       )
     ''');
-      await db.execute('''
-      CREATE TABLE AppState (
-        id INTEGER PRIMARY KEY,
-        lastRoute TEXT
-      )
-    ''');
+     
 
-   await db.execute('''
-CREATE TABLE bestSellingProducts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  productName TEXT,
-  salesQuantity INTEGER,
-  salesRevenue REAL
-)
-''');
-  await db.execute('''
-    CREATE TABLE $salesHistoryTableName (
-      $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-      $columnSoldProductName TEXT,
-      $columnQuantitySold INTEGER,
-      $columnCurrentStock INTEGER,
-      $columnUnitPrice REAL,
-      $columnSoldTotalPrice REAL
-    )
-  ''');
 
     }
   }
@@ -374,107 +341,14 @@ CREATE TABLE bestSellingProducts (
     return List.generate(maps.length, (i) => OrderDetails.fromMap(maps[i]));
   }
 
-  Future<void> saveLastRoute(String routeName) async {
-    print("Saving last route: $routeName"); // Debug print
-    final db = await database;
-    await db!.insert(
-      appStateTableName,
-      {'id': 1, 'lastRoute': routeName},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-
-  Future<String?> getLastRoute() async {
-    final db = await database;
-    final List<Map<String, dynamic>> results = await db!.query(
-      appStateTableName,
-      columns: ['lastRoute'],
-      where: 'id = ?',
-      whereArgs: [1],
-    );
-
-    print(
-        "Retrieved route: ${results.isNotEmpty ? results.first['lastRoute'] : 'None'}");
-    if (results.isNotEmpty) {
-      return results.first['lastRoute'] as String?;
-    }
-    return null;
-  }
-
-  // Insert a best-selling product into the bestSellingProducts table
-Future<int> insertBestSellingProduct(Product product, int salesQuantity, double salesRevenue) async {
-  final Database? db = await database;
-  final Map<String, dynamic> data = {
-    columnProductName: product.productName,
-    columnSalesQuantity: salesQuantity,
-    columnSalesRevenue: salesRevenue,
-  };
-  return await db!.insert(bestSellingProductsTableName, data);
-}
-
-// Update a best-selling product in the bestSellingProducts table
-Future<int> updateBestSellingProduct(Product product, int salesQuantity, double salesRevenue) async {
-  final Database? db = await database;
-  final Map<String, dynamic> data = {
-    columnSalesQuantity: salesQuantity,
-    columnSalesRevenue: salesRevenue,
-  };
-  return await db!.update(
-    bestSellingProductsTableName,
-    data,
-    where: '$columnProductName = ?',
-    whereArgs: [product.productName],
-  );
-}
-// Query all best-selling products from the bestSellingProducts table
-// In DatabaseHelper
-// Method to get detailed information on best-selling products
-Future<List<Product>> getBestSellingProductsDetails() async {
-  final db = await database;
-  final List<Map<String, dynamic>> results = await db!.query(
-    bestSellingProductsTableName,
-    orderBy: '$columnSalesQuantity DESC'
-  );
-  return results.map((map) => Product.fromMap(map)).toList();
-}
-
-
-
-
-// Insert a record into the sales history table
-Future<int> insertSalesHistory(SalesHistoryClass salesHistory) async {
-  final Database? db = await database;
-  final Map<String, dynamic> data = {
-    columnSoldProductName: salesHistory.productName,
-    columnQuantitySold: salesHistory.quantitySold,
-    columnCurrentStock: salesHistory.currentStock,
-    columnUnitPrice: salesHistory.unitPrice,
-    columnSoldTotalPrice: salesHistory.totalPrice,
-  };
-  return await db!.insert(salesHistoryTableName, data);
-}
-
-// Retrieve all sales history records
-Future<List<SalesHistoryClass>> getSalesHistory() async {
-  final Database? db = await database;
-  final List<Map<String, dynamic>> maps = await db!.query(salesHistoryTableName);
-  return List.generate(maps.length, (i) {
-    return SalesHistoryClass(
-      productName: maps[i][columnSoldProductName],
-      quantitySold: maps[i][columnQuantitySold],
-      currentStock: maps[i][columnCurrentStock],
-      unitPrice: maps[i][columnUnitPrice],
-      totalPrice: maps[i][columnSoldTotalPrice],
-    );
-  });
-}
-
+  
 
 // Close the database
   Future<void> close() async {
     final Database? db = await database;
     db?.close();
   }
+
+  getBestSellingProductsDetails() {}
 
 }
