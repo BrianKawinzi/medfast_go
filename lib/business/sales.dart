@@ -3,18 +3,13 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
-import 'package:medfast_go/business/products.dart';
-import 'package:medfast_go/main.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
-import 'package:medfast_go/pages/home_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:collection/collection.dart';
 
@@ -399,7 +394,7 @@ class _SalesState extends State<Sales> {
                           width:
                               8), // Add some spacing between the icon and text
                       Text(
-                        '$cartItemCount items',
+                        '${cartItemCount} items',
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -1125,29 +1120,23 @@ class _CashPaymentState extends State<CashPayment> {
       // ignore: unused_local_variable
       final String orderId = OrderManager().orderId;
       final double totalPrice = widget.totalPrice;
-      final double profit;
       final List<Product> products =
           Provider.of<CartProvider>(context, listen: false).cartItems;
-
-      // // Create an OrderDetails instance
-      // OrderDetails orderDetails = OrderDetails(
-      //   totalPrice: totalPrice,
-      //   products: products,
-      //   completedAt: DateTime.now(),
-      // );
-      //create an order details instance
+      final double orderprofit = totalPrice -
+          products
+              .map((product) => product.buyingPrice ?? 0.0)
+              .reduce((value, element) => value + element);
+      
       OrderDetails orderDetails = OrderDetails(
-        orderId: Random().nextInt(1000).toString(),
+        orderId: orderId,
         totalPrice: totalPrice,
         products: products,
+        profit: orderprofit,
         
         completedAt: DateTime.now(),
         
       );
-      profit = totalPrice -
-          products
-              .map((product) => product.buyingPrice ?? 0.0)
-              .reduce((value, element) => value + element);
+      
       // Add the completed order to the repository
       OrderRepository.addCompletedOrder(orderDetails);
 
@@ -1157,7 +1146,7 @@ class _CashPaymentState extends State<CashPayment> {
         barrierDismissible: false, // Dialog will not close on tap outside
         builder: (BuildContext context) {
           // Automatically close the dialog after 5 seconds
-          Future.delayed(Duration(seconds: 5), () {
+          Future.delayed(const Duration(seconds: 1), () {
             Navigator.of(context).pop(true); // Close the dialog
           });
           return AlertDialog(
