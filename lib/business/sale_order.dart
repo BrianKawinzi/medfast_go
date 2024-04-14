@@ -41,8 +41,8 @@ class SaleOrder extends StatelessWidget {
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Order #${order.orderId}"),
-                      Text(formattedDate, style: const TextStyle(fontSize: 12)),
+                      Text("Order${order.orderId}"),
+                      Text(formattedDate, style: const TextStyle(fontSize: 5)),
                     ],
                   ),
                   subtitle:
