@@ -140,9 +140,18 @@ class _ReportsState extends State<Reports> {
   }
 
   Future<void> _exportReport(List<DataRow> dataRows, String fileNamePrefix) async {
-    final List<List<dynamic>> rows = [
+    
+    List<List<dynamic>> rows;
+  if (fileNamePrefix == 'sales_reports') {
+    rows = [
+      ['Product Name', 'Quantity Sold', 'Current Stock', 'Unit Price (Ksh)', 'Total Price (Ksh)']
+    ];
+  } else {
+    rows = [
       ['Product Name', 'Quantity', 'Expiry Date', 'Price (Ksh)']
     ];
+  }
+    
     for (var dataRow in dataRows) {
       List<dynamic> row = dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
       rows.add(row);
