@@ -103,7 +103,7 @@ class _ReportsState extends State<Reports> {
               children: <Widget>[
                 _buildExportTile('Stock Reports', _exportStockReport),
                 _buildExportTile('Sales Reports', _exportSalesReport),
-                _buildExportTile('All Reports', () => Navigator.pop(context)),
+               _buildExportTile('All Reports', _exportAllReports),
               ],
             ),
           ),
@@ -140,9 +140,18 @@ class _ReportsState extends State<Reports> {
   }
 
   Future<void> _exportReport(List<DataRow> dataRows, String fileNamePrefix) async {
-    final List<List<dynamic>> rows = [
+    
+    List<List<dynamic>> rows;
+  if (fileNamePrefix == 'sales_reports') {
+    rows = [
+      ['Product Name', 'Quantity Sold', 'Current Stock', 'Unit Price (Ksh)', 'Total Price (Ksh)']
+    ];
+  } else {
+    rows = [
       ['Product Name', 'Quantity', 'Expiry Date', 'Price (Ksh)']
     ];
+  }
+    
     for (var dataRow in dataRows) {
       List<dynamic> row = dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
       rows.add(row);
@@ -167,6 +176,50 @@ class _ReportsState extends State<Reports> {
       fontSize: 16.0,
     );
   }
+
+  Future<void> _exportAllReports() async {
+  if (!await _checkAndRequestStoragePermission()) return;
+
+  List<List<dynamic>> combinedRows = [];
+
+  // Adding Stock Reports
+  combinedRows.add(['Stock Reports']);
+  combinedRows.add(['Product Name', 'Quantity', 'Expiry Date', 'Price (Ksh)']);
+  for (var dataRow in stockRows) {
+    List<dynamic> row = dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
+    combinedRows.add(row);
+  }
+  combinedRows.add(['']); // Add an empty row for separation
+
+  // Adding Sales Reports
+  combinedRows.add(['Sales Reports']);
+  combinedRows.add(['Product Name', 'Quantity Sold', 'Current Stock', 'Unit Price (Ksh)', 'Total Price (Ksh)']);
+  for (var dataRow in salesRows) {
+    List<dynamic> row = dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
+    combinedRows.add(row);
+  }
+
+  // Preparing to save the CSV
+  String timeStamp = DateTime.now().toString();
+  String csv = const ListToCsvConverter().convert(combinedRows);
+  final String dir = (await getApplicationDocumentsDirectory()).path;
+  final String path = '$dir/CombinedReports_$timeStamp.csv';
+
+  final File file = File(path);
+  await file.writeAsString(csv);
+  await FlutterFileDialog.saveFile(params: SaveFileDialogParams(sourceFilePath: path));
+
+  Fluttertoast.showToast(
+    msg: "The CSV file with all reports successfully saved on downloads folder",
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.black54,
+    textColor: Colors.white,
+    fontSize: 16.0,
+  );
+}
+
 
   Widget _buildReport() {
     return Expanded(
