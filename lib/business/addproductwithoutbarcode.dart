@@ -21,7 +21,7 @@ class _AddProductFormState extends State<AddProductForm> {
   double _buyingPrice = 0.0;
   double _sellingPrice = 0.0;
   String _unit = 'piece';
-  int _quantity = 0; // Added Quantity
+  int _quantity = 0;
 
   DatabaseHelper _databaseHelper = DatabaseHelper();
 
@@ -47,6 +47,27 @@ class _AddProductFormState extends State<AddProductForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
+          if (_sellingPrice < _buyingPrice) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Invalid Pricing'),
+            content: const Text('The selling price must be greater than or equal to the buying price.'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
       final List<Product> products = await _databaseHelper.getProducts();
       int maxId = 0;
       for (final product in products) {
@@ -66,7 +87,7 @@ class _AddProductFormState extends State<AddProductForm> {
         expiryDate: _expiryDateController.text,
         manufactureDate: _manufactureDateController.text,
         unit: _unit,
-        quantity: _quantity, // Added Quantity
+        quantity: _quantity, 
       );
 
       final result = await _databaseHelper.insertProduct(newProduct);
@@ -82,11 +103,11 @@ class _AddProductFormState extends State<AddProductForm> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Error'),
-              content: Text('Failed to insert the product into the database.'),
+              title: const Text('Error'),
+              content: const Text('Failed to insert the product into the database.'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -123,9 +144,14 @@ class _AddProductFormState extends State<AddProductForm> {
           ),
         ),
         keyboardType: isNumeric
-            ? TextInputType.numberWithOptions(decimal: true)
+            ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.text,
-        validator: (value) => value!.isEmpty ? errorText : null,
+        validator: (value) {
+        if (value!.isEmpty) {
+          return errorText;  
+        }
+        return null;  
+      },
         onSaved: (value) {
           switch (label) {
             case 'Product Name':
