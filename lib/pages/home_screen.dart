@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
+import 'package:medfast_go/models/product.dart';
+import 'package:medfast_go/pages/components/circular_progress.dart';
+import 'package:medfast_go/pages/widgets/CustomProgressIndicator.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:medfast_go/bargraph/individual_bar.dart';
 import 'package:medfast_go/pages/widgets/progress_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:medfast_go/pages/notification.dart';
+import 'dart:math' as math;
 
 class HomeScreen extends StatefulWidget {
   final List<OrderDetails> completedOrders;
-  const HomeScreen({
-    super.key, required this.completedOrders,
-  });
+
+  const HomeScreen({super.key, required this.completedOrders});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -21,30 +25,210 @@ class _HomeScreenState extends State<HomeScreen> {
   late List<int> _years = [2022, 2023, 2024, 2025, 2026, 2027];
   late int _selectedYear = 2022;
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
     super.initState();
     _completedOrders = widget.completedOrders;
   }
-  
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   //calculate revenue method
   Future<double> calculateTotalRevenue(int year) async {
     double totalRevenue = 0;
 
-   for (OrderDetails order in _completedOrders) {
-    if (order.completedAt.year == year) {
-      totalRevenue += order.totalPrice;
+    for (OrderDetails order in _completedOrders) {
+      if (order.completedAt.year == year) {
+        totalRevenue += order.totalPrice;
+      }
     }
-   }
-
     return totalRevenue;
+  }
+
+// Example of using the aggregated product sales in a UI component
+  void displayProductSales() async {
+    Map<int, int> soldQuantities =
+        await DatabaseHelper().calculateTotalSoldQuantities();
+
+    // Display or use the sold quantities in your application
+    soldQuantities.forEach((productId, quantity) {
+      //print("Product ID: $productId, Sold Quantity: $quantity");
+    });
   }
 
 // Fetch pharmacy name from SharedPreferences
   Future<String> getPharmacyName() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
+  }
+  Widget buildMetricCard() {
+    return Card(
+      elevation: 5,
+      margin: const EdgeInsets.all(12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Today's! Metrics",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            FutureBuilder<double>(
+              future: DatabaseHelper().getDailyProfit(DateTime.now()),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasData) {
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          CustomProgressIndicator(
+                            title: "Profit",
+                            value: "ksh${snapshot.data!.toStringAsFixed(0)}",
+                            color: Colors.green,
+                            size: 120,
+                            strokeWidth: 0,
+                            percentage: 0,
+                          ),
+                          CustomProgressIndicator(
+                            title: "Items Sold",
+                            value: "${snapshot.data!.toInt()} items",
+                            color: Colors.blue,
+                            size: 120, // Reduced size for better fit
+                            strokeWidth: 0,
+                            percentage: 0,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          CustomProgressIndicator(
+                            title: "Completed Orders",
+                            value: "${(snapshot.data! / 10).toInt()} orders",
+                            color: Colors.red,
+                            size: 120, // Reduced size for better fit
+                            strokeWidth: 0,
+                            percentage: 0,
+                          ),
+                          CustomProgressIndicator(
+                            title: "Expenses",
+                            value: "${snapshot.data!.toStringAsFixed(0)}",
+                            color: Colors.orange,
+                            size: 120, // Reduced size for better fit
+                            strokeWidth: 0,
+                            percentage: 0,
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                } else {
+                  return Text('Error fetching data');
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRectangle(
+      {required IconData icon, required String label, required String value}) {
+    return Flexible(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+        decoration: BoxDecoration(
+          color:
+              Color.fromARGB(255, 189, 187, 187), // Rectangle background color
+          borderRadius: BorderRadius.circular(10), // Rounded corners
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon,
+                    size: 16, color: Color.fromARGB(255, 50, 18, 80)), // Icon
+                const SizedBox(width: 4), // Space between icon and label
+                // Combine label and value in a single Text widget separated by \n
+                Flexible(
+                  // Use Flexible to prevent overflow
+                  child: Text(
+                    '$label\n$value', // Use \n to separate label and value
+                    style: const TextStyle(
+                      fontSize:
+                          10, // Adjusted font size to keep consistent styling
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopProductItem({
+    required String imageUrl,
+    required String name,
+    required int quantitySold,
+    required double revenue,
+  }) {
+    return ListTile(
+      leading: imageUrl.isNotEmpty
+          ? Image.network(imageUrl, width: 50, height: 50, fit: BoxFit.cover)
+          : const Icon(Icons.image_not_supported),
+      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(
+          "Sold: $quantitySold, Revenue: Ksh ${revenue.toStringAsFixed(2)}"),
+    );
+  }
+
+  Widget buildTopProductsSection() {
+    return FutureBuilder<List<Product>>(
+      future: DatabaseHelper().getBestSellingProductsDetails(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (snapshot.hasData) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  "Top Products",
+                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ...snapshot.data!
+                  .map((product) => _buildTopProductItem(
+                        imageUrl: product.image ?? '',
+                        name: product.productName,
+                        quantitySold: product.quantity,
+                        revenue: product.buyingPrice,
+                      ))
+                  .toList(),
+            ],
+          );
+        } else {
+          return const Text("No top products found.");
+        }
+      },
+    );
   }
 
   @override
@@ -111,65 +295,14 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              //sales tile
-              Card(
-                elevation: 5.0,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Sales',
-                        style: TextStyle(
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+              buildMetricCard(),
 
-                      const SizedBox(height: 8.0),
-
-                      const Text(
-                        'Sales Infromation',
-                        style: TextStyle(
-                          color: Colors.grey,
-                        ),
-                      ),
-
-                      const SizedBox(height: 16.0),
-
-                      //Progress indicators
-                      buildHorizontalProgressIndicators(
-                        'Daily Sales',
-                        70,
-                        Colors.purple,
-                        'Monthly Sales',
-                        59,
-                        Colors.orange,
-                      ),
-
-                      buildHorizontalProgressIndicators(
-                        'Annual Sales',
-                        43,
-                        Colors.yellow,
-                        'Target Sales',
-                        87,
-                        Colors.orange,
-                      ),
-
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
+          
               //revenue card
               Card(
                 elevation: 5.0,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(1.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -188,25 +321,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           FutureBuilder<double>(
                               future: calculateTotalRevenue(_selectedYear),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Text(
-                                    'Loading...',
-                                    style: TextStyle(
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Text(
+                                    'KSH \n ${snapshot.data?.toStringAsFixed(0)}',
+                                    style: const TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   );
-                                } else if (snapshot.hasData) {
-                                  return Text(
-                                    'KSH \n ${snapshot.data!.toStringAsFixed(0)}',
-                                    style: const TextStyle(
+                                } else if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Text(
+                                    'Error', 
+                                    style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   );
                                 } else {
                                   return const Text(
-                                    'Error', 
+                                    'Error',
                                     style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
@@ -223,6 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }).toList(),
                             onChanged: (int? newValue) {
+                              //Handle dropdown value change logic
                               if (newValue != null) {
                                 setState(() {
                                   _selectedYear = newValue;
@@ -259,7 +395,117 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              // After the last SizedBox(height: 10),
 
+              Card(
+                elevation: 5.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Wrap(
+                          spacing: 8.0,
+                          runSpacing: 8.0,
+                          children: [
+                            _buildRectangle(
+                              icon: Icons.people,
+                              label: "Customers",
+                              value: "123",
+                            ),
+                            _buildRectangle(
+                              icon: Icons.shopping_cart,
+                              label: "Sales",
+                              value: "456",
+                            ),
+                            _buildRectangle(
+                              icon: Icons.money,
+                              label: "Profit",
+                              value: "789",
+                            ),
+                            _buildRectangle(
+                              icon: Icons.local_shipping,
+                              label: "Orders",
+                              value: "101",
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      const Text(
+                        "Top Products",
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      FutureBuilder<List<Product>>(
+                        future: DatabaseHelper()
+                            .getBestSellingProductsDetails(), // Assuming this method is defined and returns a list of Products
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (snapshot.hasData) {
+                            return Column(
+                              children: snapshot.data!
+                                  .map((product) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 8.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Container(
+                                              height: 40,
+                                              width: 40,
+                                              decoration: BoxDecoration(
+                                                image: DecorationImage(
+                                                  fit: BoxFit.cover,
+                                                  image: (product.image !=
+                                                              null &&
+                                                          product.image!
+                                                              .isNotEmpty)
+                                                      ? NetworkImage(
+                                                          product.image!)
+                                                      : const AssetImage(
+                                                              "assets/images/placeholder.png")
+                                                          as ImageProvider,
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                '${product.productName}\nSold: ${product.quantity}',
+                                                style: const TextStyle(
+                                                    fontSize: 14),
+                                              ),
+                                            ),
+                                            Text(
+                                              'Revenue: Ksh${(product.quantity * product.buyingPrice).toStringAsFixed(2)}',
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          ],
+                                        ),
+                                      ))
+                                  .toList(),
+                            );
+                          } else {
+                            return const Text("No top products found.");
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 10),
               //stats card
               Card(

@@ -1,15 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
-import 'package:medfast_go/pages/faq.dart';
-import 'package:medfast_go/pages/home_page.dart';
-import 'package:medfast_go/pages/home_screen.dart';
-import 'package:medfast_go/pages/language.dart';
-import 'package:medfast_go/pages/log_out.dart';
-import 'package:medfast_go/pages/profile.dart';
-import 'package:medfast_go/pages/settings_page.dart';
-import 'package:medfast_go/pages/support.dart';
-import 'package:medfast_go/pages/themes.dart';
 
 class NavigationDrawerWidget extends StatelessWidget {
   final padding = const EdgeInsets.symmetric(horizontal: 20);
@@ -19,8 +10,7 @@ class NavigationDrawerWidget extends StatelessWidget {
   Future<Map<String, String>> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('user_email') ?? 'No email';
-    final pharmacyName =
-        prefs.getString('pharmacy_name') ?? 'Pharmacy Name';
+    final pharmacyName = prefs.getString('pharmacy_name') ?? 'Pharmacy Name';
     return {'email': email, 'pharmacyName': pharmacyName};
   }
 
@@ -42,7 +32,7 @@ class NavigationDrawerWidget extends StatelessWidget {
             padding: padding.add(const EdgeInsets.symmetric(vertical: 40)),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                     radius: 30, backgroundImage: NetworkImage(urlImage)),
                 const SizedBox(width: 20),
                 Column(
@@ -122,18 +112,19 @@ class NavigationDrawerWidget extends StatelessWidget {
         child: ListView(
           children: <Widget>[
             buildHeader(() => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) =>
-                      const HomeScreen(completedOrders: [],/* Add arguments here */),
-                ))),
+                builder: (context) => const BottomNavigation()))),
             const SizedBox(height: 10),
             buildSearchField(),
             const SizedBox(height: 16),
             // Repeat for each item as needed
             buildMenuItem(
-              text: 'Home',
-              icon: Icons.home,
-              onClicked: () => Navigator.of(context).popAndPushNamed('/home'),
-            ),
+                text: 'Home',
+                icon: Icons.home,
+                onClicked: () => Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const BottomNavigation(),
+                      ),
+                    )),
             buildMenuItem(
               text: 'Profile',
               icon: Icons.person,
@@ -143,31 +134,48 @@ class NavigationDrawerWidget extends StatelessWidget {
             buildMenuItem(
               text: 'Themes',
               icon: Icons.color_lens,
-              onClicked: () => Navigator.of(context).popAndPushNamed('/themes'),
+              onClicked: () {
+                Navigator.of(context).pop();
+                Navigator.of(context)
+                    .pushNamed('/themes'); // Navigate to the Themes page
+              },
             ),
             buildMenuItem(
               text: 'Language',
               icon: Icons.language,
-              onClicked: () =>
-                  Navigator.of(context).popAndPushNamed('/language'),
+              onClicked: () {
+                Navigator.of(context).pop(); // Close the drawer
+                Navigator.of(context)
+                    .pushNamed('/language'); // Navigate to the language page
+              },
             ),
             buildMenuItem(
               text: 'Support',
               icon: Icons.support,
-              onClicked: () =>
-                  Navigator.of(context).popAndPushNamed('/support'),
+              onClicked: () {
+                Navigator.of(context).pop(); // Close the drawer
+                Navigator.of(context)
+                    .pushNamed('/support'); // Navigate to the support page
+              },
             ),
             buildMenuItem(
               text: 'FAQ',
               icon: Icons.question_answer,
-              onClicked: () => Navigator.of(context).popAndPushNamed('/faq'),
+              onClicked: () {
+                Navigator.of(context).pop(); // Close the drawer
+                Navigator.of(context)
+                    .pushNamed('/faq'); // Navigate to the faq page
+              },
             ),
             const Divider(color: Colors.white70),
             buildMenuItem(
               text: 'Settings',
               icon: Icons.settings,
-              onClicked: () =>
-                  Navigator.of(context).popAndPushNamed('/settings'),
+              onClicked: () {
+                Navigator.of(context).pop(); // Close the drawer
+                Navigator.of(context).pushNamed(
+                    '/SettingsPage'); // Navigate to the settings page
+              },
             ),
             buildMenuItem(
               text: 'Log Out',
@@ -187,5 +195,3 @@ class NavigationDrawerWidget extends StatelessWidget {
     );
   }
 }
-
-           

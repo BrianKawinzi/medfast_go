@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/expenses.dart';
@@ -12,9 +14,10 @@ class DatabaseHelper {
 
   // Define your database table and column names
 
-  final String columnId = 'id';
+
 
   // Table name for products
+  final String columnId = 'id';
   final String productTableName = 'products';
   final String columnProductName = 'productName';
   final String columnMedicineDescription = 'medicineDescription';
@@ -46,6 +49,8 @@ class DatabaseHelper {
   final String columnProducts =
       'products'; // This will store a JSON string of products
   final String columnCompletedAt = 'completedAt';
+  final String columnprofit = 'profit';
+
 
   // Singleton constructor
   factory DatabaseHelper() {
@@ -60,6 +65,36 @@ class DatabaseHelper {
     _database ??= await initializeDatabase();
     return _database;
   }
+  
+
+  // In DatabaseHelper
+
+// Method to fetch and aggregate product sales from completed orders
+Future<Map<int, int>> calculateTotalSoldQuantities() async {
+  Database? db = await database;
+  List<Map<String, dynamic>> orders = await db!.query(completedOrderTableName);
+
+  Map<int, int> productSales = {};
+
+  for (var order in orders) {
+    // Assuming 'products' column contains a JSON string of product details
+    List<dynamic> products = jsonDecode(order['products']);
+
+    for (var product in products) {
+      int id = product['id'];
+      int quantity = product['quantity'];
+
+      if (productSales.containsKey(id)) {
+        productSales[id] = productSales[id]! + quantity;
+      } else {
+        productSales[id] = quantity;
+      }
+    }
+  }
+
+  return productSales;
+}
+
 
   // Initialize the database
   Future<Database> initializeDatabase() async {
@@ -95,6 +130,18 @@ class DatabaseHelper {
       )
     ''');
 
+
+    // Create the completed orders table
+    await db.execute('''
+      CREATE TABLE $completedOrderTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        orderId TEXT,
+        $columnTotalPrice REAL,
+        $columnProducts TEXT,
+        $columnCompletedAt TEXT,
+        $columnprofit TEXT
+      )
+    ''');
     // Create the expenses table
     await db.execute('''
       CREATE TABLE $expenseTableName (
@@ -131,6 +178,9 @@ class DatabaseHelper {
         $columnCompletedAt TEXT
       )
     ''');
+     
+
+
     }
   }
 
@@ -281,10 +331,73 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) => OrderDetails.fromMap(maps[i]));
   }
 
+ 
+  // Fetch daily profit
+  // ignore: avoid_types_as_parameter_names
+  Future<double> getDailyProfit(DateTime date) async {
+    Database? db;
+    try {
+      db = await database;
+      List<Map<String, dynamic>> result = await db!.query(
+        completedOrderTableName,
+        columns: [
+          'IFNULL(SUM(profit), 0) AS dailyProfit'
+        ], // Ensures nulls are handled
+        where: "DATE($columnCompletedAt) = DATE(?)",
+        whereArgs: [date.toIso8601String()],
+      );
+      return double.tryParse(result.first['dailyProfit'].toString()) ?? 0.0;
+    } catch (e) {
+      print('Error fetching daily profit: $e');
+      return 0.0; // Return 0.0 on error
+    }
+  }
+
+// Fetch daily total items sold
+  Future<int> getDailyTotalItemsSold(DateTime date) async {
+    final db = await database;
+    List<Map<String, dynamic>> result = await db!.rawQuery(
+      'SELECT SUM(quantity) as totalQuantity FROM $completedOrderTableName '
+      'JOIN $productTableName ON $completedOrderTableName.productId = $productTableName.$columnId '
+      'WHERE DATE($columnCompletedAt) = DATE(?)',
+      [date.toIso8601String()],
+    );
+    return int.tryParse(result.first['totalQuantity'].toString()) ?? 0;
+  }
+
+// Fetch daily completed orders
+  Future<int> getDailyCompletedOrdersCount(DateTime date) async {
+    final db = await database;
+    List<Map<String, dynamic>> result = await db!.query(
+      completedOrderTableName,
+      columns: ['COUNT(*) AS orderCount'],
+      where: "DATE($columnCompletedAt) = DATE(?)",
+      whereArgs: [date.toIso8601String()],
+    );
+    return int.tryParse(result.first['orderCount'].toString()) ?? 0;
+  }
+
+// Fetch daily expenses
+  Future<double> getDailyExpenses(DateTime date) async {
+    final db = await database;
+    List<Map<String, dynamic>> result = await db!.query(
+      expenseTableName,
+      columns: ['SUM(cost) AS totalCost'],
+      where: "DATE($columnDate) = DATE(?)",
+      whereArgs: [date.toIso8601String()],
+    );
+    return double.tryParse(result.first['totalCost'].toString()) ?? 0.0;
+  }
+
 
   // Close the database
   Future<void> close() async {
     final Database? db = await database;
     db?.close();
   }
+
+  getBestSellingProductsDetails() {}
+
+  calculateMonthlyAndDailySales() {}
+
 }

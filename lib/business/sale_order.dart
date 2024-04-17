@@ -41,8 +41,8 @@ class SaleOrder extends StatelessWidget {
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Order #${order.orderId}"),
-                      Text(formattedDate, style: const TextStyle(fontSize: 12)),
+                      Text("Order${order.orderId}"),
+                      Text(formattedDate, style: const TextStyle(fontSize: 5)),
                     ],
                   ),
                   subtitle:
@@ -57,8 +57,7 @@ class SaleOrder extends StatelessWidget {
                 );
               },
             );
-          }
-          else if (snapshot.hasData) {
+          } else if (snapshot.hasData) {
             List<OrderDetails> completedOrders = snapshot.data ?? [];
             return HomeScreen(completedOrders: completedOrders);
           }else {
