@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
@@ -139,45 +142,58 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRectangle(
-      {required IconData icon, required String label, required String value}) {
-    return Flexible(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-        decoration: BoxDecoration(
-          color:
-              Color.fromARGB(255, 189, 187, 187), // Rectangle background color
-          borderRadius: BorderRadius.circular(10), // Rounded corners
+ Widget _buildRectangle({
+  required IconData icon,
+  required String label,
+  required String value,
+}) {
+  return Flexible(
+    flex: 1,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      margin: const EdgeInsets.only(right: 8.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color.fromARGB(255, 82, 170, 156)!, Colors.blueGrey[100]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon,
-                    size: 16, color: Color.fromARGB(255, 50, 18, 80)), // Icon
-                const SizedBox(width: 4), // Space between icon and label
-                // Combine label and value in a single Text widget separated by \n
-                Flexible(
-                  // Use Flexible to prevent overflow
-                  child: Text(
-                    '$label\n$value', // Use \n to separate label and value
-                    style: const TextStyle(
-                      fontSize:
-                          10, // Adjusted font size to keep consistent styling
-                      fontWeight: FontWeight.bold,
-                    ),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromARGB(255, 77, 161, 58).withOpacity(0.5),
+            spreadRadius: 1,
+            blurRadius: 6,
+            offset: Offset(0, 3), // changes position of shadow
+          ),
+        ],
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: Colors.white), // Icon with white color
+              const SizedBox(width: 8), // Space between icon and label
+              Flexible(
+                child: Text(
+                  '$label\n$value', // Use \n to separate label and value
+                  style: TextStyle(
+                    color: Colors.white, // White text color for better readability
+                    fontSize: 14, // Increased font size
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTopProductItem({
     required String imageUrl,
@@ -195,41 +211,92 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildTopProductsSection() {
-    return FutureBuilder<List<Product>>(
-      future: DatabaseHelper().getBestSellingProductsDetails(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (snapshot.hasData) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  "Top Products",
-                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                ),
+Widget buildTopProductsSection() {
+  return FutureBuilder<List<Product>>(
+    future: OrderRepository.getBestSellingProducts(),  // Make sure this is correctly fetching data
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error.toString()}');
+      } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: snapshot.data!.map((product) {
+            ImageProvider imageProvider;
+            if (product.image != null && product.image!.isNotEmpty) {
+              if (product.image!.startsWith('http') || product.image!.startsWith('https')) {
+                // Handle network images
+                imageProvider = NetworkImage(product.image!);
+              } else {
+                // Handle local file images
+                imageProvider = FileImage(File(product.image!));
+              }
+            } else {
+              // Default image if none is provided
+              imageProvider = const AssetImage("assets/images/no_image_available.png");
+            }
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+              child: Row(
+                children: [
+                  Container(
+                    height: 60,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        image: imageProvider,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.productName,
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          product.medicineDescription ?? "No description available",
+                          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Price:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
+                      Text('Ksh${product.buyingPrice.toStringAsFixed(2)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  SizedBox(width: 15),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Revenue:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
+                      Text('Ksh${(product.quantity * product.buyingPrice).toStringAsFixed(2)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green[700])),
+                    ],
+                  ),
+                ],
               ),
-              ...snapshot.data!
-                  .map((product) => _buildTopProductItem(
-                        imageUrl: product.image ?? '',
-                        name: product.productName,
-                        quantitySold: product.quantity,
-                        revenue: product.buyingPrice,
-                      ))
-                  .toList(),
-            ],
-          );
-        } else {
-          return const Text("No top products found.");
-        }
-      },
-    );
-  }
+            );
+          }).toList(),
+        );
+      } else {
+        return const Text("No top products found.");
+      }
+    },
+  );
+}
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -397,115 +464,125 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               // After the last SizedBox(height: 10),
 
-              Card(
-                elevation: 5.0,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: [
-                            _buildRectangle(
-                              icon: Icons.people,
-                              label: "Customers",
-                              value: "123",
+                                Card(
+                    elevation: 5.0,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Wrap(
+                              spacing: 8.0,
+                              runSpacing: 8.0,
+                              children: [
+                                _buildRectangle(
+                                  icon: Icons.people,
+                                  label: "Customers",
+                                  value: "123", // This should ideally also be dynamic
+                                ),
+                                FutureBuilder<double>(
+                                  future: OrderRepository.getTotalSales(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.done) {
+                                      if (snapshot.hasData) {
+                                        return _buildRectangle(
+                                          icon: Icons.shopping_cart,
+                                          label: "Sales",
+                                          value: "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return _buildRectangle(
+                                          icon: Icons.shopping_cart,
+                                          label: "Sales",
+                                          value: "Error",
+                                        );
+                                      }
+                                    }
+                                    return _buildRectangle(
+                                      icon: Icons.shopping_cart,
+                                      label: "Sales",
+                                      value: "Loading...",
+                                    );
+                                  },
+                                ),
+                                            FutureBuilder<double>(
+                                  future: OrderRepository.getTotalProfit(), // Fetch total profits
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return _buildRectangle(
+                                        icon: Icons.money,
+                                        label: "Profit",
+                                        value: "Loading...",
+                                      );
+                                    } else if (snapshot.hasData) {
+                                      return _buildRectangle(
+                                        icon: Icons.money,
+                                        label: "Profit",
+                                        value: "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return _buildRectangle(
+                                        icon: Icons.money,
+                                        label: "Profit",
+                                        value: "Error",
+                                      );
+                                    } else {
+                                      return _buildRectangle(
+                                        icon: Icons.money,
+                                        label: "Profit",
+                                        value: "No data",
+                                      );
+                                    }
+                                  },
+                                ),
+                                FutureBuilder<int>(
+                                  future: OrderRepository.countCompletedOrders(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.done) {
+                                      if (snapshot.hasData) {
+                                        return _buildRectangle(
+                                          icon: Icons.local_shipping,
+                                          label: " Total Orders",
+                                          value: "${snapshot.data}",
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return _buildRectangle(
+                                          icon: Icons.local_shipping,
+                                          label: "Orders",
+                                          value: "Error",
+                                        );
+                                      }
+                                    }
+                                    return _buildRectangle(
+                                      icon: Icons.local_shipping,
+                                      label: "Orders",
+                                      value: "Loading...",
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
-                            _buildRectangle(
-                              icon: Icons.shopping_cart,
-                              label: "Sales",
-                              value: "456",
-                            ),
-                            _buildRectangle(
-                              icon: Icons.money,
-                              label: "Profit",
-                              value: "789",
-                            ),
-                            _buildRectangle(
-                              icon: Icons.local_shipping,
-                              label: "Orders",
-                              value: "101",
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      const Text(
-                        "Top Products",
-                        style: TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      FutureBuilder<List<Product>>(
-                        future: DatabaseHelper()
-                            .getBestSellingProductsDetails(), // Assuming this method is defined and returns a list of Products
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else if (snapshot.hasData) {
-                            return Column(
-                              children: snapshot.data!
-                                  .map((product) => Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Container(
-                                              height: 40,
-                                              width: 40,
-                                              decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                  fit: BoxFit.cover,
-                                                  image: (product.image !=
-                                                              null &&
-                                                          product.image!
-                                                              .isNotEmpty)
-                                                      ? NetworkImage(
-                                                          product.image!)
-                                                      : const AssetImage(
-                                                              "assets/images/placeholder.png")
-                                                          as ImageProvider,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Text(
-                                                '${product.productName}\nSold: ${product.quantity}',
-                                                style: const TextStyle(
-                                                    fontSize: 14),
-                                              ),
-                                            ),
-                                            Text(
-                                              'Revenue: Ksh${(product.quantity * product.buyingPrice).toStringAsFixed(2)}',
-                                              style:
-                                                  const TextStyle(fontSize: 14),
-                                            ),
-                                          ],
+                          ),
+                                        const SizedBox(height: 10),
+
+                                        const Text(
+                                          "Top Products",
+                                          style: TextStyle(
+                                            fontSize: 18.0,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ))
-                                  .toList(),
-                            );
-                          } else {
-                            return const Text("No top products found.");
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                                        const SizedBox(height: 10),
+                                        buildTopProductsSection(),
+                                        const SizedBox(height: 10),
+
+
+                                      ],
+                                    ),
+                                  ),
+                                ),
               const SizedBox(height: 10),
               //stats card
               Card(

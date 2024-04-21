@@ -45,6 +45,7 @@ class DatabaseHelper {
 
   //Table for completed orders
   final String completedOrderTableName = 'completedOrders';
+  final String columnOrderId = 'orderId';
   final String columnTotalPrice = 'totalPrice';
   final String columnProducts =
       'products'; // This will store a JSON string of products
@@ -134,12 +135,11 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
     // Create the completed orders table
     await db.execute('''
       CREATE TABLE $completedOrderTableName (
-        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-        orderId TEXT,
+        $columnOrderId TEXT,
         $columnTotalPrice REAL,
         $columnProducts TEXT,
         $columnCompletedAt TEXT,
-        $columnprofit TEXT
+        $columnprofit REAL
       )
     ''');
     // Create the expenses table
@@ -176,12 +176,12 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
     if (oldVersion < 4) {
       // Upgrade logic for version 2
       await db.execute('''
-      CREATE TABLE completedOrders (
-        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-        orderId TEXT,
+      CREATE TABLE $completedOrderTableName (
+        $columnOrderId TEXT,
         $columnTotalPrice REAL,
         $columnProducts TEXT,
-        $columnCompletedAt TEXT
+        $columnCompletedAt TEXT,
+        $columnprofit REAL
       )
     ''');
      
@@ -395,6 +395,36 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
     );
     return double.tryParse(result.first['totalCost'].toString()) ?? 0.0;
   }
+
+
+  // Fetch top 3 best-selling products based on total quantity sold
+Future<List<Product>> getTopSellingProducts() async {
+  Database? db = await database;
+  try {
+    // First, get total quantities sold for each product
+    Map<int, int> soldQuantities = await calculateTotalSoldQuantities();
+    
+    // Transform Map to list of pairs and sort by quantity descending
+    List<MapEntry<int, int>> sortedProducts = soldQuantities.entries.toList();
+    sortedProducts.sort((a, b) => b.value.compareTo(a.value));
+
+    // Take top 3 products, if there are that many
+    List<int> topProductIds = sortedProducts.take(2).map((e) => e.key).toList();
+
+    // Fetch product details for these top product IDs
+    List<Map<String, dynamic>> productMaps = await db!.query(
+      productTableName,
+      where: '$columnId IN (${topProductIds.join(', ')})'
+    );
+
+    // Convert the query result into a list of Product objects
+    return productMaps.map((productMap) => Product.fromMap(productMap)).toList();
+  } catch (e) {
+    print('Error fetching top selling products: $e');
+    throw Exception('Failed to fetch top selling products');
+  }
+}
+
 
 
 // Close the database

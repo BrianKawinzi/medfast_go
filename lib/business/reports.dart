@@ -92,7 +92,7 @@ void _showFilterOptions() {
               leading: const Icon(Icons.date_range),
               title: const Text('Filter by Date'),
               onTap: () {
-                Navigator.pop(context); // Close the modal bottom sheet
+                Navigator.pop(context); 
                 _showDatePickerDialog();
               },
             ),
@@ -100,7 +100,7 @@ void _showFilterOptions() {
               leading: const Icon(Icons.shopping_bag),
               title: const Text('Filter by Product'),
               onTap: () {
-                Navigator.pop(context); // Close the modal bottom sheet
+                Navigator.pop(context); 
                 _promptForProductName();
               },
             ),
@@ -186,9 +186,9 @@ Future<void> _selectDate(BuildContext context) async {
       return Theme(
         data: ThemeData.light().copyWith(
           colorScheme: const ColorScheme.light(
-            primary: Colors.green, // header background color
-            onPrimary: Colors.white, // header text color
-            onSurface: Colors.black, // body text color
+            primary: Colors.green,
+            onPrimary: Colors.white, 
+            onSurface: Colors.black, 
           ),
           dialogBackgroundColor: Colors.white,
         ),
@@ -199,7 +199,7 @@ Future<void> _selectDate(BuildContext context) async {
   if (picked != null && picked != selectedDate) {
     setState(() {
       selectedDate = picked;
-      _filterDataForDate(picked); // Implement this function based on your data structure
+      _filterDataForDate(picked); 
     });
   }
 }
@@ -214,9 +214,9 @@ Future<void> _selectDateRange(BuildContext context) async {
       return Theme(
         data: ThemeData.light().copyWith(
           colorScheme: const ColorScheme.light(
-            primary: Colors.green, // header background color
-            onPrimary: Colors.white, // header text color
-            onSurface: Colors.black, // body text color
+            primary: Colors.green, 
+            onPrimary: Colors.white, 
+            onSurface: Colors.black, 
           ),
           dialogBackgroundColor: Colors.white,
         ),
@@ -227,7 +227,7 @@ Future<void> _selectDateRange(BuildContext context) async {
   if (range != null && range != selectedDateRange) {
     setState(() {
       selectedDateRange = range;
-      _filterDataForDateRange(range); // Implement this function based on your data structure
+      _filterDataForDateRange(range); 
     });
   }
 }
@@ -239,7 +239,7 @@ void _filterDataForDate(DateTime date) {
 }
 
 void _filterDataForDateRange(DateTimeRange range) {
-  // Filter your data based on the date range
+ 
   stockRows = stockRows.where((row) => inDateRange(const Row() as String, range)).toList();
   salesRows = salesRows.where((row) => inDateRange(const Row() as String, range)).toList();
   setState(() {});
