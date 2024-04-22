@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:collection/collection.dart';
+import 'package:sqflite/sqflite.dart';
 
 
 
@@ -611,13 +613,30 @@ static final DatabaseHelper _dbhelper = DatabaseHelper();
 static Future<void> addCompletedOrder(OrderDetails order) async {
     await _dbhelper.insertCompletedOrder(order);
   }
-
-  
-  
-
   // Retrieves all completed orders
   static Future<List<OrderDetails>> getCompletedOrders() async {
     return await _dbhelper.getCompletedOrders();
+  }
+
+   static Future<int> countCompletedOrders() async {
+    List<OrderDetails> completedOrders = await _dbhelper.getCompletedOrders();
+    return completedOrders.length;  // This returns the number of completed orders
+  }
+
+  static Future<double> getTotalSales() async {
+    List<OrderDetails> orders = await _dbhelper.getCompletedOrders();
+    double total = orders.fold(0, (sum, order) => sum + order.totalPrice);
+    return total;
+  }
+
+   static Future<double> getTotalProfit() async {
+    List<OrderDetails> orders = await _dbhelper.getCompletedOrders();
+    double totalProfit = orders.fold(0, (sum, order) => sum + order.profit);
+    return totalProfit;
+  }
+
+  static Future<List<Product>> getBestSellingProducts() async {
+    return await _dbhelper.getTopSellingProducts();
   }
 }
 
@@ -648,16 +667,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
     for (var product in widget.cartItems) {
       productQuantity[product.productName] =
           (productQuantity[product.productName] ?? 0) + 1;
-
-      // Check if sellingPrice is not null before assigning
-      // ignore: unnecessary_null_comparison
       if (product.buyingPrice != null) {
         productPrice[product.productName] = product.sellingPrice;
       } else {
-        // Handle the case when sellingPrice is null, for example, set to 0.0 or some default value
-        productPrice[product.productName] = 0.0; // or some default value
+        productPrice[product.productName] = 0.0; 
       }
     }
+    // ignore: invalid_use_of_protected_member
+    CartProvider().notifyListeners();
   }
 
   //  Import collection package
@@ -1131,11 +1148,11 @@ class _CashPaymentState extends State<CashPayment> {
         orderId: orderId,
         totalPrice: totalPrice,
         products: products,
-        profit: orderprofit,
-        
         completedAt: DateTime.now(),
-        
+        profit: orderprofit,
       );
+
+     
       
       // Add the completed order to the repository
       OrderRepository.addCompletedOrder(orderDetails);
