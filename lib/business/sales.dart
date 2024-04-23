@@ -57,6 +57,20 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
+    void updateProductQuantities() async {
+      final dbHelper = DatabaseHelper();  
+
+      for (var product in _cartItems) {
+        int soldQuantity = _productQuantities[product.id] ?? 0;
+        int newQuantity = product.quantity - soldQuantity;
+
+        await dbHelper.updateProductQuantity(product.id, newQuantity);
+      }
+
+      resetCart();
+    }
+
+
     void resetCart() {
     _cartItems.clear();
     _productQuantities.clear();
@@ -1153,7 +1167,9 @@ class _CashPaymentState extends State<CashPayment> {
       );
 
      
-      
+      // Before adding the completed order, update the product quantities
+      Provider.of<CartProvider>(context, listen: false).updateProductQuantities();
+
       // Add the completed order to the repository
       OrderRepository.addCompletedOrder(orderDetails);
 
@@ -1762,23 +1778,21 @@ class SalesHistoryClass {
   double unitPrice;
   double profit;
 
-
   SalesHistoryClass({
     required this.productName,
     required this.quantitySold,
     required this.currentStock,
-    required this.unitPrice, required totalPrice,
+    required this.unitPrice,
     required this.profit,
   });
 
   double get totalPrice => unitPrice * quantitySold;
 
   void updateSalesHistory(int soldQuantity) {
-    quantitySold += soldQuantity;
+    quantitySold = soldQuantity; // Assign the value of soldQuantity to quantitySold
     currentStock -= soldQuantity;
   }
 }
-
 
 class SalesHistoryManager {
   List<SalesHistoryClass> salesHistory = [];
@@ -1788,14 +1802,14 @@ class SalesHistoryManager {
     List<Product> products = await dbHelper.getProducts();
     for (var product in products) {
       var existingHistoryIndex = salesHistory.indexWhere(
-        (history) => history.productName == product.productName);
+          (history) => history.productName == product.productName);
 
       if (existingHistoryIndex == -1) {
         salesHistory.add(SalesHistoryClass(
           productName: product.productName,
           quantitySold: 0,
           currentStock: product.quantity,
-          unitPrice: product.buyingPrice, totalPrice: 0,
+          unitPrice: product.buyingPrice,
           profit: 0,
         ));
       }
@@ -1805,17 +1819,36 @@ class SalesHistoryManager {
   void updateHistoryForCompletedOrder(List<Product> orderedProducts) {
     for (var orderedProduct in orderedProducts) {
       var historyIndex = salesHistory.indexWhere(
-        (h) => h.productName == orderedProduct.productName);
+          (h) => h.productName == orderedProduct.productName);
 
       if (historyIndex != -1) {
-        salesHistory[historyIndex].updateSalesHistory(orderedProduct.quantity);
+        salesHistory[historyIndex].updateSalesHistory(orderedProduct.soldQuantity); // Use soldQuantity
       } else {
         salesHistory.add(SalesHistoryClass(
           productName: orderedProduct.productName,
-          quantitySold: orderedProduct.quantity,
-          currentStock: orderedProduct.quantity - orderedProduct.quantity,
-          unitPrice: orderedProduct.buyingPrice, totalPrice: 0,
+          quantitySold: orderedProduct.soldQuantity, // Use soldQuantity
+          currentStock: orderedProduct.quantity - orderedProduct.soldQuantity,
+          unitPrice: orderedProduct.buyingPrice,
           profit: orderedProduct.buyingPrice - orderedProduct.sellingPrice,
+        ));
+      }
+    }
+  }
+
+  void updateSalesHistoryFromTopSellingProducts(List<Product> topSellingProducts) {
+    for (var product in topSellingProducts) {
+      var historyIndex = salesHistory.indexWhere(
+          (h) => h.productName == product.productName);
+
+      if (historyIndex != -1) {
+        salesHistory[historyIndex].updateSalesHistory(product.soldQuantity); // Use soldQuantity
+      } else {
+        salesHistory.add(SalesHistoryClass(
+          productName: product.productName,
+          quantitySold: product.soldQuantity, // Use soldQuantity
+          currentStock: product.quantity - product.soldQuantity,
+          unitPrice: product.buyingPrice,
+          profit: product.buyingPrice - product.sellingPrice,
         ));
       }
     }
