@@ -58,17 +58,15 @@ class CartProvider with ChangeNotifier {
   }
 
     void updateProductQuantities() async {
-      final dbHelper = DatabaseHelper();  // Access your database helper
+      final dbHelper = DatabaseHelper();  
 
       for (var product in _cartItems) {
         int soldQuantity = _productQuantities[product.id] ?? 0;
         int newQuantity = product.quantity - soldQuantity;
 
-        // Update the quantity in the database
         await dbHelper.updateProductQuantity(product.id, newQuantity);
       }
 
-      // Clear the cart after updating the quantities
       resetCart();
     }
 
