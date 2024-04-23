@@ -459,7 +459,61 @@ Future<Map<int, double>> calculateProductProfits() async {
   return profit;
 }
 
+// Insert a completed order into the completedOrders table and update product quantities
+Future<int> insertCompletedOrderAndUpdateProducts(OrderDetails order) async {
+  final db = await database;
+  int orderId = await db!.insert(completedOrderTableName, order.toMap());
 
+  // Now update product quantities
+  await updateProductQuantitiesAfterOrderCompletion(order);
+  return orderId;
+}
+
+// Update product quantities in the product table after an order is completed
+Future<void> updateProductQuantitiesAfterOrderCompletion(OrderDetails order) async {
+  Database? db = await database;
+  List<dynamic> products = jsonDecode(order.products as String); // Assuming 'order.products' is a JSON string of products
+
+  for (var product in products) {
+    int id = product['id'];
+    int soldQuantity = product['soldQuantity'];
+
+    // Fetch current quantity from the database
+    List<Map<String, dynamic>> productData = await db!.query(
+      productTableName,
+      columns: [columnQuantity],
+      where: '$columnId = ?',
+      whereArgs: [id]
+    );
+
+    if (productData.isNotEmpty) {
+      int currentQuantity = productData.first[columnQuantity] as int;
+
+      // Calculate new quantity
+      int newQuantity = currentQuantity - soldQuantity;
+
+      // Update the product with new quantity
+      await db.update(
+        productTableName,
+        {columnQuantity: newQuantity},
+        where: '$columnId = ?',
+        whereArgs: [id]
+      );
+    }
+  }
+}
+
+
+Future<void> updateProductQuantity(int productId, int newQuantity) async {
+    // Database update logic here
+    Database? db = await database;  // Assuming you have a getter for the database
+    await db?.update(
+      'products', 
+      {'quantity': newQuantity},
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+  }
 
 // Close the database
   Future<void> close() async {
