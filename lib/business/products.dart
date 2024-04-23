@@ -127,7 +127,7 @@ class _ProductsState extends State<Products> {
                   children: [
                     Text("Expiry Date: ${product.expiryDate}"),
                     Text('Description: ${product.medicineDescription}'),
-                    Text('Price: ${product.buyingPrice}'),
+                    Text('Price: ${product.sellingPrice}'),
                   ],
                 ),
                 leading: SizedBox(
