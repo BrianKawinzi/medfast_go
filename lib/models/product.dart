@@ -6,7 +6,9 @@ class Product {
   String? image;
   String expiryDate;
   double sellingPrice = 0;
+  double profit;
   int quantity;
+  int soldQuantity;
   final String manufactureDate;
   final String? unit; 
 
@@ -18,6 +20,8 @@ class Product {
     required this.quantity,
     required this.sellingPrice,
     this.image,
+    this.soldQuantity = 0,
+    this.profit =0,
     required this.expiryDate,
     required this.manufactureDate,
     this.unit,
@@ -35,7 +39,9 @@ class Product {
         image = map['image'],
         expiryDate = map['expiryDate'],
         manufactureDate = map['manufactureDate'],
-        unit = map['unit'];
+        unit = map['unit'],
+        soldQuantity =map ['soldQuantity']?.toInt() ??0,
+        profit = map['sellingPrice']?.toDouble() ?? 0.0;
 
 
 
@@ -52,6 +58,8 @@ class Product {
       'expiryDate': expiryDate,
       'manufactureDate': manufactureDate,
       'unit': unit,
+      'soldQuantity': soldQuantity,
+      'profit': profit,
     };
   }
 }

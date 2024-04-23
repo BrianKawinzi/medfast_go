@@ -29,6 +29,8 @@ class DatabaseHelper {
   final String columnExpiryDate = 'expiryDate';
   final String columnImage = 'image';
   final String columnDate = 'date';
+  final String columnsoldQuantity = 'soldQuantity';
+  final String columnProductprofit = 'profit';
 
   // Table name for expenses
   final String expenseTableName = 'expenses';
@@ -68,9 +70,6 @@ class DatabaseHelper {
   }
   
 
-  // In DatabaseHelper
-
-// Method to fetch and aggregate product sales from completed orders
 Future<Map<int, int>> calculateTotalSoldQuantities() async {
   Database? db = await database;
   List<Map<String, dynamic>> orders = await db!.query(completedOrderTableName);
@@ -78,23 +77,22 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
   Map<int, int> productSales = {};
 
   for (var order in orders) {
-    // Assuming 'products' column contains a JSON string of product details
     List<dynamic> products = jsonDecode(order['products']);
 
     for (var product in products) {
       int id = product['id'];
-      int quantity = product['quantity'];
 
       if (productSales.containsKey(id)) {
-        productSales[id] = productSales[id]! + quantity;
+        productSales[id] = productSales[id]! + 1; // Increment count
       } else {
-        productSales[id] = quantity;
+        productSales[id] = 1; // Initialize count
       }
     }
   }
 
   return productSales;
 }
+
 
 
   // Initialize the database
@@ -127,7 +125,9 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
         $columnUnit TEXT,
         $columnManufactureDate TEXT,
         $columnExpiryDate TEXT,
-        $columnImage TEXT
+        $columnImage TEXT,
+        $columnProductprofit REAL,
+        $columnsoldQuantity INTEGER
       )
     ''');
 
@@ -398,31 +398,65 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
 
 
   // Fetch top 3 best-selling products based on total quantity sold
-Future<List<Product>> getTopSellingProducts() async {
-  Database? db = await database;
-  try {
-    // First, get total quantities sold for each product
-    Map<int, int> soldQuantities = await calculateTotalSoldQuantities();
-    
-    // Transform Map to list of pairs and sort by quantity descending
-    List<MapEntry<int, int>> sortedProducts = soldQuantities.entries.toList();
-    sortedProducts.sort((a, b) => b.value.compareTo(a.value));
+ Future<List<Product>> getTopSellingProducts() async {
+    Database? db = await database;
+    try {
+      Map<int, int> soldQuantities = await calculateTotalSoldQuantities();
+      Map<int, double> profit = await calculateProductProfits(); // Calculate profits
 
-    // Take top 3 products, if there are that many
-    List<int> topProductIds = sortedProducts.take(2).map((e) => e.key).toList();
+      List<MapEntry<int, int>> sortedProducts = soldQuantities.entries.toList();
+      sortedProducts.sort((a, b) => b.value.compareTo(a.value)); // Descending order
+      List<int> topProductIds = sortedProducts.take(3).map((e) => e.key).toList();
+      List<Map<String, dynamic>> productMaps = await db!.query(
+        productTableName,
+        where: '$columnId IN (${topProductIds.join(', ')})'
+      );
 
-    // Fetch product details for these top product IDs
-    List<Map<String, dynamic>> productMaps = await db!.query(
-      productTableName,
-      where: '$columnId IN (${topProductIds.join(', ')})'
-    );
-
-    // Convert the query result into a list of Product objects
-    return productMaps.map((productMap) => Product.fromMap(productMap)).toList();
-  } catch (e) {
-    print('Error fetching top selling products: $e');
-    throw Exception('Failed to fetch top selling products');
+      return productMaps.map((productMap) {
+        return Product.fromMap(productMap)
+          ..soldQuantity = soldQuantities[productMap['id']] ?? 0
+           ..profit = profit[productMap['id']] ?? 0.0; // Set profit
+      }).toList();
+    } catch (e) {
+      print('Error fetching top selling products: $e');
+      throw Exception('Failed to fetch top selling products');
+    }
   }
+
+Future<Map<int, double>> calculateProductProfits() async {
+  Database? db = await database;
+  List<Map<String, dynamic>> newOrders = await db!.query(completedOrderTableName, where: '$columnprofit IS NULL');
+
+  Map<int, double> profit = {};
+
+  for (var order in newOrders) {
+    List<dynamic> products = jsonDecode(order['products']);
+
+    for (var product in products) {
+      int id = product['id'];
+      int quantity = product['soldQuantity'];
+      double buyingPrice = product['sellingPrice'];
+      double sellingPrice = product['buyingPrice'];
+
+      double productProfit = (sellingPrice - buyingPrice) * quantity;
+
+      if (profit.containsKey(id)) {
+        profit[id] = profit[id]! + productProfit; // Increment profit
+      } else {
+        profit[id] = productProfit; // Initialize profit
+      }
+
+      // Update the product's profit in the products table
+      await db.update(
+        productTableName,
+        {columnProductprofit: profit[id]},
+        where: '$columnId = ?',
+        whereArgs: [id],
+      );
+    }
+  }
+
+  return profit;
 }
 
 

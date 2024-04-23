@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(right: 8.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color.fromARGB(255, 82, 170, 156)!, Colors.blueGrey[100]!],
+          colors: [Color.fromARGB(255, 7, 204, 59)!, Color.fromARGB(255, 191, 190, 193)!],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -175,14 +175,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 20, color: Colors.white), // Icon with white color
-              const SizedBox(width: 8), // Space between icon and label
+              Icon(icon, size: 20, color: Color.fromARGB(255, 81, 77, 77)), // Icon with white color
+              const SizedBox(width: 12), // Space between icon and label
               Flexible(
                 child: Text(
                   '$label\n$value', // Use \n to separate label and value
                   style: TextStyle(
-                    color: Colors.white, // White text color for better readability
-                    fontSize: 14, // Increased font size
+                    color: Color.fromARGB(255, 30, 5, 47), // White text color for better readability
+                    fontSize: 18, // Increased font size
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -272,7 +272,7 @@ Widget buildTopProductsSection() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Price:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
-                      Text('Ksh${product.buyingPrice.toStringAsFixed(2)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text('Ksh${product.sellingPrice.toStringAsFixed(2)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   SizedBox(width: 15),
@@ -280,7 +280,7 @@ Widget buildTopProductsSection() {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Revenue:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
-                      Text('Ksh${(product.quantity * product.buyingPrice).toStringAsFixed(2)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green[700])),
+                      Text('Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green[700])),
                     ],
                   ),
                 ],
@@ -585,103 +585,86 @@ Widget buildTopProductsSection() {
                                 ),
               const SizedBox(height: 10),
               //stats card
-              Card(
+             Card(
                 elevation: 5.0,
                 child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            //stats overview
-                            const Text(
-                              'Stats overview',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            //filter button
-                            IconButton(
-                                onPressed: () {
-                                  //Add filter functionality here
-                                },
-                                icon: const Icon(Icons.filter_list))
-                          ],
-                        ),
-
-                        const SizedBox(height: 16.0),
-
-                        //progress bars
-
-                        const Text(
-                          'Tracking 1',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-
-                        LinearProgressIndicator(
-                          value: 0.7,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 255, 234, 0)),
-                          backgroundColor: Colors.grey,
-                          minHeight: 10.0,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-
-                        const SizedBox(height: 40.0),
-
-                        const Text(
-                          'Tracking 2',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        LinearProgressIndicator(
-                          value: 0.4,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 255, 17, 1)),
-                          backgroundColor: Colors.grey,
-                          minHeight: 10,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-
-                        const SizedBox(height: 40.0),
-
-                        const Text(
-                          'Tracking 3',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        LinearProgressIndicator(
-                          value: 0.7,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 213, 0, 250)),
-                          backgroundColor: Colors.grey,
-                          minHeight: 10,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ],
-                    )),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Actual Top Stats',
+                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16.0),
+                      FutureBuilder<List<Product>>(
+                        future: OrderRepository.getBestSellingProducts(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error.toString()}');
+                          } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                            int maxQuantity = snapshot.data!.map((p) => p.soldQuantity).reduce(math.max);
+                            return Column(
+                              children: snapshot.data!.map((product) {
+                                double fraction = maxQuantity != 0 ? product.soldQuantity / maxQuantity : 0.0;
+                                return GestureDetector(
+                                  onTap: () => showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(product.productName),
+                                        content: SingleChildScrollView(
+                                          child: ListBody(
+                                            children: <Widget>[
+                                              Text('Price: Ksh${product.sellingPrice.toStringAsFixed(2)}'),
+                                              Text('Quantity Sold: ${product.soldQuantity}'),
+                                              Text('Total Revenue: Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}'),
+                                              //Text('Profit: Ksh${(product.profit.toStringAsFixed(2))}'),
+                                            ],
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: const Text('Close'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.productName,
+                                        style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                                      ),
+                                      LinearProgressIndicator(
+                                        value: fraction,
+                                        backgroundColor: Colors.grey[300],
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          product == snapshot.data!.first ? Colors.blue : product == snapshot.data![1] ? Colors.green : Colors.red,
+                                        ),
+                                        minHeight: 10,
+                                      ),
+                                      const SizedBox(height: 20),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            );
+                          } else {
+                            return const Text("No top products found.");
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
