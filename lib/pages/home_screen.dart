@@ -234,7 +234,7 @@ Widget buildTopProductsSection() {
               }
             } else {
               // Default image if none is provided
-              imageProvider = const AssetImage("assets/images/no_image_available.png");
+              imageProvider = const AssetImage("lib/assets/noimage.png");
             }
 
             return Padding(
