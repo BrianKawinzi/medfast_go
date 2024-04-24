@@ -234,7 +234,7 @@ Widget buildTopProductsSection() {
               }
             } else {
               // Default image if none is provided
-              imageProvider = const AssetImage("assets/images/no_image_available.png");
+              imageProvider = const AssetImage("lib/assets/noimage.png");
             }
 
             return Padding(
@@ -480,7 +480,7 @@ Widget buildTopProductsSection() {
                                 _buildRectangle(
                                   icon: Icons.people,
                                   label: "Customers",
-                                  value: "123", // This should ideally also be dynamic
+                                  value: "0", // This should ideally also be dynamic
                                 ),
                                 FutureBuilder<double>(
                                   future: OrderRepository.getTotalSales(),
