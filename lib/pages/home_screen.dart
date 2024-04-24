@@ -480,7 +480,7 @@ Widget buildTopProductsSection() {
                                 _buildRectangle(
                                   icon: Icons.people,
                                   label: "Customers",
-                                  value: "123", // This should ideally also be dynamic
+                                  value: "0", // This should ideally also be dynamic
                                 ),
                                 FutureBuilder<double>(
                                   future: OrderRepository.getTotalSales(),
