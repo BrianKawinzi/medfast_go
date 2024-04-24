@@ -283,12 +283,7 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
   // Insert a customer into the customers table
   Future<int> insertCustomer(Customer customer) async {
     final Database? db = await database;
-    final int result = await db!.insert(
-      customerTableName,
-      customer.toMap(),
-      conflictAlgorithm:
-          ConflictAlgorithm.replace, // Specify conflict algorithm
-    );
+       final int result = await db!.insert(customerTableName, customer.toMap());
     return result;
   }
 
