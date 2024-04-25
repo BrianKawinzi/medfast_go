@@ -354,42 +354,56 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
       return 0.0; // Return 0.0 on error
     }
   }
+        Future<List<OrderDetails>> getTodayCompletedOrders(DateTime date) async {
+        final db = await database;
+        List<Map<String, dynamic>> result = await db!.query(
+          completedOrderTableName,
+          where: "DATE($columnCompletedAt) = DATE(?)",
+          whereArgs: [date.toIso8601String()],
+        );
 
-// Fetch daily total items sold
-  Future<int> getDailyTotalItemsSold(DateTime date) async {
-    final db = await database;
-    List<Map<String, dynamic>> result = await db!.rawQuery(
-      'SELECT SUM(quantity) as totalQuantity FROM $completedOrderTableName '
-      'JOIN $productTableName ON $completedOrderTableName.productId = $productTableName.$columnId '
-      'WHERE DATE($columnCompletedAt) = DATE(?)',
-      [date.toIso8601String()],
-    );
-    return int.tryParse(result.first['totalQuantity'].toString()) ?? 0;
-  }
+        return List<OrderDetails>.from(result.map((map) => OrderDetails.fromMap(map)));
+      }
 
-// Fetch daily completed orders
-  Future<int> getDailyCompletedOrdersCount(DateTime date) async {
-    final db = await database;
-    List<Map<String, dynamic>> result = await db!.query(
-      completedOrderTableName,
-      columns: ['COUNT(*) AS orderCount'],
-      where: "DATE($columnCompletedAt) = DATE(?)",
-      whereArgs: [date.toIso8601String()],
-    );
-    return int.tryParse(result.first['orderCount'].toString()) ?? 0;
-  }
-
+      // Fetch daily total items sold
+      Future<int> getDailyTotalItemsSold(DateTime date) async {
+        final db = await database;
+        List<Map<String, dynamic>> result = await db!.query(
+          completedOrderTableName,
+          columns: ['products'], // Retrieve the 'products' column
+          where: "DATE($columnCompletedAt) = DATE(?)",
+          whereArgs: [date.toIso8601String()],
+        );
+        
+        int totalProductsSold = 0;
+        for (var row in result) {
+          List<dynamic> products = jsonDecode(row['products']);
+          totalProductsSold += products.length;
+        }
+        
+        return totalProductsSold;
+      }
 // Fetch daily expenses
-  Future<double> getDailyExpenses(DateTime date) async {
-    final db = await database;
-    List<Map<String, dynamic>> result = await db!.query(
-      expenseTableName,
-      columns: ['SUM(cost) AS totalCost'],
-      where: "DATE($columnDate) = DATE(?)",
-      whereArgs: [date.toIso8601String()],
-    );
-    return double.tryParse(result.first['totalCost'].toString()) ?? 0.0;
-  }
+          Future<double> getDailyExpenses(DateTime date) async {
+            final db = await database;
+            String formattedDate = date.toIso8601String().substring(0, 10);  
+            try {
+              List<Map<String, dynamic>> result = await db!.query(
+                expenseTableName,
+                columns: ['SUM(cost) AS totalCost'],
+                where: "DATE($columnDate) = DATE(?)", 
+                whereArgs: [formattedDate] 
+              );
+
+              if (result.isNotEmpty && result.first['totalCost'] != null) {
+                return double.tryParse(result.first['totalCost'].toString()) ?? 0.0;
+              }
+            } catch (e) {
+              print("Error fetching expenses: $e");
+            }
+            return 0.0;  
+          }
+
 
 
   // Fetch top 3 best-selling products based on total quantity sold
