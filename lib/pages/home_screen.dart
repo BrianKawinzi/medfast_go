@@ -481,6 +481,7 @@ Widget buildTopProductsSection() {
                               spacing: 8.0,
                               runSpacing: 8.0,
                               children: [
+                                //customers
                                 FutureBuilder<int>(
                                     future: OrderRepository.countCustomers(),
                                     builder: (context, snapshot) {

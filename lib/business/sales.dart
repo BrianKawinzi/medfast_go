@@ -653,7 +653,7 @@ static Future<void> addCompletedOrder(OrderDetails order) async {
   static Future<List<Product>> getBestSellingProducts() async {
     return await _dbhelper.getTopSellingProducts();
   }
-
+//customers count
   static Future<int> countCustomers() async {
     List<Customer> customers = await _dbhelper.getCustomers();
     return customers.length;  
