@@ -34,7 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _completedOrders = widget.completedOrders;
-  }
+    _completedOrders = widget.completedOrders;
+  fetchAndUpdateCompletedOrders(); // Fetch completed orders on init
+}
 
   //calculate revenue method
   Future<double> calculateTotalRevenue(int year) async {
@@ -52,99 +54,194 @@ class _HomeScreenState extends State<HomeScreen> {
   return await DatabaseHelper().getCustomers().then((customers) => customers.length);
 }
 
-// Example of using the aggregated product sales in a UI component
   void displayProductSales() async {
     Map<int, int> soldQuantities =
         await DatabaseHelper().calculateTotalSoldQuantities();
 
-    // Display or use the sold quantities in your application
     soldQuantities.forEach((productId, quantity) {
-      //print("Product ID: $productId, Sold Quantity: $quantity");
     });
   }
+  
 
-// Fetch pharmacy name from SharedPreferences
+  void fetchAndUpdateCompletedOrders() async {
+  List<OrderDetails> todayCompletedOrders = await DatabaseHelper().getTodayCompletedOrders(DateTime.now());
+  setState(() {
+    _completedOrders = todayCompletedOrders;
+  });
+}
+
+
   Future<String> getPharmacyName() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
   }
   Widget buildMetricCard() {
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.all(12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Today's! Metrics",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  return Card(
+    elevation: 5,
+    margin: const EdgeInsets.all(12),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Today's Metrics",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 20),
+          FutureBuilder<double>(
+            future: DatabaseHelper().getDailyProfit(DateTime.now()),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasData) {
+                double profit = snapshot.data!;
+                int itemsSold = profit.toInt();
+                int completedOrders = (profit / 10).toInt(); 
+                double expenses = profit;
+
+                return Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildCircularProgressWithLabel(
+                          value: profit / 20000, 
+                          color: Colors.green,
+                          label: "Ksh $profit",
+                          title: "Profit",
+                        ),
+                        FutureBuilder<int>(
+                            future: DatabaseHelper().getDailyTotalItemsSold(DateTime.now()),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Center(child: CircularProgressIndicator());
+                              } else if (snapshot.hasData) {
+                                int itemsSold = snapshot.data!;
+                                return Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildCircularProgressWithLabel(
+                                          value: itemsSold / 2000, 
+                                          color: Colors.blue,
+                                          label: "$itemsSold items",
+                                          title: "Items Sold",
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                return Text('Error fetching data');
+                              }
+                            },
+                          ),
+
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                       FutureBuilder<List<OrderDetails>>(
+                          future: DatabaseHelper().getTodayCompletedOrders(DateTime.now()),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return CircularProgressIndicator(); 
+                            } else if (snapshot.hasError) {
+                              return Text("Error: ${snapshot.error}");
+                            } else if (snapshot.hasData) {
+                              int completedOrders = snapshot.data!.length;
+                              return _buildCircularProgressWithLabel(
+                                value: completedOrders / 1000,
+                                color: Colors.red,
+                                label: "$completedOrders orders",
+                                title: "Completed Orders",
+                              );
+                            } else {
+                              return Text("No data available"); 
+                            }
+                          },
+                        ),
+                        FutureBuilder<double>(
+                          future: DatabaseHelper().getDailyExpenses(DateTime.now()), 
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return CircularProgressIndicator();
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else {
+                              double expenses = snapshot.data!;
+                              return _buildCircularProgressWithLabel(
+                                value: expenses / 20000, 
+                                color: Colors.orange,
+                                label: "Ksh ${expenses.toStringAsFixed(2)}",
+                                title: "Expenses",
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              } else {
+                return Text('Error fetching data');
+              }
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildCircularProgressWithLabel({
+  required double value,
+  required Color color,
+  required String label,
+  required String title,
+}) {
+  return Column(
+    children: [
+      Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 120,
+            height: 120,
+            child: CircularProgressIndicator(
+              value: value,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              backgroundColor: Colors.grey[300],
+              strokeWidth: 8,
             ),
-            SizedBox(height: 20),
-            FutureBuilder<double>(
-              future: DatabaseHelper().getDailyProfit(DateTime.now()),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasData) {
-                  return Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          CustomProgressIndicator(
-                            title: "Profit",
-                            value: "ksh${snapshot.data!.toStringAsFixed(0)}",
-                            color: Colors.green,
-                            size: 120,
-                            strokeWidth: 0,
-                            percentage: 0,
-                          ),
-                          CustomProgressIndicator(
-                            title: "Items Sold",
-                            value: "${snapshot.data!.toInt()} items",
-                            color: Colors.blue,
-                            size: 120, // Reduced size for better fit
-                            strokeWidth: 0,
-                            percentage: 0,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          CustomProgressIndicator(
-                            title: "Completed Orders",
-                            value: "${(snapshot.data! / 10).toInt()} orders",
-                            color: Colors.red,
-                            size: 120, // Reduced size for better fit
-                            strokeWidth: 0,
-                            percentage: 0,
-                          ),
-                          CustomProgressIndicator(
-                            title: "Expenses",
-                            value: "${snapshot.data!.toStringAsFixed(0)}",
-                            color: Colors.orange,
-                            size: 120, // Reduced size for better fit
-                            strokeWidth: 0,
-                            percentage: 0,
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                } else {
-                  return Text('Error fetching data');
-                }
-              },
+          ),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
             ),
-          ],
+          ),
+        ],
+      ),
+      SizedBox(height: 8),
+      Text(
+        title,
+        style: TextStyle(
+          color: Colors.grey[600],
+          fontWeight: FontWeight.bold,
         ),
       ),
-    );
-  }
+    ],
+  );
+}
+
 
  Widget _buildRectangle({
   required IconData icon,
@@ -167,10 +264,10 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Color.fromARGB(255, 77, 161, 58).withOpacity(0.5),
             spreadRadius: 1,
             blurRadius: 6,
-            offset: Offset(0, 3), // changes position of shadow
+            offset: Offset(0, 3), 
           ),
         ],
-        borderRadius: BorderRadius.circular(12), // Rounded corners
+        borderRadius: BorderRadius.circular(12), 
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -179,14 +276,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 20, color: Color.fromARGB(255, 81, 77, 77)), // Icon with white color
-              const SizedBox(width: 12), // Space between icon and label
+              Icon(icon, size: 20, color: Color.fromARGB(255, 81, 77, 77)), 
+              const SizedBox(width: 12), 
               Flexible(
                 child: Text(
-                  '$label\n$value', // Use \n to separate label and value
+                  '$label\n$value', 
                   style: TextStyle(
-                    color: Color.fromARGB(255, 30, 5, 47), // White text color for better readability
-                    fontSize: 18, // Increased font size
+                    color: Color.fromARGB(255, 30, 5, 47), 
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -298,9 +395,6 @@ Widget buildTopProductsSection() {
     },
   );
 }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -466,7 +560,6 @@ Widget buildTopProductsSection() {
                   ),
                 ),
               ),
-              // After the last SizedBox(height: 10),
 
                                 Card(
                     elevation: 5.0,
