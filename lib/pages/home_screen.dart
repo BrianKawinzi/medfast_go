@@ -48,6 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return totalRevenue;
   }
 
+  static Future<int> countCustomers() async {
+  return await DatabaseHelper().getCustomers().then((customers) => customers.length);
+}
+
 // Example of using the aggregated product sales in a UI component
   void displayProductSales() async {
     Map<int, int> soldQuantities =
@@ -477,11 +481,38 @@ Widget buildTopProductsSection() {
                               spacing: 8.0,
                               runSpacing: 8.0,
                               children: [
-                                _buildRectangle(
-                                  icon: Icons.people,
-                                  label: "Customers",
-                                  value: "0", // This should ideally also be dynamic
-                                ),
+                                //customers
+                                FutureBuilder<int>(
+                                    future: OrderRepository.countCustomers(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return _buildRectangle(
+                                          icon: Icons.people,
+                                          label: "Customers",
+                                          value: "Loading...", 
+                                        );
+                                      } else if (snapshot.hasData) {
+                                        return _buildRectangle(
+                                          icon: Icons.people,
+                                          label: "Customers",
+                                          value: "${snapshot.data}", 
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return _buildRectangle(
+                                          icon: Icons.people,
+                                          label: "Customers",
+                                          value: "Error",
+                                        );
+                                      } else {
+                                        return _buildRectangle(
+                                          icon: Icons.people,
+                                          label: "Customers",
+                                          value: "No data",
+                                        );
+                                      }
+                                    },
+                                  ),
+                                //sales
                                 FutureBuilder<double>(
                                   future: OrderRepository.getTotalSales(),
                                   builder: (context, snapshot) {

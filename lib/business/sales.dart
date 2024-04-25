@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
+import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
@@ -634,7 +635,7 @@ static Future<void> addCompletedOrder(OrderDetails order) async {
 
    static Future<int> countCompletedOrders() async {
     List<OrderDetails> completedOrders = await _dbhelper.getCompletedOrders();
-    return completedOrders.length;  // This returns the number of completed orders
+    return completedOrders.length;  
   }
 
   static Future<double> getTotalSales() async {
@@ -651,6 +652,11 @@ static Future<void> addCompletedOrder(OrderDetails order) async {
 
   static Future<List<Product>> getBestSellingProducts() async {
     return await _dbhelper.getTopSellingProducts();
+  }
+//customers count
+  static Future<int> countCustomers() async {
+    List<Customer> customers = await _dbhelper.getCustomers();
+    return customers.length;  
   }
 }
 
