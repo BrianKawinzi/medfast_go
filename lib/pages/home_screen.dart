@@ -512,7 +512,7 @@ Widget buildTopProductsSection() {
                                       }
                                     },
                                   ),
-
+                                //sales
                                 FutureBuilder<double>(
                                   future: OrderRepository.getTotalSales(),
                                   builder: (context, snapshot) {
