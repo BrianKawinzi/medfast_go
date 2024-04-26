@@ -30,6 +30,7 @@ dependencies:
   collection: ^1.15.0
   fl_chart: ^0.40.0
   charts_flutter: ^0.11.0
+  animated_text_kit: ^4.2.2
   
   
 
