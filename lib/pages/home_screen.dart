@@ -10,6 +10,7 @@ import 'package:medfast_go/pages/widgets/CustomProgressIndicator.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:medfast_go/bargraph/individual_bar.dart';
 import 'package:medfast_go/pages/widgets/progress_indicator.dart';
+import 'package:medfast_go/pages/widgets/revenue_card.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:medfast_go/pages/notification.dart';
 import 'dart:math' as math;
@@ -25,8 +26,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late List<OrderDetails> _completedOrders;
-  late List<int> _years = [2022, 2023, 2024, 2025, 2026, 2027];
-  late int _selectedYear = 2022;
+  final List<String> _months = [
+    '',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
+  late int _selectedYear = DateTime.now().year;
+  late int _selectedMonthIndex = DateTime.now().month;
+  //late String _selectedMonth = where index for months is _selectedMonthIndex
+  late String _selectedMonth = _months[_selectedMonthIndex];
+
+  double _totalRevenueForGraph = 0;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -36,14 +57,22 @@ class _HomeScreenState extends State<HomeScreen> {
     _completedOrders = widget.completedOrders;
     _completedOrders = widget.completedOrders;
   fetchAndUpdateCompletedOrders(); // Fetch completed orders on init
+    _selectedMonthIndex = _months.indexOf(_selectedMonth) - 1;
+    calculateTotalRevenue(_selectedYear, _selectedMonthIndex).then((revenue) {
+      setState(() {
+        _totalRevenueForGraph = revenue;
+      });
+    });
 }
 
   //calculate revenue method
-  Future<double> calculateTotalRevenue(int year) async {
+  Future<double> calculateTotalRevenue(int year,
+      [int? selectedMonthIndex]) async {
     double totalRevenue = 0;
 
     for (OrderDetails order in _completedOrders) {
-      if (order.completedAt.year == year) {
+      if (order.completedAt.year == year &&
+          order.completedAt.month == selectedMonthIndex) {
         totalRevenue += order.totalPrice;
       }
     }
@@ -487,104 +516,94 @@ Widget buildTopProductsSection() {
             children: [
               buildMetricCard(),
 
-          
-              //revenue card
               Card(
                 elevation: 5.0,
                 child: Padding(
-                  padding: const EdgeInsets.all(1.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Total \n Revenue',
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              color: Colors.grey,
-                            ),
-                          ),
-
-                          //Calculation of monthly ammounts
+                          const Text('Total \n Revenue',
+                              style: TextStyle(
+                                  fontSize: 16.0, color: Colors.grey)),
                           FutureBuilder<double>(
-                              future: calculateTotalRevenue(_selectedYear),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Text(
-                                    'KSH \n ${snapshot.data?.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                } else if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Text(
-                                    'Loading...',
+                            future: calculateTotalRevenue(
+                                _selectedYear, _selectedMonthIndex),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              } else if (snapshot.hasData) {
+                                return Text(
+                                    'KSH ${snapshot.data!.toStringAsFixed(0)}',
                                     style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                } else {
-                                  return const Text(
-                                    'Error',
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold));
+                              } else {
+                                return const Text('Error',
                                     style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                }
-                              }),
-
-                          DropdownButton<int>(
-                            items: _years.map((int year) {
-                              return DropdownMenuItem<int>(
-                                value: year,
-                                child: Text(year.toString()),
-                              );
-                            }).toList(),
-                            onChanged: (int? newValue) {
-                              //Handle dropdown value change logic
-                              if (newValue != null) {
-                                setState(() {
-                                  _selectedYear = newValue;
-                                });
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold));
                               }
                             },
-                            value: _selectedYear,
                           ),
+                          DropdownButton<String>(
+                            value: _selectedMonth,
+                            icon: const Icon(Icons.arrow_drop_down),
+                            elevation: 16,
+                            style: const TextStyle(
+                                color: Color.fromARGB(255, 13, 13,
+                                    13)), // Ensure text style is readable
+                            underline: Container(
+                              height: 2,
+                              color: Colors.deepPurpleAccent,
+                            ),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedMonth = newValue!;
+                                //nu
+                                _selectedMonthIndex = _months.indexOf(newValue);
+                                // Additional logic if needed when month changes
+                              });
+                            },
+                            items: _months
+                                .map<DropdownMenuItem<String>>((String month) {
+                              return DropdownMenuItem<String>(
+                                value: month,
+                                child: Text(month),
+                              );
+                            }).toList(),
+                          )
+
                         ],
                       ),
-
-                      //Bar chart
-                      const SizedBox(
-                        height: 200,
-                        child: IndividualBar(
-                          x: 1,
-                          monthlyAmounts: [
-                            10000,
-                            20000,
-                            15000,
-                            25000,
-                            18000,
-                            22000,
-                            30500,
-                            28000,
-                            35000,
-                            32000,
-                            28000,
-                            40000
-                          ],
-                        ),
-                      )
+                      SizedBox(
+                          height: 200,
+                          child: IndividualBar(
+                            selectedMonthIndex: _selectedMonthIndex,
+                            monthlyAmounts: [
+                              100,
+                              45,
+                              200,
+                              150,
+                              300,
+                              250,
+                              400,
+                              350,
+                              500,
+                              450,
+                              600,
+                              550
+                            ],
+                          )),
                     ],
                   ),
                 ),
               ),
+    
+
 
                                 Card(
                     elevation: 5.0,
