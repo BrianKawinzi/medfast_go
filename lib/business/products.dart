@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class Products extends StatefulWidget {
   const Products({super.key, required String productName});
@@ -217,7 +218,7 @@ class _ProductsState extends State<Products> {
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              // Menu action
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BottomNavigation()));// Menu action
             },
           ),
         ],

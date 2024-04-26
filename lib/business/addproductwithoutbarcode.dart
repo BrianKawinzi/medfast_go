@@ -18,8 +18,8 @@ class _AddProductFormState extends State<AddProductForm> {
   File? _image;
 
   String _productName = '';
-  double _buyingPrice = 0.0;
-  double _sellingPrice = 0.0;
+  double _buyingPrice = 0;
+  double _sellingPrice = 0;
   String _unit = 'piece';
   int _quantity = 0;
 
@@ -47,13 +47,13 @@ class _AddProductFormState extends State<AddProductForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-          if (_sellingPrice < _buyingPrice) {
+          if (_buyingPrice == 0.0 && _sellingPrice == 0.0||_sellingPrice < _buyingPrice) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Invalid Pricing'),
-            content: const Text('The selling price must be greater than or equal to the buying price.'),
+            content: const Text('The selling price must be greater than or equal to the buying price which must not be equal to 0'),
             actions: <Widget>[
               TextButton(
                 child: Text('OK'),
@@ -136,6 +136,7 @@ class _AddProductFormState extends State<AddProductForm> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
+        initialValue: _getValueForLabel(label),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.green[800]),
@@ -152,22 +153,39 @@ class _AddProductFormState extends State<AddProductForm> {
         }
         return null;  
       },
-        onSaved: (value) {
-          switch (label) {
-            case 'Product Name':
-              _productName = value!;
-              break;
-            case 'Buying Price':
-              _buyingPrice = double.tryParse(value!) ?? 0.0;
-              break;
-            case 'Selling Price':
-              _sellingPrice = double.tryParse(value!) ?? 0.0;
-              break;
-          }
-        },
-      ),
-    );
+        onChanged: (value) => _updateValueForLabel(label, value), // Update the value on change
+      onSaved: (value) => _updateValueForLabel(label, value!),
+    ),
+  );
+}
+  String _getValueForLabel(String label) {
+  switch (label) {
+    case 'Product Name':
+      return _productName;
+    case 'Buying Price':
+      return _buyingPrice.toString();
+    case 'Selling Price':
+      return _sellingPrice.toString();
+    default:
+      return '';
   }
+}
+
+void _updateValueForLabel(String label, String value) {
+  setState(() {
+    switch (label) {
+      case 'Product Name':
+        _productName = value;
+        break;
+      case 'Buying Price':
+        _buyingPrice = double.tryParse(value) ?? 0;
+        break;
+      case 'Selling Price':
+        _sellingPrice = double.tryParse(value) ?? 0;
+        break;
+    }
+  });
+}
 
   Widget _buildDropdown() {
     return Row(
