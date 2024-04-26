@@ -6,7 +6,7 @@ import 'package:medfast_go/models/customers.dart';
 class EditCustomerPage extends StatefulWidget {
   final Customer customer;
 
-  EditCustomerPage({required this.customer});
+  const EditCustomerPage({super.key, required this.customer});
 
   @override
   _EditCustomerPageState createState() => _EditCustomerPageState();
@@ -97,8 +97,8 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
         ),
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -107,14 +107,16 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
               const Text(
                 'Name',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               TextFormField(
                 controller: _customerNameController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -127,14 +129,16 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
               const Text(
                 'Contact No',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               TextFormField(
                 controller: _contactNoController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
                 keyboardType: TextInputType.phone,
                 validator: _validateContactNo,
@@ -143,14 +147,16 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
               const Text(
                 'Email Address',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               TextFormField(
                 controller: _emailAddressController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -167,7 +173,7 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
               const Text(
                 'Date',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -178,9 +184,11 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
                       controller: _dateController,
                       readOnly: true,
                       onTap: () => _selectDate(context),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.calendar_today),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
                       ),
                     ),
                   ),
@@ -189,6 +197,12 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: _saveCustomer,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
                 child: const Text('Save Changes'),
               ),
             ],
