@@ -64,34 +64,86 @@ class _CustomersState extends State<Customers> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TextFormField(
-            controller: _searchController,
-            onChanged: (value) {
-              _filterCustomers(
-                  value); // Call _filterCustomers to update the _customerList
-            },
-            decoration: const InputDecoration(
-              hintText: 'Search customers...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(), // Rectangular border
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius:
+                  BorderRadius.circular(10.0), // Circular border radius
+              border: Border.all(color: Colors.grey), // Optional: Add a border
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: TextFormField(
+                controller: _searchController,
+                onChanged: (value) {
+                  _filterCustomers(value);
+                },
+                decoration: const InputDecoration(
+                  hintText: 'Search customers...',
+                  prefixIcon: Icon(Icons.search),
+                  border: InputBorder.none, // Remove default border
+                ),
+              ),
             ),
           ),
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: _customerList.length, // Use _customerList directly
+            itemCount: _customerList.length,
             itemBuilder: (BuildContext context, int index) {
               Customer customer = _customerList[index];
-              return ListTile(
-                title: Text(customer.name),
-                subtitle: Text(customer.contactNo),
-                onTap: () {
-                  _editCustomer(customer);
-                },
+              // Extract initials from customer's name
+              String initials = customer.name.isNotEmpty
+                  ? customer.name
+                      .trim()
+                      .split(' ')
+                      .map((e) => e[0])
+                      .take(2)
+                      .join()
+                      .toUpperCase()
+                  : '';
+
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                child: Card(
+                  elevation: 4.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 4.0, horizontal: 8.0),
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.greenAccent,
+                      child: Text(
+                        initials,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      customer.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      customer.contactNo,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    onTap: () {
+                      _editCustomer(customer);
+                    },
+                  ),
+                ),
               );
             },
           ),
-        ),
+        )
       ],
     );
   }
