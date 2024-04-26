@@ -211,14 +211,13 @@ class _ProductsState extends State<Products> {
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () =>Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BottomNavigation())),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BottomNavigation()));// Menu action
             },
           ),
         ],
