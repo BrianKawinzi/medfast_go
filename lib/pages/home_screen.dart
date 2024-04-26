@@ -14,7 +14,6 @@ import 'package:medfast_go/pages/widgets/revenue_card.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:medfast_go/pages/notification.dart';
 import 'dart:math' as math;
-import 'package:animated_text_kit/animated_text_kit.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<OrderDetails> completedOrders;
@@ -106,124 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
   }
 
-//       FutureBuilder<double>(
-//   future: calculateTotalRevenue(_selectedYear, _selectedMonthIndex),
-//   builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
-//     if (snapshot.connectionState == ConnectionState.waiting) {
-//       return CircularProgressIndicator();  // Show loading indicator while waiting
-//     } else if (snapshot.hasError) {
-//       return Text("Error: ${snapshot.error}");  // Error handling
-//     } else if (snapshot.hasData) {
-//       _totalRevenueForGraph = snapshot.data;  // Store the revenue
-//       return Text('Total Revenue: ${_totalRevenueForGraph.toStringAsFixed(2)}');  // Display the revenue
-//     } else {
-//       return Text("No data available");  // Handle case where no data is returned
-//     }
-//   },
-// );
 
-  Widget buildGreeting() {
-    String greetingMessage;
-    int currentHour = DateTime.now().hour;
 
-    if (currentHour < 12) {
-      greetingMessage = "Good morning";
-    } else if (currentHour < 17) {
-      greetingMessage = "Good afternoon";
-    } else {
-      greetingMessage = "Good evening";
-    }
-
-    Future<String> getUsername() async {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString('username') ?? 'Username';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AnimatedPositioned(
-          duration: Duration(seconds: 1),
-          top: greetingMessage.isEmpty ? -50 : 0,
-          child: AnimatedOpacity(
-            duration: Duration(seconds: 1),
-            opacity: greetingMessage.isEmpty ? 0.0 : 1.0,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade200, Colors.blue.shade800],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.shade200.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '$greetingMessage',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 20),
-        AnimatedOpacity(
-          duration: Duration(seconds: 1),
-          opacity: greetingMessage.isEmpty ? 0.0 : 1.0,
-          child: AnimatedPositioned(
-            duration: Duration(seconds: 1),
-            top: greetingMessage.isEmpty ? 0 : 50,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.green.shade200, Colors.green.shade800],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.shade200.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: AnimatedTextKit(
-                animatedTexts: [
-                  TyperAnimatedText(
-                    "Welcome to MedRX! Let's make it easier to manage your stock, sales, profits, expense, customers etc",
-                    textStyle: TextStyle(fontSize: 25, color: Colors.white),
-                    speed: Duration(milliseconds: 60),
-                  ),
-                ],
-                totalRepeatCount: 1, // Set the repeat count to 3
-                pause: Duration(
-                    milliseconds:
-                        1000), // Optional: add a pause between repetitions
-                stopPauseOnTap:
-                    true, // Optional: stops the animation when the user taps it
-                isRepeatingAnimation: true,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget buildMetricCard() {
     return Card(
@@ -658,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              buildGreeting(),
+              
               buildMetricCard(),
               // Revenue card
 
