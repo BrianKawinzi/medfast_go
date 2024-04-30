@@ -25,7 +25,6 @@ class _ReportsState extends State<Reports> {
   List<DataRow> stockRows = [];
   List<DataRow> salesRows = [];
   bool isStockSelected = true;
-  SalesHistoryManager salesHistoryManager = SalesHistoryManager();
   bool matchesDate(String dataRowDate, DateTime selectedDate) {
   DateTime parsedDate = DateTime.parse(dataRowDate);
   return parsedDate.year == selectedDate.year &&
@@ -43,13 +42,14 @@ bool inDateRange(String dataRowDate, DateTimeRange range) {
   void initState() {
     super.initState();
     _fetchProductsDetails();
-    _initializeSalesHistory();
+    _fetchSalesDetails();
   }
 
-  Future<void> _initializeSalesHistory() async {
-    await salesHistoryManager.initializeSalesHistory();
-    _updateSalesRows();
-  }
+  Future<void> _fetchSalesDetails() async {
+  final dbHelper = DatabaseHelper();
+  final fetchedSales = await dbHelper.getProducts();
+  _updateSalesRows(fetchedSales);
+}
 
   Future<void> _fetchProductsDetails() async {
     final dbHelper = DatabaseHelper();
@@ -68,17 +68,17 @@ bool inDateRange(String dataRowDate, DateTimeRange range) {
     });
   }
 
-  void _updateSalesRows() {
-    setState(() {
-      salesRows = salesHistoryManager.salesHistory.map((history) => DataRow(cells: [
-            DataCell(Text(history.productName)),
-            DataCell(Text(history.quantitySold.toString())),
-            DataCell(Text(history.currentStock.toString())),
-            DataCell(Text(history.unitPrice.toStringAsFixed(2))),
-            DataCell(Text(history.totalPrice.toStringAsFixed(2))),
-          ])).toList();
-    });
-  }
+void _updateSalesRows(List<Product> productList) {
+  setState(() {
+    salesRows = productList.map((product) => DataRow(cells: [
+      DataCell(Text(product.productName)),
+      DataCell(Text('${product.soldQuantity}')),
+      DataCell(Text('${product.quantity}')), 
+      DataCell(Text('${product.sellingPrice.toStringAsFixed(2)} Ksh')),
+      DataCell(Text('${(product.sellingPrice * product.soldQuantity).toStringAsFixed(2)} Ksh')),
+    ])).toList();
+  });
+}
 
 void _showFilterOptions() {
   showModalBottomSheet(
