@@ -20,11 +20,24 @@ class Reports extends StatefulWidget {
 
 class _ReportsState extends State<Reports> {
   DateTimeRange? selectedDateRange;
+  DateTime? selectedDate;
   int? expandedIndex;
   List<DataRow> stockRows = [];
   List<DataRow> salesRows = [];
   bool isStockSelected = true;
   SalesHistoryManager salesHistoryManager = SalesHistoryManager();
+  bool matchesDate(String dataRowDate, DateTime selectedDate) {
+  DateTime parsedDate = DateTime.parse(dataRowDate);
+  return parsedDate.year == selectedDate.year &&
+         parsedDate.month == selectedDate.month &&
+         parsedDate.day == selectedDate.day;
+}
+
+bool inDateRange(String dataRowDate, DateTimeRange range) {
+  DateTime parsedDate = DateTime.parse(dataRowDate);
+  return parsedDate.isAfter(range.start) && parsedDate.isBefore(range.end);
+}
+
 
   @override
   void initState() {
@@ -67,30 +80,178 @@ class _ReportsState extends State<Reports> {
     });
   }
 
-  void _showFilterOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                leading: Icon(Icons.date_range),
-                title: Text('Filter by Date'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: Icon(Icons.shopping_bag),
-                title: Text('Filter by Product'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
+void _showFilterOptions() {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) {
+      return Container(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.date_range),
+              title: const Text('Filter by Date'),
+              onTap: () {
+                Navigator.pop(context); 
+                _showDatePickerDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_bag),
+              title: const Text('Filter by Product'),
+              onTap: () {
+                Navigator.pop(context); 
+                _promptForProductName();
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _promptForProductName() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      TextEditingController productController = TextEditingController();
+      return AlertDialog(
+        title: const Text("Enter Product Name"),
+        content: TextField(
+          controller: productController,
+          decoration: const InputDecoration(hintText: "Type product name here"),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
-        );
-      },
-    );
+          TextButton(
+            child: const Text('Filter'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              _filterByProductName(productController.text);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+
+void _showDatePickerDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text("Choose Filter Type"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              title: const Text("Specific Date"),
+              leading: const Icon(Icons.calendar_today),
+              onTap: () {
+                Navigator.pop(context);
+                _selectDate(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Date Range"),
+              leading: const Icon(Icons.date_range),
+              onTap: () {
+                Navigator.pop(context);
+                _selectDateRange(context);
+              },
+            )
+          ],
+        ),
+      );
+    }
+  );
+}
+
+Future<void> _selectDate(BuildContext context) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: selectedDate ?? DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+    builder: (context, child) {
+      return Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: Colors.green,
+            onPrimary: Colors.white, 
+            onSurface: Colors.black, 
+          ),
+          dialogBackgroundColor: Colors.white,
+        ),
+        child: child!,
+      );
+    },
+  );
+  if (picked != null && picked != selectedDate) {
+    setState(() {
+      selectedDate = picked;
+      _filterDataForDate(picked); 
+    });
   }
+}
+
+Future<void> _selectDateRange(BuildContext context) async {
+  final DateTimeRange? range = await showDateRangePicker(
+    context: context,
+    initialDateRange: selectedDateRange,
+    firstDate: DateTime(2000),
+    lastDate: DateTime.now(),
+    builder: (context, child) {
+      return Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: Colors.green, 
+            onPrimary: Colors.white, 
+            onSurface: Colors.black, 
+          ),
+          dialogBackgroundColor: Colors.white,
+        ),
+        child: child!,
+      );
+    },
+  );
+  if (range != null && range != selectedDateRange) {
+    setState(() {
+      selectedDateRange = range;
+      _filterDataForDateRange(range); 
+    });
+  }
+}
+
+void _filterDataForDate(DateTime date) {
+  stockRows = stockRows.where((row) => matchesDate(const Row() as String, date)).toList();
+   salesRows = salesRows.where((row) => matchesDate(const Row() as String, date)).toList();
+  setState(() {});
+}
+
+void _filterDataForDateRange(DateTimeRange range) {
+ 
+  stockRows = stockRows.where((row) => inDateRange(const Row() as String, range)).toList();
+  salesRows = salesRows.where((row) => inDateRange(const Row() as String, range)).toList();
+  setState(() {});
+}
+
+void _filterByProductName(String productName) {
+  setState(() {
+    stockRows = stockRows.where((row) => (row.cells[0].child as Text).data!.toLowerCase().contains(productName.toLowerCase())).toList();
+    salesRows = salesRows.where((row) => (row.cells[0].child as Text).data!.toLowerCase().contains(productName.toLowerCase())).toList();
+  });
+}
+
 
   Future<void> _showExportDialog() async {
     await showDialog(
@@ -103,7 +264,7 @@ class _ReportsState extends State<Reports> {
               children: <Widget>[
                 _buildExportTile('Stock Reports', _exportStockReport),
                 _buildExportTile('Sales Reports', _exportSalesReport),
-                _buildExportTile('All Reports', () => Navigator.pop(context)),
+               _buildExportTile('All Reports', _exportAllReports),
               ],
             ),
           ),
@@ -140,9 +301,18 @@ class _ReportsState extends State<Reports> {
   }
 
   Future<void> _exportReport(List<DataRow> dataRows, String fileNamePrefix) async {
-    final List<List<dynamic>> rows = [
+    
+    List<List<dynamic>> rows;
+  if (fileNamePrefix == 'sales_reports') {
+    rows = [
+      ['Product Name', 'Quantity Sold', 'Current Stock', 'Unit Price (Ksh)', 'Total Price (Ksh)']
+    ];
+  } else {
+    rows = [
       ['Product Name', 'Quantity', 'Expiry Date', 'Price (Ksh)']
     ];
+  }
+    
     for (var dataRow in dataRows) {
       List<dynamic> row = dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
       rows.add(row);
@@ -167,6 +337,50 @@ class _ReportsState extends State<Reports> {
       fontSize: 16.0,
     );
   }
+
+  Future<void> _exportAllReports() async {
+  if (!await _checkAndRequestStoragePermission()) return;
+
+  List<List<dynamic>> combinedRows = [];
+
+  // Adding Stock Reports
+  combinedRows.add(['Stock Reports']);
+  combinedRows.add(['Product Name', 'Quantity', 'Expiry Date', 'Price (Ksh)']);
+  for (var dataRow in stockRows) {
+    List<dynamic> row = dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
+    combinedRows.add(row);
+  }
+  combinedRows.add(['']); // Add an empty row for separation
+
+  // Adding Sales Reports
+  combinedRows.add(['Sales Reports']);
+  combinedRows.add(['Product Name', 'Quantity Sold', 'Current Stock', 'Unit Price (Ksh)', 'Total Price (Ksh)']);
+  for (var dataRow in salesRows) {
+    List<dynamic> row = dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
+    combinedRows.add(row);
+  }
+
+  // Preparing to save the CSV
+  String timeStamp = DateTime.now().toString();
+  String csv = const ListToCsvConverter().convert(combinedRows);
+  final String dir = (await getApplicationDocumentsDirectory()).path;
+  final String path = '$dir/CombinedReports_$timeStamp.csv';
+
+  final File file = File(path);
+  await file.writeAsString(csv);
+  await FlutterFileDialog.saveFile(params: SaveFileDialogParams(sourceFilePath: path));
+
+  Fluttertoast.showToast(
+    msg: "The CSV file with all reports successfully saved on downloads folder",
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.black54,
+    textColor: Colors.white,
+    fontSize: 16.0,
+  );
+}
+
 
   Widget _buildReport() {
     return Expanded(
@@ -213,7 +427,7 @@ class _ReportsState extends State<Reports> {
           ),
         ],
       ),
-      backgroundColor: Color.fromARGB(255, 203, 195, 195),
+      backgroundColor: const Color.fromARGB(255, 203, 195, 195),
       body: Column(
         children: [
           Row(
@@ -241,7 +455,7 @@ class _ReportsState extends State<Reports> {
         },
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
-          backgroundColor: isStockSelected == forStock ? Colors.white : Color.fromARGB(255, 202, 184, 184),
+          backgroundColor: isStockSelected == forStock ? Colors.white : const Color.fromARGB(255, 202, 184, 184),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

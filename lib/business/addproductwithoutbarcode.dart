@@ -18,10 +18,10 @@ class _AddProductFormState extends State<AddProductForm> {
   File? _image;
 
   String _productName = '';
-  double _buyingPrice = 0.0;
-  double _sellingPrice = 0.0;
+  double _buyingPrice = 0;
+  double _sellingPrice = 0;
   String _unit = 'piece';
-  int _quantity = 0; // Added Quantity
+  int _quantity = 0;
 
   DatabaseHelper _databaseHelper = DatabaseHelper();
 
@@ -47,6 +47,27 @@ class _AddProductFormState extends State<AddProductForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
+          if (_buyingPrice == 0.0 && _sellingPrice == 0.0||_sellingPrice < _buyingPrice) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Invalid Pricing'),
+            content: const Text('The selling price must be greater than or equal to the buying price which must not be equal to 0'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
       final List<Product> products = await _databaseHelper.getProducts();
       int maxId = 0;
       for (final product in products) {
@@ -66,7 +87,7 @@ class _AddProductFormState extends State<AddProductForm> {
         expiryDate: _expiryDateController.text,
         manufactureDate: _manufactureDateController.text,
         unit: _unit,
-        quantity: _quantity, // Added Quantity
+        quantity: _quantity, 
       );
 
       final result = await _databaseHelper.insertProduct(newProduct);
@@ -82,11 +103,11 @@ class _AddProductFormState extends State<AddProductForm> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Error'),
-              content: Text('Failed to insert the product into the database.'),
+              title: const Text('Error'),
+              content: const Text('Failed to insert the product into the database.'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -115,6 +136,7 @@ class _AddProductFormState extends State<AddProductForm> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
+        initialValue: _getValueForLabel(label),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.green[800]),
@@ -123,25 +145,47 @@ class _AddProductFormState extends State<AddProductForm> {
           ),
         ),
         keyboardType: isNumeric
-            ? TextInputType.numberWithOptions(decimal: true)
+            ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.text,
-        validator: (value) => value!.isEmpty ? errorText : null,
-        onSaved: (value) {
-          switch (label) {
-            case 'Product Name':
-              _productName = value!;
-              break;
-            case 'Buying Price':
-              _buyingPrice = double.tryParse(value!) ?? 0.0;
-              break;
-            case 'Selling Price':
-              _sellingPrice = double.tryParse(value!) ?? 0.0;
-              break;
-          }
-        },
-      ),
-    );
+        validator: (value) {
+        if (value!.isEmpty) {
+          return errorText;  
+        }
+        return null;  
+      },
+        onChanged: (value) => _updateValueForLabel(label, value), // Update the value on change
+      onSaved: (value) => _updateValueForLabel(label, value!),
+    ),
+  );
+}
+  String _getValueForLabel(String label) {
+  switch (label) {
+    case 'Product Name':
+      return _productName;
+    case 'Buying Price':
+      return _buyingPrice.toString();
+    case 'Selling Price':
+      return _sellingPrice.toString();
+    default:
+      return '';
   }
+}
+
+void _updateValueForLabel(String label, String value) {
+  setState(() {
+    switch (label) {
+      case 'Product Name':
+        _productName = value;
+        break;
+      case 'Buying Price':
+        _buyingPrice = double.tryParse(value) ?? 0;
+        break;
+      case 'Selling Price':
+        _sellingPrice = double.tryParse(value) ?? 0;
+        break;
+    }
+  });
+}
 
   Widget _buildDropdown() {
     return Row(

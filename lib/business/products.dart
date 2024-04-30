@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class Products extends StatefulWidget {
   const Products({super.key, required String productName});
@@ -127,7 +128,7 @@ class _ProductsState extends State<Products> {
                   children: [
                     Text("Expiry Date: ${product.expiryDate}"),
                     Text('Description: ${product.medicineDescription}'),
-                    Text('Price: ${product.buyingPrice}'),
+                    Text('Price: ${product.sellingPrice}'),
                   ],
                 ),
                 leading: SizedBox(
@@ -210,14 +211,13 @@ class _ProductsState extends State<Products> {
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () =>Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BottomNavigation())),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              // Menu action
             },
           ),
         ],

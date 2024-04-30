@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
+import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
@@ -13,6 +14,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:collection/collection.dart';
+import 'package:sqflite/sqflite.dart';
 
 
 
@@ -55,6 +57,20 @@ class CartProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
+    void updateProductQuantities() async {
+      final dbHelper = DatabaseHelper();  
+
+      for (var product in _cartItems) {
+        int soldQuantity = _productQuantities[product.id] ?? 0;
+        int newQuantity = product.quantity - soldQuantity;
+
+        await dbHelper.updateProductQuantity(product.id, newQuantity);
+      }
+
+      resetCart();
+    }
+
 
     void resetCart() {
     _cartItems.clear();
@@ -612,13 +628,35 @@ static final DatabaseHelper _dbhelper = DatabaseHelper();
 static Future<void> addCompletedOrder(OrderDetails order) async {
     await _dbhelper.insertCompletedOrder(order);
   }
-
-  
-  
-
   // Retrieves all completed orders
   static Future<List<OrderDetails>> getCompletedOrders() async {
     return await _dbhelper.getCompletedOrders();
+  }
+
+   static Future<int> countCompletedOrders() async {
+    List<OrderDetails> completedOrders = await _dbhelper.getCompletedOrders();
+    return completedOrders.length;  
+  }
+
+  static Future<double> getTotalSales() async {
+    List<OrderDetails> orders = await _dbhelper.getCompletedOrders();
+    double total = orders.fold(0, (sum, order) => sum + order.totalPrice);
+    return total;
+  }
+
+   static Future<double> getTotalProfit() async {
+    List<OrderDetails> orders = await _dbhelper.getCompletedOrders();
+    double totalProfit = orders.fold(0, (sum, order) => sum + order.profit);
+    return totalProfit;
+  }
+
+  static Future<List<Product>> getBestSellingProducts() async {
+    return await _dbhelper.getTopSellingProducts();
+  }
+//customers count
+  static Future<int> countCustomers() async {
+    List<Customer> customers = await _dbhelper.getCustomers();
+    return customers.length;  
   }
 }
 
@@ -649,16 +687,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
     for (var product in widget.cartItems) {
       productQuantity[product.productName] =
           (productQuantity[product.productName] ?? 0) + 1;
-
-      // Check if sellingPrice is not null before assigning
-      // ignore: unnecessary_null_comparison
       if (product.buyingPrice != null) {
         productPrice[product.productName] = product.sellingPrice;
       } else {
-        // Handle the case when sellingPrice is null, for example, set to 0.0 or some default value
-        productPrice[product.productName] = 0.0; // or some default value
+        productPrice[product.productName] = 0.0; 
       }
     }
+    // ignore: invalid_use_of_protected_member
+    CartProvider().notifyListeners();
   }
 
   //  Import collection package
@@ -1132,12 +1168,14 @@ class _CashPaymentState extends State<CashPayment> {
         orderId: orderId,
         totalPrice: totalPrice,
         products: products,
-        profit: orderprofit,
-        
         completedAt: DateTime.now(),
-        
+        profit: orderprofit,
       );
-      
+
+     
+      // Before adding the completed order, update the product quantities
+      Provider.of<CartProvider>(context, listen: false).updateProductQuantities();
+
       // Add the completed order to the repository
       OrderRepository.addCompletedOrder(orderDetails);
 
@@ -1746,23 +1784,21 @@ class SalesHistoryClass {
   double unitPrice;
   double profit;
 
-
   SalesHistoryClass({
     required this.productName,
     required this.quantitySold,
     required this.currentStock,
-    required this.unitPrice, required totalPrice,
+    required this.unitPrice,
     required this.profit,
   });
 
   double get totalPrice => unitPrice * quantitySold;
 
   void updateSalesHistory(int soldQuantity) {
-    quantitySold += soldQuantity;
+    quantitySold = soldQuantity; // Assign the value of soldQuantity to quantitySold
     currentStock -= soldQuantity;
   }
 }
-
 
 class SalesHistoryManager {
   List<SalesHistoryClass> salesHistory = [];
@@ -1772,14 +1808,14 @@ class SalesHistoryManager {
     List<Product> products = await dbHelper.getProducts();
     for (var product in products) {
       var existingHistoryIndex = salesHistory.indexWhere(
-        (history) => history.productName == product.productName);
+          (history) => history.productName == product.productName);
 
       if (existingHistoryIndex == -1) {
         salesHistory.add(SalesHistoryClass(
           productName: product.productName,
           quantitySold: 0,
           currentStock: product.quantity,
-          unitPrice: product.buyingPrice, totalPrice: 0,
+          unitPrice: product.buyingPrice,
           profit: 0,
         ));
       }
@@ -1789,17 +1825,36 @@ class SalesHistoryManager {
   void updateHistoryForCompletedOrder(List<Product> orderedProducts) {
     for (var orderedProduct in orderedProducts) {
       var historyIndex = salesHistory.indexWhere(
-        (h) => h.productName == orderedProduct.productName);
+          (h) => h.productName == orderedProduct.productName);
 
       if (historyIndex != -1) {
-        salesHistory[historyIndex].updateSalesHistory(orderedProduct.quantity);
+        salesHistory[historyIndex].updateSalesHistory(orderedProduct.soldQuantity); // Use soldQuantity
       } else {
         salesHistory.add(SalesHistoryClass(
           productName: orderedProduct.productName,
-          quantitySold: orderedProduct.quantity,
-          currentStock: orderedProduct.quantity - orderedProduct.quantity,
-          unitPrice: orderedProduct.buyingPrice, totalPrice: 0,
+          quantitySold: orderedProduct.soldQuantity, // Use soldQuantity
+          currentStock: orderedProduct.quantity - orderedProduct.soldQuantity,
+          unitPrice: orderedProduct.buyingPrice,
           profit: orderedProduct.buyingPrice - orderedProduct.sellingPrice,
+        ));
+      }
+    }
+  }
+
+  void updateSalesHistoryFromTopSellingProducts(List<Product> topSellingProducts) {
+    for (var product in topSellingProducts) {
+      var historyIndex = salesHistory.indexWhere(
+          (h) => h.productName == product.productName);
+
+      if (historyIndex != -1) {
+        salesHistory[historyIndex].updateSalesHistory(product.soldQuantity); // Use soldQuantity
+      } else {
+        salesHistory.add(SalesHistoryClass(
+          productName: product.productName,
+          quantitySold: product.soldQuantity, // Use soldQuantity
+          currentStock: product.quantity - product.soldQuantity,
+          unitPrice: product.buyingPrice,
+          profit: product.buyingPrice - product.sellingPrice,
         ));
       }
     }

@@ -65,93 +65,113 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Customer'),
-        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+        backgroundColor: Color.fromRGBO(58, 205, 50, 1),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey, // Assign form key
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Customer Name',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
+      body: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Customer Name',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              TextFormField(
-                controller: _customerNameController,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter customer name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16.0),
-              const Text(
-                'Contact No',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
+                TextFormField(
+                  controller: _customerNameController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter customer name';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              TextFormField(
-                controller: _contactNoController,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Enter Contact No',
+                const SizedBox(height: 16.0),
+                const Text(
+                  'Contact No',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter contact number';
-                  }
-                  if (value.length != 10) {
-                    return 'Contact number should be 10 digits';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16.0),
-              const Text(
-                'Email Address',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
+                TextFormField(
+                  controller: _contactNoController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    hintText: 'Enter Contact No',
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter contact number';
+                    }
+                    if (value.length != 10) {
+                      return 'Contact number should be 10 digits';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-              TextFormField(
-                controller: _emailAddressController,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 16.0),
-              const Text(
-                'Date',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 16.0),
+                const Text(
+                  'Email Address',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              TextFormField(
-                controller: _dateController,
-                readOnly: true,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Select Date',
+                TextFormField(
+                  controller: _emailAddressController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
-                onTap: () => _selectDate(context), // Call date picker
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _saveCustomer,
-                child: const Text('Save'),
-              ),
-            ],
+                const SizedBox(height: 16.0),
+                const Text(
+                  'Date',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                TextFormField(
+                  controller: _dateController,
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    hintText: 'Select Date',
+                  ),
+                  onTap: () => _selectDate(context),
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: _saveCustomer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

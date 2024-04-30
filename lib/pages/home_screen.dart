@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
@@ -7,6 +10,7 @@ import 'package:medfast_go/pages/widgets/CustomProgressIndicator.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:medfast_go/bargraph/individual_bar.dart';
 import 'package:medfast_go/pages/widgets/progress_indicator.dart';
+import 'package:medfast_go/pages/widgets/revenue_card.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:medfast_go/pages/notification.dart';
 import 'dart:math' as math;
@@ -22,8 +26,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late List<OrderDetails> _completedOrders;
-  late List<int> _years = [2022, 2023, 2024, 2025, 2026, 2027];
-  late int _selectedYear = 2022;
+  final List<String> _months = [
+    '',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
+  late int _selectedYear = DateTime.now().year;
+  late int _selectedMonthIndex = DateTime.now().month;
+  //late String _selectedMonth = where index for months is _selectedMonthIndex
+  late String _selectedMonth = _months[_selectedMonthIndex];
+
+  double? _totalRevenueForGraph;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -31,36 +55,59 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _completedOrders = widget.completedOrders;
+    _completedOrders = widget.completedOrders;
+    fetchAndUpdateCompletedOrders(); // Fetch completed orders on init
+    _selectedMonthIndex = _months.indexOf(_selectedMonth) - 1;
+    calculateTotalRevenue(_selectedYear, _selectedMonthIndex).then((revenue) {
+      setState(() {
+        _totalRevenueForGraph = revenue;
+      });
+    });
   }
 
   //calculate revenue method
-  Future<double> calculateTotalRevenue(int year) async {
+  Future<double> calculateTotalRevenue(int year,
+      [int? selectedMonthIndex]) async {
     double totalRevenue = 0;
 
     for (OrderDetails order in _completedOrders) {
-      if (order.completedAt.year == year) {
+      if (order.completedAt.year == year &&
+          order.completedAt.month == selectedMonthIndex) {
         totalRevenue += order.totalPrice;
       }
     }
     return totalRevenue;
   }
 
-// Example of using the aggregated product sales in a UI component
+  static Future<int> countCustomers() async {
+    return await DatabaseHelper()
+        .getCustomers()
+        .then((customers) => customers.length);
+  }
+
   void displayProductSales() async {
     Map<int, int> soldQuantities =
         await DatabaseHelper().calculateTotalSoldQuantities();
 
-    // Display or use the sold quantities in your application
-    soldQuantities.forEach((productId, quantity) {
-      //print("Product ID: $productId, Sold Quantity: $quantity");
+    soldQuantities.forEach((productId, quantity) {});
+  }
+
+  void fetchAndUpdateCompletedOrders() async {
+    List<OrderDetails> todayCompletedOrders =
+        await DatabaseHelper().getTodayCompletedOrders(DateTime.now());
+    setState(() {
+      _completedOrders = todayCompletedOrders;
     });
   }
 
-// Fetch pharmacy name from SharedPreferences
   Future<String> getPharmacyName() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
   }
+
+
+
+
   Widget buildMetricCard() {
     return Card(
       elevation: 5,
@@ -71,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Today's! Metrics",
+              "Today's Metrics",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
@@ -79,28 +126,54 @@ class _HomeScreenState extends State<HomeScreen> {
               future: DatabaseHelper().getDailyProfit(DateTime.now()),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasData) {
+                  double profit = snapshot.data!;
+                  int itemsSold = profit.toInt();
+                  int completedOrders = (profit / 10).toInt();
+                  double expenses = profit;
+
                   return Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          CustomProgressIndicator(
-                            title: "Profit",
-                            value: "ksh${snapshot.data!.toStringAsFixed(0)}",
+                          _buildCircularProgressWithLabel(
+                            value: profit / 20000,
                             color: Colors.green,
-                            size: 120,
-                            strokeWidth: 0,
-                            percentage: 0,
+                            label: "Ksh $profit",
+                            title: "Profit",
                           ),
-                          CustomProgressIndicator(
-                            title: "Items Sold",
-                            value: "${snapshot.data!.toInt()} items",
-                            color: Colors.blue,
-                            size: 120, // Reduced size for better fit
-                            strokeWidth: 0,
-                            percentage: 0,
+                          FutureBuilder<int>(
+                            future: DatabaseHelper()
+                                .getDailyTotalItemsSold(DateTime.now()),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return Center(
+                                    child: CircularProgressIndicator());
+                              } else if (snapshot.hasData) {
+                                int itemsSold = snapshot.data!;
+                                return Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildCircularProgressWithLabel(
+                                          value: itemsSold / 2000,
+                                          color: Colors.blue,
+                                          label: "$itemsSold items",
+                                          title: "Items Sold",
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              } else {
+                                return Text('Error fetching data');
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -108,21 +181,47 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          CustomProgressIndicator(
-                            title: "Completed Orders",
-                            value: "${(snapshot.data! / 10).toInt()} orders",
-                            color: Colors.red,
-                            size: 120, // Reduced size for better fit
-                            strokeWidth: 0,
-                            percentage: 0,
+                          FutureBuilder<List<OrderDetails>>(
+                            future: DatabaseHelper()
+                                .getTodayCompletedOrders(DateTime.now()),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return CircularProgressIndicator();
+                              } else if (snapshot.hasError) {
+                                return Text("Error: ${snapshot.error}");
+                              } else if (snapshot.hasData) {
+                                int completedOrders = snapshot.data!.length;
+                                return _buildCircularProgressWithLabel(
+                                  value: completedOrders / 1000,
+                                  color: Colors.red,
+                                  label: "$completedOrders orders",
+                                  title: "Completed Orders",
+                                );
+                              } else {
+                                return Text("No data available");
+                              }
+                            },
                           ),
-                          CustomProgressIndicator(
-                            title: "Expenses",
-                            value: "${snapshot.data!.toStringAsFixed(0)}",
-                            color: Colors.orange,
-                            size: 120, // Reduced size for better fit
-                            strokeWidth: 0,
-                            percentage: 0,
+                          FutureBuilder<double>(
+                            future: DatabaseHelper()
+                                .getDailyExpenses(DateTime.now()),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return CircularProgressIndicator();
+                              } else if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              } else {
+                                double expenses = snapshot.data!;
+                                return _buildCircularProgressWithLabel(
+                                  value: expenses / 20000,
+                                  color: Colors.orange,
+                                  label: "Ksh ${expenses.toStringAsFixed(2)}",
+                                  title: "Expenses",
+                                );
+                              }
+                            },
                           ),
                         ],
                       ),
@@ -139,42 +238,96 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRectangle(
-      {required IconData icon, required String label, required String value}) {
-    return Flexible(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-        decoration: BoxDecoration(
-          color:
-              Color.fromARGB(255, 189, 187, 187), // Rectangle background color
-          borderRadius: BorderRadius.circular(10), // Rounded corners
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildCircularProgressWithLabel({
+    required double value,
+    required Color color,
+    required String label,
+    required String title,
+  }) {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.center,
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon,
-                    size: 16, color: Color.fromARGB(255, 50, 18, 80)), // Icon
-                const SizedBox(width: 4), // Space between icon and label
-                // Combine label and value in a single Text widget separated by \n
-                Flexible(
-                  // Use Flexible to prevent overflow
-                  child: Text(
-                    '$label\n$value', // Use \n to separate label and value
-                    style: const TextStyle(
-                      fontSize:
-                          10, // Adjusted font size to keep consistent styling
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: 120,
+              height: 120,
+              child: CircularProgressIndicator(
+                value: value,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                backgroundColor: Colors.grey[300],
+                strokeWidth: 8,
+              ),
+            ),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ],
         ),
+        SizedBox(height: 8),
+        Text(
+          title,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRectangle({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      height: 80, // Set a fixed height
+      padding: const EdgeInsets.symmetric(
+          vertical: 4.0, horizontal: 8.0), // Adjusted padding
+      margin: const EdgeInsets.only(right: 8.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(255, 7, 204, 59)!,
+            Color.fromARGB(255, 191, 190, 193)!
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromARGB(255, 77, 161, 58).withOpacity(0.5),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: Color.fromARGB(255, 81, 77, 77)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              '$label\n$value',
+              style: TextStyle(
+                color: Color.fromARGB(255, 30, 5, 47),
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -185,44 +338,137 @@ class _HomeScreenState extends State<HomeScreen> {
     required int quantitySold,
     required double revenue,
   }) {
-    return ListTile(
-      leading: imageUrl.isNotEmpty
-          ? Image.network(imageUrl, width: 50, height: 50, fit: BoxFit.cover)
-          : const Icon(Icons.image_not_supported),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(
-          "Sold: $quantitySold, Revenue: Ksh ${revenue.toStringAsFixed(2)}"),
+    return Container(
+      padding: EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          Container(
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              image: imageUrl.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(imageUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: imageUrl.isEmpty ? Icon(Icons.image_not_supported) : null,
+          ),
+          SizedBox(height: 5),
+          Text(
+            name,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          Text(
+            "Sold: $quantitySold",
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+          Text(
+            "Revenue: Ksh ${revenue.toStringAsFixed(2)}",
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
+      ),
     );
   }
 
   Widget buildTopProductsSection() {
     return FutureBuilder<List<Product>>(
-      future: DatabaseHelper().getBestSellingProductsDetails(),
+      future: OrderRepository
+          .getBestSellingProducts(), // Make sure this is correctly fetching data
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (snapshot.hasData) {
+          return Text('Error: ${snapshot.error.toString()}');
+        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  "Top Products",
-                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            children: snapshot.data!.map((product) {
+              ImageProvider imageProvider;
+              if (product.image != null && product.image!.isNotEmpty) {
+                if (product.image!.startsWith('http') ||
+                    product.image!.startsWith('https')) {
+                  // Handle network images
+                  imageProvider = NetworkImage(product.image!);
+                } else {
+                  // Handle local file images
+                  imageProvider = FileImage(File(product.image!));
+                }
+              } else {
+                // Default image if none is provided
+                imageProvider = const AssetImage("lib/assets/noimage.png");
+              }
+
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 60,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          fit: BoxFit.cover,
+                          image: imageProvider,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.productName,
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            product.medicineDescription ??
+                                "No description available",
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Price:',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[800])),
+                        Text('Ksh${product.sellingPrice.toStringAsFixed(2)}',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    SizedBox(width: 15),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Revenue:',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[800])),
+                        Text(
+                            'Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700])),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              ...snapshot.data!
-                  .map((product) => _buildTopProductItem(
-                        imageUrl: product.image ?? '',
-                        name: product.productName,
-                        quantitySold: product.quantity,
-                        revenue: product.buyingPrice,
-                      ))
-                  .toList(),
-            ],
+              );
+            }).toList(),
           );
         } else {
           return const Text("No top products found.");
@@ -295,107 +541,99 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              
               buildMetricCard(),
+              // Revenue card
 
-          
-              //revenue card
               Card(
                 elevation: 5.0,
                 child: Padding(
-                  padding: const EdgeInsets.all(1.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Total \n Revenue',
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              color: Colors.grey,
-                            ),
-                          ),
-
-                          //Calculation of monthly ammounts
+                          const Text('Total \n Revenue',
+                              style: TextStyle(
+                                  fontSize: 16.0, color: Colors.grey)),
                           FutureBuilder<double>(
-                              future: calculateTotalRevenue(_selectedYear),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Text(
-                                    'KSH \n ${snapshot.data?.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                } else if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Text(
-                                    'Error', 
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                } else {
-                                  return const Text(
-                                    'Error',
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                }
-                              }),
+                            future: calculateTotalRevenue(
+                                _selectedYear, _selectedMonthIndex),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              } else if (snapshot.hasData) {
+                                return Text(
 
-                          DropdownButton<int>(
-                            items: _years.map((int year) {
-                              return DropdownMenuItem<int>(
-                                value: year,
-                                child: Text(year.toString()),
-                              );
-                            }).toList(),
-                            onChanged: (int? newValue) {
-                              //Handle dropdown value change logic
-                              if (newValue != null) {
-                                setState(() {
-                                  _selectedYear = newValue;
-                                });
+                                    //assign snapshot.data to _totalRevenueForGraph
+                                
+
+                                    'KSH ${snapshot.data!.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold));
+                              } else {
+                                return const Text('Error',
+                                    style: TextStyle(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold));
                               }
                             },
-                            value: _selectedYear,
                           ),
+                          DropdownButton<String>(
+                            value: _selectedMonth,
+                            icon: const Icon(Icons.arrow_drop_down),
+                            elevation: 16,
+                            style: const TextStyle(
+                                color: Color.fromARGB(255, 13, 13,
+                                    13)),
+                            underline: Container(
+                              height: 2,
+                              color: Colors.deepPurpleAccent,
+                            ),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedMonth = newValue!;
+                                //nu
+                                _selectedMonthIndex = _months.indexOf(newValue);
+                                // Additional logic if needed when month changes
+                              });
+                            },
+                            items: _months
+                                .map<DropdownMenuItem<String>>((String month) {
+                              return DropdownMenuItem<String>(
+                                value: month,
+                                child: Text(month),
+                              );
+                            }).toList(),
+                          )
                         ],
                       ),
-
-                      //Bar chart
-                      const SizedBox(
-                        height: 200,
-                        child: IndividualBar(
-                          x: 1,
-                          monthlyAmounts: [
-                            10000,
-                            20000,
-                            15000,
-                            25000,
-                            18000,
-                            22000,
-                            30500,
-                            28000,
-                            35000,
-                            32000,
-                            28000,
-                            40000
-                          ],
-                        ),
-                      )
+                      SizedBox(
+                          height: 200,
+                          child: IndividualBar(
+                            selectedMonthIndex: _selectedMonthIndex,
+                            monthlyAmounts: [
+                              100,
+                              45,
+                              200,
+                              150,
+                              300,
+                              250,
+                              400,
+                              350,
+                              500,
+                              450,
+                              600,
+                              550
+                            ],
+                          )),
                     ],
                   ),
                 ),
               ),
-              // After the last SizedBox(height: 10),
 
               Card(
                 elevation: 5.0,
@@ -406,34 +644,137 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
-                        child: Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
+                        child: GridView.count(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8.0,
+                          crossAxisSpacing: 8.0,
                           children: [
-                            _buildRectangle(
-                              icon: Icons.people,
-                              label: "Customers",
-                              value: "123",
+                            // Customers
+                            FutureBuilder<int>(
+                              future: OrderRepository.countCustomers(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return _buildRectangle(
+                                    icon: Icons.people,
+                                    label: "Customers",
+                                    value: "Loading...",
+                                  );
+                                } else if (snapshot.hasData) {
+                                  return _buildRectangle(
+                                    icon: Icons.people,
+                                    label: "Customers",
+                                    value: "${snapshot.data}",
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return _buildRectangle(
+                                    icon: Icons.people,
+                                    label: "Customers",
+                                    value: "Error",
+                                  );
+                                } else {
+                                  return _buildRectangle(
+                                    icon: Icons.people,
+                                    label: "Customers",
+                                    value: "No data",
+                                  );
+                                }
+                              },
                             ),
-                            _buildRectangle(
-                              icon: Icons.shopping_cart,
-                              label: "Sales",
-                              value: "456",
+                            // Sales
+                            FutureBuilder<double>(
+                              future: OrderRepository.getTotalSales(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.done) {
+                                  if (snapshot.hasData) {
+                                    return _buildRectangle(
+                                      icon: Icons.shopping_cart,
+                                      label: "Sales",
+                                      value:
+                                          "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return _buildRectangle(
+                                      icon: Icons.shopping_cart,
+                                      label: "Sales",
+                                      value: "Error",
+                                    );
+                                  }
+                                }
+                                return _buildRectangle(
+                                  icon: Icons.shopping_cart,
+                                  label: "Sales",
+                                  value: "Loading...",
+                                );
+                              },
                             ),
-                            _buildRectangle(
-                              icon: Icons.money,
-                              label: "Profit",
-                              value: "789",
+                            // Profit
+                            FutureBuilder<double>(
+                              future: OrderRepository.getTotalProfit(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return _buildRectangle(
+                                    icon: Icons.money,
+                                    label: "Profit",
+                                    value: "Loading...",
+                                  );
+                                } else if (snapshot.hasData) {
+                                  return _buildRectangle(
+                                    icon: Icons.money,
+                                    label: "Profit",
+                                    value:
+                                        "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return _buildRectangle(
+                                    icon: Icons.money,
+                                    label: "Profit",
+                                    value: "Error",
+                                  );
+                                } else {
+                                  return _buildRectangle(
+                                    icon: Icons.money,
+                                    label: "Profit",
+                                    value: "No data",
+                                  );
+                                }
+                              },
                             ),
-                            _buildRectangle(
-                              icon: Icons.local_shipping,
-                              label: "Orders",
-                              value: "101",
+                            // Total Orders
+                            FutureBuilder<int>(
+                              future: OrderRepository.countCompletedOrders(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.done) {
+                                  if (snapshot.hasData) {
+                                    return _buildRectangle(
+                                      icon: Icons.local_shipping,
+                                      label: "Total Orders",
+                                      value: "${snapshot.data}",
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return _buildRectangle(
+                                      icon: Icons.local_shipping,
+                                      label: "Orders",
+                                      value: "Error",
+                                    );
+                                  }
+                                }
+                                return _buildRectangle(
+                                  icon: Icons.local_shipping,
+                                  label: "Orders",
+                                  value: "Loading...",
+                                );
+                              },
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 10),
                       const Text(
                         "Top Products",
                         style: TextStyle(
@@ -442,66 +783,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      FutureBuilder<List<Product>>(
-                        future: DatabaseHelper()
-                            .getBestSellingProductsDetails(), // Assuming this method is defined and returns a list of Products
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          } else if (snapshot.hasData) {
-                            return Column(
-                              children: snapshot.data!
-                                  .map((product) => Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Container(
-                                              height: 40,
-                                              width: 40,
-                                              decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                  fit: BoxFit.cover,
-                                                  image: (product.image !=
-                                                              null &&
-                                                          product.image!
-                                                              .isNotEmpty)
-                                                      ? NetworkImage(
-                                                          product.image!)
-                                                      : const AssetImage(
-                                                              "assets/images/placeholder.png")
-                                                          as ImageProvider,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Text(
-                                                '${product.productName}\nSold: ${product.quantity}',
-                                                style: const TextStyle(
-                                                    fontSize: 14),
-                                              ),
-                                            ),
-                                            Text(
-                                              'Revenue: Ksh${(product.quantity * product.buyingPrice).toStringAsFixed(2)}',
-                                              style:
-                                                  const TextStyle(fontSize: 14),
-                                            ),
-                                          ],
-                                        ),
-                                      ))
-                                  .toList(),
-                            );
-                          } else {
-                            return const Text("No top products found.");
-                          }
-                        },
-                      ),
+                      buildTopProductsSection(),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
@@ -511,100 +794,101 @@ class _HomeScreenState extends State<HomeScreen> {
               Card(
                 elevation: 5.0,
                 child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            //stats overview
-                            const Text(
-                              'Stats overview',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            //filter button
-                            IconButton(
-                                onPressed: () {
-                                  //Add filter functionality here
-                                },
-                                icon: const Icon(Icons.filter_list))
-                          ],
-                        ),
-
-                        const SizedBox(height: 16.0),
-
-                        //progress bars
-
-                        const Text(
-                          'Tracking 1',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-
-                        LinearProgressIndicator(
-                          value: 0.7,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 255, 234, 0)),
-                          backgroundColor: Colors.grey,
-                          minHeight: 10.0,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-
-                        const SizedBox(height: 40.0),
-
-                        const Text(
-                          'Tracking 2',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        LinearProgressIndicator(
-                          value: 0.4,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 255, 17, 1)),
-                          backgroundColor: Colors.grey,
-                          minHeight: 10,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-
-                        const SizedBox(height: 40.0),
-
-                        const Text(
-                          'Tracking 3',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 4),
-
-                        LinearProgressIndicator(
-                          value: 0.7,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color.fromARGB(255, 213, 0, 250)),
-                          backgroundColor: Colors.grey,
-                          minHeight: 10,
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ],
-                    )),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Actual Top Stats',
+                        style: TextStyle(
+                            fontSize: 16.0, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16.0),
+                      FutureBuilder<List<Product>>(
+                        future: OrderRepository.getBestSellingProducts(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error.toString()}');
+                          } else if (snapshot.hasData &&
+                              snapshot.data!.isNotEmpty) {
+                            int maxQuantity = snapshot.data!
+                                .map((p) => p.soldQuantity)
+                                .reduce(math.max);
+                            return Column(
+                              children: snapshot.data!.map((product) {
+                                double fraction = maxQuantity != 0
+                                    ? product.soldQuantity / maxQuantity
+                                    : 0.0;
+                                return GestureDetector(
+                                  onTap: () => showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(product.productName),
+                                        content: SingleChildScrollView(
+                                          child: ListBody(
+                                            children: <Widget>[
+                                              Text(
+                                                  'Price: Ksh${product.sellingPrice.toStringAsFixed(2)}'),
+                                              Text(
+                                                  'Quantity Sold: ${product.soldQuantity}'),
+                                              Text(
+                                                  'Total Revenue: Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}'),
+                                              //Text('Profit: Ksh${(product.profit.toStringAsFixed(2))}'),
+                                            ],
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: const Text('Close'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.productName,
+                                        style: TextStyle(
+                                            fontSize: 14.0,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      LinearProgressIndicator(
+                                        value: fraction,
+                                        backgroundColor: Colors.grey[300],
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          product == snapshot.data!.first
+                                              ? Colors.blue
+                                              : product == snapshot.data![1]
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                        ),
+                                        minHeight: 10,
+                                      ),
+                                      const SizedBox(height: 20),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            );
+                          } else {
+                            return const Text("No top products found.");
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

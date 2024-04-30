@@ -1,6 +1,6 @@
-
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/expenses.dart';
@@ -13,8 +13,6 @@ class DatabaseHelper {
   static Database? _database; // Singleton Database
 
   // Define your database table and column names
-
-
 
   // Table name for products
   final String columnId = 'id';
@@ -29,6 +27,8 @@ class DatabaseHelper {
   final String columnExpiryDate = 'expiryDate';
   final String columnImage = 'image';
   final String columnDate = 'date';
+  final String columnsoldQuantity = 'soldQuantity';
+  final String columnProductprofit = 'profit';
 
   // Table name for expenses
   final String expenseTableName = 'expenses';
@@ -45,12 +45,12 @@ class DatabaseHelper {
 
   //Table for completed orders
   final String completedOrderTableName = 'completedOrders';
+  final String columnOrderId = 'orderId';
   final String columnTotalPrice = 'totalPrice';
   final String columnProducts =
       'products'; // This will store a JSON string of products
   final String columnCompletedAt = 'completedAt';
   final String columnprofit = 'profit';
-
 
   // Singleton constructor
   factory DatabaseHelper() {
@@ -65,36 +65,30 @@ class DatabaseHelper {
     _database ??= await initializeDatabase();
     return _database;
   }
-  
 
-  // In DatabaseHelper
+  Future<Map<int, int>> calculateTotalSoldQuantities() async {
+    Database? db = await database;
+    List<Map<String, dynamic>> orders =
+        await db!.query(completedOrderTableName);
 
-// Method to fetch and aggregate product sales from completed orders
-Future<Map<int, int>> calculateTotalSoldQuantities() async {
-  Database? db = await database;
-  List<Map<String, dynamic>> orders = await db!.query(completedOrderTableName);
+    Map<int, int> productSales = {};
 
-  Map<int, int> productSales = {};
+    for (var order in orders) {
+      List<dynamic> products = jsonDecode(order['products']);
 
-  for (var order in orders) {
-    // Assuming 'products' column contains a JSON string of product details
-    List<dynamic> products = jsonDecode(order['products']);
+      for (var product in products) {
+        int id = product['id'];
 
-    for (var product in products) {
-      int id = product['id'];
-      int quantity = product['quantity'];
-
-      if (productSales.containsKey(id)) {
-        productSales[id] = productSales[id]! + quantity;
-      } else {
-        productSales[id] = quantity;
+        if (productSales.containsKey(id)) {
+          productSales[id] = productSales[id]! + 1; // Increment count
+        } else {
+          productSales[id] = 1; // Initialize count
+        }
       }
     }
+
+    return productSales;
   }
-
-  return productSales;
-}
-
 
   // Initialize the database
   Future<Database> initializeDatabase() async {
@@ -126,20 +120,20 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
         $columnUnit TEXT,
         $columnManufactureDate TEXT,
         $columnExpiryDate TEXT,
-        $columnImage TEXT
+        $columnImage TEXT,
+        $columnProductprofit REAL,
+        $columnsoldQuantity INTEGER
       )
     ''');
-
 
     // Create the completed orders table
     await db.execute('''
       CREATE TABLE $completedOrderTableName (
-        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-        orderId TEXT,
+        $columnOrderId TEXT,
         $columnTotalPrice REAL,
         $columnProducts TEXT,
         $columnCompletedAt TEXT,
-        $columnprofit TEXT
+        $columnprofit REAL
       )
     ''');
     // Create the expenses table
@@ -170,17 +164,14 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
     if (oldVersion < 3) {
       // Upgrade logic for version 2
       await db.execute('''
-      CREATE TABLE completedOrders (
-        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-        orderId TEXT,
+      CREATE TABLE $completedOrderTableName (
+        $columnOrderId TEXT,
         $columnTotalPrice REAL,
         $columnProducts TEXT,
-        $columnCompletedAt TEXT
+        $columnCompletedAt TEXT,
+        $columnprofit REAL
       )
     ''');
-     
-
-
     }
   }
 
@@ -276,12 +267,7 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
   // Insert a customer into the customers table
   Future<int> insertCustomer(Customer customer) async {
     final Database? db = await database;
-    final int result = await db!.insert(
-      customerTableName,
-      customer.toMap(),
-      conflictAlgorithm:
-          ConflictAlgorithm.replace, // Specify conflict algorithm
-    );
+    final int result = await db!.insert(customerTableName, customer.toMap());
     return result;
   }
 
@@ -331,7 +317,6 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
     return List.generate(maps.length, (i) => OrderDetails.fromMap(maps[i]));
   }
 
- 
   // Fetch daily profit
   // ignore: avoid_types_as_parameter_names
   Future<double> getDailyProfit(DateTime date) async {
@@ -353,42 +338,193 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
     }
   }
 
-// Fetch daily total items sold
-  Future<int> getDailyTotalItemsSold(DateTime date) async {
-    final db = await database;
-    List<Map<String, dynamic>> result = await db!.rawQuery(
-      'SELECT SUM(quantity) as totalQuantity FROM $completedOrderTableName '
-      'JOIN $productTableName ON $completedOrderTableName.productId = $productTableName.$columnId '
-      'WHERE DATE($columnCompletedAt) = DATE(?)',
-      [date.toIso8601String()],
-    );
-    return int.tryParse(result.first['totalQuantity'].toString()) ?? 0;
-  }
-
-// Fetch daily completed orders
-  Future<int> getDailyCompletedOrdersCount(DateTime date) async {
+  Future<List<OrderDetails>> getTodayCompletedOrders(DateTime date) async {
     final db = await database;
     List<Map<String, dynamic>> result = await db!.query(
       completedOrderTableName,
-      columns: ['COUNT(*) AS orderCount'],
       where: "DATE($columnCompletedAt) = DATE(?)",
       whereArgs: [date.toIso8601String()],
     );
-    return int.tryParse(result.first['orderCount'].toString()) ?? 0;
+
+    return List<OrderDetails>.from(
+        result.map((map) => OrderDetails.fromMap(map)));
   }
 
-// Fetch daily expenses
-  Future<double> getDailyExpenses(DateTime date) async {
+  // Fetch daily total items sold
+  Future<int> getDailyTotalItemsSold(DateTime date) async {
     final db = await database;
     List<Map<String, dynamic>> result = await db!.query(
-      expenseTableName,
-      columns: ['SUM(cost) AS totalCost'],
-      where: "DATE($columnDate) = DATE(?)",
+      completedOrderTableName,
+      columns: ['products'], // Retrieve the 'products' column
+      where: "DATE($columnCompletedAt) = DATE(?)",
       whereArgs: [date.toIso8601String()],
     );
-    return double.tryParse(result.first['totalCost'].toString()) ?? 0.0;
+
+    int totalProductsSold = 0;
+    for (var row in result) {
+      List<dynamic> products = jsonDecode(row['products']);
+      totalProductsSold += products.length;
+    }
+
+    return totalProductsSold;
+  }
+// Fetch daily expenses
+
+  Future<double> getDailyExpenses(DateTime date) async {
+    final db = await database;
+    // Ensuring date is in YYYY-MM-DD format for SQL compatibility
+    String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+
+    try {
+      List<Map<String, dynamic>> result = await db!.query(expenseTableName,
+          columns: ['SUM(cost) AS totalCost'],
+          where: "DATE($columnDate) = ?",
+          whereArgs: [formattedDate]);
+
+      if (result.isNotEmpty && result.first['totalCost'] != null) {
+        return double.tryParse(result.first['totalCost'].toString()) ?? 0.0;
+      }
+      print(
+          "No expenses found for date: $formattedDate"); // Log if no data found
+    } catch (e) {
+      print("Error fetching expenses for date $formattedDate: $e");
+    }
+    return 0.0; // Return 0.0 if no expenses or error occurred
   }
 
+  // Future<double> getDailyExpenses(DateTime date) async {
+  //   final db = await database;
+  //   String formattedDate = date.toIso8601String().substring(0, 10);
+  //   try {
+  //     List<Map<String, dynamic>> result = await db!.query(
+  //       expenseTableName,
+  //       columns: ['SUM(cost) AS totalCost'],
+  //       where: "DATE($columnDate) = DATE(?)",
+  //       whereArgs: [formattedDate]
+  //     );
+
+  //     if (result.isNotEmpty && result.first['totalCost'] != null) {
+  //       return double.tryParse(result.first['totalCost'].toString()) ?? 0.0;
+  //     }
+  //   } catch (e) {
+  //     print("Error fetching expenses: $e");
+  //   }
+  //   return 0.0;
+  // }
+
+  // Fetch top 3 best-selling products based on total quantity sold
+  Future<List<Product>> getTopSellingProducts() async {
+    Database? db = await database;
+    try {
+      Map<int, int> soldQuantities = await calculateTotalSoldQuantities();
+      Map<int, double> profit =
+          await calculateProductProfits(); // Calculate profits
+
+      List<MapEntry<int, int>> sortedProducts = soldQuantities.entries.toList();
+      sortedProducts
+          .sort((a, b) => b.value.compareTo(a.value)); // Descending order
+      List<int> topProductIds =
+          sortedProducts.take(3).map((e) => e.key).toList();
+      List<Map<String, dynamic>> productMaps = await db!.query(productTableName,
+          where: '$columnId IN (${topProductIds.join(', ')})');
+
+      return productMaps.map((productMap) {
+        return Product.fromMap(productMap)
+          ..soldQuantity = soldQuantities[productMap['id']] ?? 0
+          ..profit = profit[productMap['id']] ?? 0.0; // Set profit
+      }).toList();
+    } catch (e) {
+      print('Error fetching top selling products: $e');
+      throw Exception('Failed to fetch top selling products');
+    }
+  }
+
+  Future<Map<int, double>> calculateProductProfits() async {
+    Database? db = await database;
+    List<Map<String, dynamic>> newOrders = await db!
+        .query(completedOrderTableName, where: '$columnprofit IS NULL');
+
+    Map<int, double> profit = {};
+
+    for (var order in newOrders) {
+      List<dynamic> products = jsonDecode(order['products']);
+
+      for (var product in products) {
+        int id = product['id'];
+        int quantity = product['soldQuantity'];
+        double buyingPrice = product['sellingPrice'];
+        double sellingPrice = product['buyingPrice'];
+
+        double productProfit = (sellingPrice - buyingPrice) * quantity;
+
+        if (profit.containsKey(id)) {
+          profit[id] = profit[id]! + productProfit; // Increment profit
+        } else {
+          profit[id] = productProfit; // Initialize profit
+        }
+
+        // Update the product's profit in the products table
+        await db.update(
+          productTableName,
+          {columnProductprofit: profit[id]},
+          where: '$columnId = ?',
+          whereArgs: [id],
+        );
+      }
+    }
+
+    return profit;
+  }
+
+// Insert a completed order into the completedOrders table and update product quantities
+  Future<int> insertCompletedOrderAndUpdateProducts(OrderDetails order) async {
+    final db = await database;
+    int orderId = await db!.insert(completedOrderTableName, order.toMap());
+
+    // Now update product quantities
+    await updateProductQuantitiesAfterOrderCompletion(order);
+    return orderId;
+  }
+
+// Update product quantities in the product table after an order is completed
+  Future<void> updateProductQuantitiesAfterOrderCompletion(
+      OrderDetails order) async {
+    Database? db = await database;
+    List<dynamic> products = jsonDecode(order.products
+        as String); // Assuming 'order.products' is a JSON string of products
+
+    for (var product in products) {
+      int id = product['id'];
+      int soldQuantity = product['soldQuantity'];
+
+      // Fetch current quantity from the database
+      List<Map<String, dynamic>> productData = await db!.query(productTableName,
+          columns: [columnQuantity], where: '$columnId = ?', whereArgs: [id]);
+
+      if (productData.isNotEmpty) {
+        int currentQuantity = productData.first[columnQuantity] as int;
+
+        // Calculate new quantity
+        int newQuantity = currentQuantity - soldQuantity;
+
+        // Update the product with new quantity
+        await db.update(productTableName, {columnQuantity: newQuantity},
+            where: '$columnId = ?', whereArgs: [id]);
+      }
+    }
+  }
+
+  Future<void> updateProductQuantity(int productId, int newQuantity) async {
+    // Database update logic here
+    Database? db =
+        await database; // Assuming you have a getter for the database
+    await db?.update(
+      'products',
+      {'quantity': newQuantity},
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+  }
 
   // Close the database
   Future<void> close() async {
@@ -399,5 +535,4 @@ Future<Map<int, int>> calculateTotalSoldQuantities() async {
   getBestSellingProductsDetails() {}
 
   calculateMonthlyAndDailySales() {}
-
 }
