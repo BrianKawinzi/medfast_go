@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late int _selectedMonthIndex = DateTime.now().month;
   //late String _selectedMonth = where index for months is _selectedMonthIndex
   late String _selectedMonth = _months[_selectedMonthIndex];
+  List<double> _monthlyAmounts = [];
 
   double? _totalRevenueForGraph;
 
@@ -63,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _totalRevenueForGraph = revenue;
       });
     });
+    _fetchmonthlyAmounts();
   }
 
   //calculate revenue method
@@ -77,6 +79,18 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     return totalRevenue;
+  }
+  Future<void> _fetchmonthlyAmounts() async {
+    try {
+      Map<String, double> monthlyAmounts = await DatabaseHelper().getTotalPriceByMonth();
+
+      setState(() {
+        _monthlyAmounts = monthlyAmounts.values.toList();
+      });
+    } catch (e) {
+      //Handle error
+      print('Error fetching monthly amounts: $e');
+    }
   }
 
   static Future<int> countCustomers() async {
@@ -615,20 +629,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 200,
                           child: IndividualBar(
                             selectedMonthIndex: _selectedMonthIndex,
-                            monthlyAmounts: [
-                              100,
-                              45,
-                              200,
-                              150,
-                              300,
-                              250,
-                              400,
-                              350,
-                              500,
-                              450,
-                              600,
-                              550
-                            ],
+                            monthlyAmounts: _monthlyAmounts,
                           )),
                     ],
                   ),

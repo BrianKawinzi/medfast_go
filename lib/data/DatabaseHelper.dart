@@ -344,6 +344,27 @@ class DatabaseHelper {
     }
   }
 
+  //get total price of each and very month
+  // Define a function to get the total price of items sold in each month
+Future<Map<String, double>> getTotalPriceByMonth() async {
+  final db = await database;
+  // Query completed orders grouped by month
+  List<Map<String, dynamic>> result = await db!.rawQuery('''
+    SELECT strftime('%Y-%m', $columnCompletedAt) AS month,
+           SUM($columnTotalPrice) AS totalPrice
+    FROM $completedOrderTableName
+    GROUP BY month
+  ''');
+
+  Map<String, double> totalPriceByMonth = {};
+  // Process query result
+  for (var row in result) {
+    totalPriceByMonth[row['month']] = row['totalPrice'] ?? 0.0;
+  }
+  return totalPriceByMonth;
+}
+
+
   Future<List<OrderDetails>> getTodayCompletedOrders(DateTime date) async {
     final db = await database;
     List<Map<String, dynamic>> result = await db!.query(
