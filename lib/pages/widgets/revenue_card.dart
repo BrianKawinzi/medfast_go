@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:medfast_go/data/DatabaseHelper.dart';
 
 class RevenueCard extends StatefulWidget {
   final List<String> monthNames;
@@ -111,11 +112,13 @@ class IndividualBar extends StatefulWidget {
 
 class _IndividualBarState extends State<IndividualBar> {
   late List<BarData> barData;
+  
 
   @override
   void initState() {
     super.initState();
     initializeBarData();
+    
   }
 
   void initializeBarData() {
@@ -124,6 +127,7 @@ class _IndividualBarState extends State<IndividualBar> {
       (index) => BarData(getMonthLabel(index), widget.monthlyAmounts[index]),
     );
   }
+  
 
   String getMonthLabel(int monthNumber) {
     switch (monthNumber) {
@@ -183,7 +187,13 @@ class BarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double maxRevenue = barData.map((data) => data.value).reduce(max);
+    double maxRevenue = 0.0; // Default value
+
+// Check if barData is not empty before calling reduce
+    if (barData.isNotEmpty) {
+      maxRevenue = barData.map((data) => data.value).reduce(max);
+    }
+
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
