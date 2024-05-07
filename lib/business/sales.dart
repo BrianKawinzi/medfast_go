@@ -191,7 +191,7 @@ class _SalesState extends State<Sales> {
             var product = products[index];
             operationalQuantity = product.quantity;
             var imageFile = File(product.image ?? '');
-            return Dismissible(
+            return Card(
               key: Key(product.id.toString()),
               child: Card(
                 margin: const EdgeInsets.all(8.0),
@@ -297,7 +297,7 @@ class _SalesState extends State<Sales> {
                     ],
     
                   ),
-                  onTap: () => _navigateToEditProduct(product),
+                 // onTap: () => _navigateToEditProduct(product),
                 ),
               ),
             );
