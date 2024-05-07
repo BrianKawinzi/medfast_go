@@ -65,7 +65,7 @@ flutter:
     - lib/assets/cash.png
     - lib/assets/MobilePay.jfif
     - lib/assets/noimage.png
-  # An image asset can refer to one or more resolution-specific "variants", see
+  # An image asset can refer to one or more resolution-specific "variants", see the link below
   # https://flutter.dev/assets-and-images/#resolution-aware
 
   # For details regarding adding assets from package dependencies, see
