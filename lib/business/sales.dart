@@ -1144,7 +1144,7 @@ class MiniScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (BuildContext context) => CashPayment(totalPrice: totalPrice),
+                      builder: (BuildContext context) => CashPayment(totalPrice: totalPrice, sumOfTotalDiscounts: 0,),
                     ),
                   );
                 }),
@@ -1227,9 +1227,10 @@ class MiniScreen extends StatelessWidget {
 class CashPayment extends StatefulWidget {
   @override
   final double totalPrice;
+  final double sumOfTotalDiscounts; 
   String orderNumber = OrderManager().orderId;
 
-  CashPayment({Key? key, required this.totalPrice}) : super(key: key);
+  CashPayment({Key? key, required this.totalPrice, required this.sumOfTotalDiscounts}) : super(key: key);
 
   @override
   _CashPaymentState createState() => _CashPaymentState();
@@ -1255,8 +1256,7 @@ class _CashPaymentState extends State<CashPayment> {
       final double orderprofit = totalPrice -
           products
               .map((product) => product.buyingPrice ?? 0.0)
-              .reduce((value, element) => value + element);
-      
+              .reduce((value, element) => value + element)-widget.sumOfTotalDiscounts;
       OrderDetails orderDetails = OrderDetails(
         orderId: orderId,
         totalPrice: totalPrice,
@@ -1272,7 +1272,7 @@ class _CashPaymentState extends State<CashPayment> {
       // Add the completed order to the repository
       OrderRepository.addCompletedOrder(orderDetails);
 
-      // Show confirmation dialog
+      // Show confirmation dialog 
       showDialog(
         context: context,
         barrierDismissible: false, // Dialog will not close on tap outside
