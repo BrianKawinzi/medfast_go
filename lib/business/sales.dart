@@ -1109,61 +1109,69 @@ void _removeItemFromCart(String productName) {
     );
   }
 }
-
 class MiniScreen extends StatelessWidget {
   final VoidCallback onClose;
+  final double totalPrice;
 
   MiniScreen({Key? key, required this.onClose, required this.totalPrice})
       : super(key: key);
-
-  final double totalPrice;
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 0.2 * 38.1),
+        margin: const EdgeInsets.only(bottom: 0.2 * 38.1), 
         width: 600,
-        height: 150,
+        height: 180, 
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 10, 171, 192),
           border: Border.all(color: Colors.black, width: 2),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) =>
-                      CashPayment(totalPrice: totalPrice),
-                ),
-              );
-            }),
-            _buildPaymentButton("M-Pesa", 'lib/assets/MobilePay.jfif', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MobilePayment(),
-                ),
-              );
-            }),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("Pay using", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+            Row( 
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => CashPayment(totalPrice: totalPrice),
+                    ),
+                  );
+                }),
+                _buildPaymentButton("M-Pesa", 'lib/assets/MobilePay.jfif', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MobilePayment(),
+                    ),
+                  );
+                }),
+              ],
+            ),
+            const Divider(color: Colors.black, thickness: 2, indent: 50, endIndent: 50), 
+            _buildCancelButton(context), 
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPaymentButton(
-      String text, String imagePath, VoidCallback onTap) {
+  Widget _buildPaymentButton(String text, String imagePath, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 170,
-        height: 60,
+        height: 50,
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 224, 220, 220),
           borderRadius: BorderRadius.circular(8),
@@ -1173,8 +1181,8 @@ class MiniScreen extends StatelessWidget {
           children: [
             Image.asset(
               imagePath,
-              width: 30,
-              height: 30,
+              width: 20,
+              height: 20,
             ),
             const SizedBox(width: 8),
             Text(
@@ -1189,26 +1197,32 @@ class MiniScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class FullScreenPage extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  FullScreenPage({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Colors.white, // Set appbar background color to white
-        iconTheme: const IconThemeData(color: Colors.black), // Set back button color
+  Widget _buildCancelButton(BuildContext context) {
+    return GestureDetector(
+      onTap: onClose,
+      child: Container(
+        width: 170,
+        height: 50,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 224, 220, 220),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: Text(
+            "Cancel",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.red,
+            ),
+          ),
+        ),
       ),
-      body: child,
     );
   }
 }
+
 
 class CashPayment extends StatefulWidget {
   @override
