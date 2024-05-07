@@ -191,6 +191,7 @@ class _SalesState extends State<Sales> {
             var product = products[index];
             operationalQuantity = product.quantity;
             var imageFile = File(product.image ?? '');
+            //updated
             return Card(
               key: Key(product.id.toString()),
               child: Card(
