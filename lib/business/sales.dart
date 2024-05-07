@@ -662,6 +662,7 @@ static Future<void> addCompletedOrder(OrderDetails order) async {
 
 class OrderConfirmationScreen extends StatefulWidget {
   final List<Product> cartItems;
+  
 
   const OrderConfirmationScreen({Key? key, required this.cartItems})
       : super(key: key);
@@ -674,28 +675,57 @@ class OrderConfirmationScreen extends StatefulWidget {
 class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   late Map<String, int> productQuantity;
   late Map<String, double> productPrice;
+  Map<String, double> productDiscounts = {}; 
+  Map<String, double> totalDiscounts = {};
+  late double sumOfTotalDiscounts;
 
+  
+  
   @override
   void initState() {
     super.initState();
     aggregateProductData();
   }
 
-  void aggregateProductData() {
+  void aggregateProductData() { 
     productQuantity = {};
     productPrice = {};
+    productDiscounts = {};
+    totalDiscounts = {};
     for (var product in widget.cartItems) {
       productQuantity[product.productName] =
           (productQuantity[product.productName] ?? 0) + 1;
       if (product.buyingPrice != null) {
+          int quantity = productQuantity[product.productName] ?? 0;
+          double discount = productDiscounts[product.productName] ?? 0.0;
+          double totalDiscountForProduct = discount * quantity;
         productPrice[product.productName] = product.sellingPrice;
+        productDiscounts[product.productName] = 0.0; 
+
       } else {
         productPrice[product.productName] = 0.0; 
       }
     }
     // ignore: invalid_use_of_protected_member
+    updateTotalDiscounts();
     CartProvider().notifyListeners();
+    updateTotalDiscounts();
   }
+   
+   void updateTotalDiscounts() {
+    sumOfTotalDiscounts =0;
+    for (var productName in productQuantity.keys) {
+      int quantity = productQuantity[productName] ?? 0;
+      double discount = productDiscounts[productName] ?? 0.0; 
+      double price = productPrice[productName] ?? 0.0;
+
+      // Calculate total discount for this product
+      double totalDiscount = quantity * discount;
+      totalDiscounts[productName] = totalDiscount;
+      sumOfTotalDiscounts +=totalDiscount;
+    }
+  }
+
 
   //  Import collection package
 
@@ -714,6 +744,46 @@ void _removeItemFromCart(String productName) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Product not found!")));
     }
+  }
+
+
+ Future<void> _showDiscountDialog(String productName) async {
+    TextEditingController discountController = TextEditingController();
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter Discount for $productName'),
+          content: TextField(
+            controller: discountController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(hintText: 'Enter discount'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                setState(() {
+                  double? discount = double.tryParse(discountController.text);
+                  productDiscounts[productName] = discount ?? 0.0;
+
+                  // Recalculate total discounts after setting a new value
+                  updateTotalDiscounts();
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   bool isMiniScreenVisible = false; // Flag to track if MiniScreen is visible
@@ -737,8 +807,9 @@ void _removeItemFromCart(String productName) {
       for (var product in widget.cartItems) {
         double price = productPrice[product.productName] ?? 0.0;
         totalPrice += price;
-       
+        
       }
+      totalPrice -=sumOfTotalDiscounts;
       
       return totalPrice;
       
@@ -746,10 +817,11 @@ void _removeItemFromCart(String productName) {
 
 
     double totalPrice = getTotalPrice();
+    totalPrice = totalPrice;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order ${OrderManager().orderId}'), // Random order number
+        title: Text('Order ${OrderManager().orderId}'),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         leading: IconButton(
@@ -794,24 +866,24 @@ void _removeItemFromCart(String productName) {
               decoration: BoxDecoration(
                 color: Colors.green,
                 border:
-                    Border.all(color: Colors.black, width: 2), // Black border
+                    Border.all(color: Colors.black, width: 2), 
                 borderRadius: BorderRadius.circular(
-                    5), // Optional: if you want rounded corners
+                    5), 
               ),
               padding: const EdgeInsets.all(8),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // To fit the size to content
+                mainAxisSize: MainAxisSize.min, 
                 mainAxisAlignment:
-                    MainAxisAlignment.center, // Center vertically
+                    MainAxisAlignment.center, 
                 crossAxisAlignment:
-                    CrossAxisAlignment.center, // Center horizontally
+                    CrossAxisAlignment.center, 
                 children: [
                   const Text(
                     'Total',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16, // Adjust the font size as needed
+                      fontSize: 16, 
                     ),
                   ),
                   Text(
@@ -819,7 +891,7 @@ void _removeItemFromCart(String productName) {
                     style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16, // Adjust the font size as needed
+                      fontSize: 16, 
                     ),
                   ),
                 ],
@@ -828,38 +900,38 @@ void _removeItemFromCart(String productName) {
           ),
           Positioned(
             left: 10,
-            bottom: 10 + 1 * 38.1, // 1 cm above the bottom
+            bottom: 10 + 1 * 38.1, 
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black, // Black background for the container
+                color: Colors.black, 
                 borderRadius: BorderRadius.circular(
-                    5), // Rounded corners for the container
+                    5), 
               ),
               padding: const EdgeInsets.all(
-                  2), // Padding to create a border effect around the button
+                  2), 
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  elevation: 10, // Elevation for the button
+                  elevation: 10, 
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20,
-                      vertical: 15), // Making the button a bit larger
+                      vertical: 15), 
                 ),
                 onPressed: () {
-                  _showMiniScreen(); // Show the MiniScreen
+                  _showMiniScreen(); 
                 },
                 child: const Row(
                   mainAxisSize:
-                      MainAxisSize.min, // To fit the row size to its children
+                      MainAxisSize.min, 
                   children: [
                     Icon(Icons.shopping_bag,
-                        color: Colors.yellow), // Sale icon (bag) in yellow
-                    SizedBox(width: 8), // Space between icon and text
+                        color: Colors.yellow), 
+                    SizedBox(width: 8),
                     Text(
                       'Sale',
                       style: TextStyle(
-                        color: Colors.black, // Black text color
-                        fontWeight: FontWeight.bold, // Bold text
+                        color: Colors.black, 
+                        fontWeight: FontWeight.bold, 
                       ),
                     ),
                   ],
@@ -870,17 +942,16 @@ void _removeItemFromCart(String productName) {
           Positioned(
             right: 10,
             bottom: 10 +
-                60, // Adjust this value as needed to position above the total price container
+                60,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment
-                  .end, // Keeps the column aligned to the right
+                  .end, 
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 4), // Add horizontal padding
+                      horizontal: 4), 
                   child: const Center(
-                    // Centers the text horizontally in the container
                     child: Text(
                       'Add to order',
                       style: TextStyle(
@@ -903,25 +974,25 @@ void _removeItemFromCart(String productName) {
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.black,
                           backgroundColor:
-                              Colors.white, // Text color (if you have text)
+                              Colors.white,
                         ),
                         onPressed: () {
-                          // Add your action for the first button
+                        
                         },
                         child: Image.asset('lib/assets/no-barcode.png',
-                            width: 30, height: 30), // Small image icon
+                            width: 30, height: 30), 
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.black,
                           backgroundColor:
-                              Colors.white, // Text color (if you have text)
+                              Colors.white, 
                         ),
                         onPressed: () {
-                          // Add your action for the second button
+                          
                         },
                         child: Image.asset('lib/assets/barcode.png',
-                            width: 30, height: 30), // Small image icon
+                            width: 30, height: 30), 
                       ),
                     ],
                   ),
@@ -934,99 +1005,103 @@ void _removeItemFromCart(String productName) {
               totalPrice: totalPrice,
               onClose: _closeMiniScreen,
             ),
-          Align(
+        Align(
             alignment: Alignment.topCenter,
             child: Container(
-              margin: EdgeInsets.only(bottom: 30), // 3 cm above the bottom
-              height: MediaQuery.of(context).size.height * 0.7, // Adjust as needed
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Display the titles if the cart is not empty
-                  if (widget.cartItems.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                              child: Text('Item Name',
-                                  textAlign: TextAlign.center)),
-                          Expanded(
-                              child: Text('Quantity',
-                                  textAlign: TextAlign.center)),
-                          Expanded(
-                              child:
-                                  Text('Price', textAlign: TextAlign.center)),
-                          Expanded(
-                              child:
-                                  Text('Total', textAlign: TextAlign.center)),
-                        ],
+              margin: EdgeInsets.only(bottom: 30), 
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    
+                    if (widget.cartItems.isNotEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(child: Text('Item Name', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                            Expanded(child: Text('Quantity', textAlign: TextAlign.center)),
+                            Expanded(child: Text('Price', textAlign: TextAlign.center)),
+                            Expanded(child: Text('Total', textAlign: TextAlign.center)),
+                            IconButton(icon: Icon(Icons.delete), onPressed: null),
+                          ],
+                        ),
                       ),
-                    ),
-                  // Display each aggregated item's attributes
-                  ...productQuantity.entries.map((entry) {
-                    String productName = entry.key;
-                    int quantity = entry.value;
-                    double price = productPrice[productName] ?? 0.0;
-                    double total = quantity * price;
+                    
+                    ...productQuantity.entries.map((entry) {
+                      String productName = entry.key;
+                      int quantity = entry.value;
+                      double price = productPrice[productName] ?? 0.0;
+                      double total = quantity * price;
+                      double discount = productDiscounts[productName] ?? 0.0;
 
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 2.0),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 2.0,
-                          horizontal: 8.0), // Reduced vertical padding
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: Colors.black,
-                            width: 3.0), // Increased border thickness
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Expanded(
-                                  child: Text(productName,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              Expanded(
-                                  child: Text('$quantity',
-                                      textAlign: TextAlign.center)),
-                              Expanded(
-                                  child: Text('$price',
-                                      textAlign: TextAlign.center)),
-                              Expanded(
-                                  child: Text('$total',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () =>
-                                    _removeItemFromCart(productName),
 
-                           
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              'Expiry Date: ${widget.cartItems.firstWhere((product) => product.productName == productName).expiryDate}',
-                              style: const TextStyle(color: Colors.red),
+                      TextEditingController discountController = TextEditingController(); 
+
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 3.0), 
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(child: Text(productName, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                                Expanded(child: Text('$quantity', textAlign: TextAlign.center)),
+                                Expanded(child: Text('$price', textAlign: TextAlign.center)),
+                                Expanded(child: Text('$total', textAlign: TextAlign.center)),
+                                IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _removeItemFromCart(productName),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ],
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Expiry Date: ${widget.cartItems.firstWhere((product) => product.productName == productName).expiryDate}',
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                  Expanded(
+                                child: TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.green,
+                                    backgroundColor: Colors.transparent,
+                                    padding: EdgeInsets.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  onPressed: () => _showDiscountDialog(productName),
+                                  child: Text(
+                                    totalDiscounts[productName] != null && totalDiscounts[productName]! > 0
+                                      ? 'Discount: Ksh ${totalDiscounts[productName]!.toStringAsFixed(2)}'
+                                      : 'Offer discount',
+                                    style: const TextStyle(
+                                      color: Colors.green,
+                                      // decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
               ),
-            ),
             ),
           ),
         ],
@@ -1366,7 +1441,7 @@ class _CashPaymentState extends State<CashPayment> {
 
                   const SizedBox(height: 50), // Space for clarity
                   // Cash Paid
-// Cash Paid
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
