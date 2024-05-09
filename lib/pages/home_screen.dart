@@ -10,6 +10,7 @@ import 'package:medfast_go/pages/widgets/revenue_card.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:medfast_go/pages/notification.dart';
 import 'dart:math' as math;
+import 'package:medfast_go/pages/faq.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<OrderDetails> completedOrders;
@@ -518,8 +519,8 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 if (hasNotification) // Show red dot if there's a notification
                   Positioned(
-                    right: 14,
-                    top: 11,
+                    left: 13,
+                    bottom: 14,
                     child: Container(
                       padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
@@ -539,7 +540,10 @@ class _HomeScreenState extends State<HomeScreen>
           //help button
           IconButton(
             onPressed: () {
-              //handle help logic here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FAQ()),
+              );
             },
             icon: const Icon(
               Icons.help_outline_rounded,

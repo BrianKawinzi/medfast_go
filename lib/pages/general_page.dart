@@ -15,6 +15,7 @@ import 'package:medfast_go/pages/components/tile.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/notification.dart';
+import 'package:medfast_go/pages/faq.dart';
 
 class GeneralPage extends StatelessWidget {
   const GeneralPage({Key? key}) : super(key: key);
@@ -82,7 +83,12 @@ class GeneralPage extends StatelessWidget {
             ],
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FAQ()),
+              );
+            },
             icon: const Icon(
               Icons.help_outline_rounded,
               color: Colors.white,
