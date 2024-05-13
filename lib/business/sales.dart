@@ -191,7 +191,8 @@ class _SalesState extends State<Sales> {
             var product = products[index];
             operationalQuantity = product.quantity;
             var imageFile = File(product.image ?? '');
-            return Dismissible(
+            //updated
+            return Card(
               key: Key(product.id.toString()),
               child: Card(
                 margin: const EdgeInsets.all(8.0),
@@ -255,11 +256,11 @@ class _SalesState extends State<Sales> {
                         ),
                       ),
                       // This SizedBox provides some spacing between the add button and the quantity text
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       // Displaying the quantity in the cart for this product
                       Text(
                         '${Provider.of<CartProvider>(context, listen: true).getCartQuantity(product) == 0 ? "" : Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)}',
-                        style: TextStyle(fontSize: 18.0),
+                        style: const TextStyle(fontSize: 18.0),
                       ),
 
                       
@@ -297,7 +298,7 @@ class _SalesState extends State<Sales> {
                     ],
     
                   ),
-                  onTap: () => _navigateToEditProduct(product),
+                 // onTap: () => _navigateToEditProduct(product),
                 ),
               ),
             );
@@ -329,12 +330,12 @@ class _SalesState extends State<Sales> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                   builder: (context) =>
-                      BottomNavigation()), // Adjust with your HomePage widget
+                      const BottomNavigation()), // Adjust with your HomePage widget
               (Route<dynamic> route) => false,
             );
           },
@@ -347,7 +348,7 @@ class _SalesState extends State<Sales> {
             padding: const EdgeInsets.all(5.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 20, 197, 4),
+                color: const Color.fromARGB(255, 20, 197, 4),
                 border: Border.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(5),
               ),
@@ -364,7 +365,7 @@ class _SalesState extends State<Sales> {
                         child: IconButton(
                           padding: EdgeInsets
                               .zero, // Reduces any default padding to help with centering
-                          icon: Icon(Icons.shopping_cart,
+                          icon: const Icon(Icons.shopping_cart,
                               size:
                                   24, // Adjust size to fit well within the CircleAvatar
                               color: Colors.black), // Icon with black lines
@@ -377,7 +378,7 @@ class _SalesState extends State<Sales> {
                               showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  content: Text(
+                                  content: const Text(
                                       'The cart is empty!!\nAdd items and try again.'),
                                   actions: <Widget>[
                                     TextButton(
@@ -385,7 +386,7 @@ class _SalesState extends State<Sales> {
                                         Navigator.of(context)
                                             .pop(); // Close the dialog
                                       },
-                                      child: Text('OK'),
+                                      child: const Text('OK'),
                                     ),
                                   ],
                                 ),
@@ -407,12 +408,12 @@ class _SalesState extends State<Sales> {
                           },
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                           width:
                               8), // Add some spacing between the icon and text
                       Text(
                         '${cartItemCount} items',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -431,11 +432,11 @@ class _SalesState extends State<Sales> {
           width: double.infinity, // Set the width to maximum
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage(
+              image: const AssetImage(
                   'lib/assets/pharmacy-store.png'), // Replace with the actual path to your background image
               fit: BoxFit.cover,
               colorFilter: ColorFilter.mode(
-                Color.fromARGB(255, 255, 255, 255)
+                const Color.fromARGB(255, 255, 255, 255)
                     .withOpacity(0.1), // 10% transparency
                 BlendMode.dstATop,
               ),
@@ -452,7 +453,7 @@ class _SalesState extends State<Sales> {
                     hintText: hintText,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(18.1),
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                         color: Color.fromARGB(255, 18, 185, 24),
                         width: 6.0,
                       ),
@@ -480,7 +481,7 @@ class _SalesState extends State<Sales> {
                     ),
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding: EdgeInsets.fromLTRB(
+                    contentPadding: const EdgeInsets.fromLTRB(
                         20.5, 0, 4.0, 0), // Adjust right padding here
                   ),
                 ),
@@ -489,7 +490,7 @@ class _SalesState extends State<Sales> {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                       bottom: 0.25 * 150 / 2.54), // Adjusted bottom padding
                   child: ElevatedButton(
                     onPressed: () {
@@ -500,8 +501,8 @@ class _SalesState extends State<Sales> {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: Text('Error'),
-                            content: Text(
+                            title: const Text('Error'),
+                            content: const Text(
                                 'The cart is empty!!\nAdd items and try again.'),
                             actions: <Widget>[
                               TextButton(
@@ -509,7 +510,7 @@ class _SalesState extends State<Sales> {
                                   Navigator.of(context)
                                       .pop(); // Close the dialog
                                 },
-                                child: Text('OK'),
+                                child: const Text('OK'),
                               ),
                             ],
                           ),
@@ -609,7 +610,7 @@ class _SalesState extends State<Sales> {
 
 
   void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context as BuildContext).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context as BuildContext).showSnackBar(const SnackBar(
       content: Text('Item is not added to the cart!'),
       duration: Duration(seconds: 2),
     ));
@@ -662,6 +663,7 @@ static Future<void> addCompletedOrder(OrderDetails order) async {
 
 class OrderConfirmationScreen extends StatefulWidget {
   final List<Product> cartItems;
+  
 
   const OrderConfirmationScreen({Key? key, required this.cartItems})
       : super(key: key);
@@ -674,28 +676,57 @@ class OrderConfirmationScreen extends StatefulWidget {
 class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   late Map<String, int> productQuantity;
   late Map<String, double> productPrice;
+  Map<String, double> productDiscounts = {}; 
+  Map<String, double> totalDiscounts = {};
+  late double sumOfTotalDiscounts;
 
+  
+  
   @override
   void initState() {
     super.initState();
     aggregateProductData();
   }
 
-  void aggregateProductData() {
+  void aggregateProductData() { 
     productQuantity = {};
     productPrice = {};
+    productDiscounts = {};
+    totalDiscounts = {};
     for (var product in widget.cartItems) {
       productQuantity[product.productName] =
           (productQuantity[product.productName] ?? 0) + 1;
       if (product.buyingPrice != null) {
+          int quantity = productQuantity[product.productName] ?? 0;
+          double discount = productDiscounts[product.productName] ?? 0.0;
+          double totalDiscountForProduct = discount * quantity;
         productPrice[product.productName] = product.sellingPrice;
+        productDiscounts[product.productName] = 0.0; 
+
       } else {
         productPrice[product.productName] = 0.0; 
       }
     }
     // ignore: invalid_use_of_protected_member
+    updateTotalDiscounts();
     CartProvider().notifyListeners();
+    updateTotalDiscounts();
   }
+   
+   void updateTotalDiscounts() {
+    sumOfTotalDiscounts =0;
+    for (var productName in productQuantity.keys) {
+      int quantity = productQuantity[productName] ?? 0;
+      double discount = productDiscounts[productName] ?? 0.0; 
+      double price = productPrice[productName] ?? 0.0;
+
+      // Calculate total discount for this product
+      double totalDiscount = quantity * discount;
+      totalDiscounts[productName] = totalDiscount;
+      sumOfTotalDiscounts +=totalDiscount;
+    }
+  }
+
 
   //  Import collection package
 
@@ -712,8 +743,48 @@ void _removeItemFromCart(String productName) {
       });
     } else {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Product not found!")));
+          .showSnackBar(const SnackBar(content: Text("Product not found!")));
     }
+  }
+
+
+ Future<void> _showDiscountDialog(String productName) async {
+    TextEditingController discountController = TextEditingController();
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter Discount for $productName'),
+          content: TextField(
+            controller: discountController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(hintText: 'Enter discount'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                setState(() {
+                  double? discount = double.tryParse(discountController.text);
+                  productDiscounts[productName] = discount ?? 0.0;
+
+                  // Recalculate total discounts after setting a new value
+                  updateTotalDiscounts();
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   bool isMiniScreenVisible = false; // Flag to track if MiniScreen is visible
@@ -737,8 +808,9 @@ void _removeItemFromCart(String productName) {
       for (var product in widget.cartItems) {
         double price = productPrice[product.productName] ?? 0.0;
         totalPrice += price;
-       
+        
       }
+      totalPrice -=sumOfTotalDiscounts;
       
       return totalPrice;
       
@@ -746,19 +818,20 @@ void _removeItemFromCart(String productName) {
 
 
     double totalPrice = getTotalPrice();
+    totalPrice = totalPrice;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order ${OrderManager().orderId}'), // Random order number
+        title: Text('Order ${OrderManager().orderId}'),
         backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () {
               // Add your search functionality here
             },
@@ -779,7 +852,7 @@ void _removeItemFromCart(String productName) {
             child: Container(
               width: MediaQuery.of(context).size.width,
               height: 200.0,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('lib/assets/pharmacy-store.png'),
                   fit: BoxFit.cover,
@@ -794,32 +867,32 @@ void _removeItemFromCart(String productName) {
               decoration: BoxDecoration(
                 color: Colors.green,
                 border:
-                    Border.all(color: Colors.black, width: 2), // Black border
+                    Border.all(color: Colors.black, width: 2), 
                 borderRadius: BorderRadius.circular(
-                    5), // Optional: if you want rounded corners
+                    5), 
               ),
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // To fit the size to content
+                mainAxisSize: MainAxisSize.min, 
                 mainAxisAlignment:
-                    MainAxisAlignment.center, // Center vertically
+                    MainAxisAlignment.center, 
                 crossAxisAlignment:
-                    CrossAxisAlignment.center, // Center horizontally
+                    CrossAxisAlignment.center, 
                 children: [
-                  Text(
+                  const Text(
                     'Total',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16, // Adjust the font size as needed
+                      fontSize: 16, 
                     ),
                   ),
                   Text(
                     'Ksh. ${totalPrice.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16, // Adjust the font size as needed
+                      fontSize: 16, 
                     ),
                   ),
                 ],
@@ -828,38 +901,38 @@ void _removeItemFromCart(String productName) {
           ),
           Positioned(
             left: 10,
-            bottom: 10 + 1 * 38.1, // 1 cm above the bottom
+            bottom: 10 + 1 * 38.1, 
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black, // Black background for the container
+                color: Colors.black, 
                 borderRadius: BorderRadius.circular(
-                    5), // Rounded corners for the container
+                    5), 
               ),
-              padding: EdgeInsets.all(
-                  2), // Padding to create a border effect around the button
+              padding: const EdgeInsets.all(
+                  2), 
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  elevation: 10, // Elevation for the button
-                  padding: EdgeInsets.symmetric(
+                  elevation: 10, 
+                  padding: const EdgeInsets.symmetric(
                       horizontal: 20,
-                      vertical: 15), // Making the button a bit larger
+                      vertical: 15), 
                 ),
                 onPressed: () {
-                  _showMiniScreen(); // Show the MiniScreen
+                  _showMiniScreen(); 
                 },
-                child: Row(
+                child: const Row(
                   mainAxisSize:
-                      MainAxisSize.min, // To fit the row size to its children
+                      MainAxisSize.min, 
                   children: [
                     Icon(Icons.shopping_bag,
-                        color: Colors.yellow), // Sale icon (bag) in yellow
-                    SizedBox(width: 8), // Space between icon and text
+                        color: Colors.yellow), 
+                    SizedBox(width: 8),
                     Text(
                       'Sale',
                       style: TextStyle(
-                        color: Colors.black, // Black text color
-                        fontWeight: FontWeight.bold, // Bold text
+                        color: Colors.black, 
+                        fontWeight: FontWeight.bold, 
                       ),
                     ),
                   ],
@@ -870,17 +943,16 @@ void _removeItemFromCart(String productName) {
           Positioned(
             right: 10,
             bottom: 10 +
-                60, // Adjust this value as needed to position above the total price container
+                60,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment
-                  .end, // Keeps the column aligned to the right
+                  .end, 
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 4), // Add horizontal padding
-                  child: Center(
-                    // Centers the text horizontally in the container
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 4), 
+                  child: const Center(
                     child: Text(
                       'Add to order',
                       style: TextStyle(
@@ -895,7 +967,7 @@ void _removeItemFromCart(String productName) {
                     border: Border.all(color: Colors.black, width: 2),
                     borderRadius: BorderRadius.circular(5),
                   ),
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -903,25 +975,25 @@ void _removeItemFromCart(String productName) {
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.black,
                           backgroundColor:
-                              Colors.white, // Text color (if you have text)
+                              Colors.white,
                         ),
                         onPressed: () {
-                          // Add your action for the first button
+                        
                         },
                         child: Image.asset('lib/assets/no-barcode.png',
-                            width: 30, height: 30), // Small image icon
+                            width: 30, height: 30), 
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.black,
                           backgroundColor:
-                              Colors.white, // Text color (if you have text)
+                              Colors.white, 
                         ),
                         onPressed: () {
-                          // Add your action for the second button
+                          
                         },
                         child: Image.asset('lib/assets/barcode.png',
-                            width: 30, height: 30), // Small image icon
+                            width: 30, height: 30), 
                       ),
                     ],
                   ),
@@ -934,94 +1006,102 @@ void _removeItemFromCart(String productName) {
               totalPrice: totalPrice,
               onClose: _closeMiniScreen,
             ),
-          Align(
+        Align(
             alignment: Alignment.topCenter,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Display the titles if the cart is not empty
-                  if (widget.cartItems.isNotEmpty)
-                    Container(
-                      padding: EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                              child: Text('Item Name',
-                                  textAlign: TextAlign.center)),
-                          Expanded(
-                              child: Text('Quantity',
-                                  textAlign: TextAlign.center)),
-                          Expanded(
-                              child:
-                                  Text('Price', textAlign: TextAlign.center)),
-                          Expanded(
-                              child:
-                                  Text('Total', textAlign: TextAlign.center)),
-                        ],
+            child: Container(
+              margin: EdgeInsets.only(bottom: 30), 
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    
+                    if (widget.cartItems.isNotEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(child: Text('Item Name', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                            Expanded(child: Text('Quantity', textAlign: TextAlign.center)),
+                            Expanded(child: Text('Price', textAlign: TextAlign.center)),
+                            Expanded(child: Text('Total', textAlign: TextAlign.center)),
+                            IconButton(icon: Icon(Icons.delete), onPressed: null),
+                          ],
+                        ),
                       ),
-                    ),
-                  // Display each aggregated item's attributes
-                  ...productQuantity.entries.map((entry) {
-                    String productName = entry.key;
-                    int quantity = entry.value;
-                    double price = productPrice[productName] ?? 0.0;
-                    double total = quantity * price;
+                    
+                    ...productQuantity.entries.map((entry) {
+                      String productName = entry.key;
+                      int quantity = entry.value;
+                      double price = productPrice[productName] ?? 0.0;
+                      double total = quantity * price;
+                      double discount = productDiscounts[productName] ?? 0.0;
 
-                    return Container(
-                      margin: EdgeInsets.symmetric(vertical: 2.0),
-                      padding: EdgeInsets.symmetric(
-                          vertical: 2.0,
-                          horizontal: 8.0), // Reduced vertical padding
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: Colors.black,
-                            width: 3.0), // Increased border thickness
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Expanded(
-                                  child: Text(productName,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              Expanded(
-                                  child: Text('$quantity',
-                                      textAlign: TextAlign.center)),
-                              Expanded(
-                                  child: Text('$price',
-                                      textAlign: TextAlign.center)),
-                              Expanded(
-                                  child: Text('$total',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold))),
-                              IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
-                                onPressed: () =>
-                                    _removeItemFromCart(productName),
 
-                           
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              'Expiry Date: ${widget.cartItems.firstWhere((product) => product.productName == productName).expiryDate}',
-                              style: TextStyle(color: Colors.red),
+                      TextEditingController discountController = TextEditingController(); 
+
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: 3.0), 
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(child: Text(productName, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                                Expanded(child: Text('$quantity', textAlign: TextAlign.center)),
+                                Expanded(child: Text('$price', textAlign: TextAlign.center)),
+                                Expanded(child: Text('$total', textAlign: TextAlign.center)),
+                                IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _removeItemFromCart(productName),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ],
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Expiry Date: ${widget.cartItems.firstWhere((product) => product.productName == productName).expiryDate}',
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                  Expanded(
+                                child: TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.green,
+                                    backgroundColor: Colors.transparent,
+                                    padding: EdgeInsets.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  onPressed: () => _showDiscountDialog(productName),
+                                  child: Text(
+                                    totalDiscounts[productName] != null && totalDiscounts[productName]! > 0
+                                      ? 'Discount: Ksh ${totalDiscounts[productName]!.toStringAsFixed(2)}'
+                                      : 'Offer discount',
+                                    style: const TextStyle(
+                                      color: Colors.green,
+                                      // decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1030,63 +1110,71 @@ void _removeItemFromCart(String productName) {
     );
   }
 }
-
 class MiniScreen extends StatelessWidget {
   final VoidCallback onClose;
+  final double totalPrice;
 
   MiniScreen({Key? key, required this.onClose, required this.totalPrice})
       : super(key: key);
-
-  final double totalPrice;
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        margin: EdgeInsets.only(bottom: 3.5 * 38.1),
+        margin: const EdgeInsets.only(bottom: 0.2 * 38.1), 
         width: 600,
-        height: 200,
+        height: 180, 
         decoration: BoxDecoration(
-          color: Color.fromARGB(255, 10, 171, 192),
+          color: const Color.fromARGB(255, 10, 171, 192),
           border: Border.all(color: Colors.black, width: 2),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) =>
-                      CashPayment(totalPrice: totalPrice),
-                ),
-              );
-            }),
-            _buildPaymentButton("M-Pesa", 'lib/assets/MobilePay.jfif', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MobilePayment(),
-                ),
-              );
-            }),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("Pay using", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+            Row( 
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => CashPayment(totalPrice: totalPrice, sumOfTotalDiscounts: 0,),
+                    ),
+                  );
+                }),
+                _buildPaymentButton("M-Pesa", 'lib/assets/MobilePay.jfif', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MobilePayment(),
+                    ),
+                  );
+                }),
+              ],
+            ),
+            const Divider(color: Colors.black, thickness: 2, indent: 50, endIndent: 50), 
+            _buildCancelButton(context), 
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPaymentButton(
-      String text, String imagePath, VoidCallback onTap) {
+  Widget _buildPaymentButton(String text, String imagePath, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 170,
-        height: 60,
+        height: 50,
         decoration: BoxDecoration(
-          color: Color.fromARGB(255, 224, 220, 220),
+          color: const Color.fromARGB(255, 224, 220, 220),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -1094,13 +1182,13 @@ class MiniScreen extends StatelessWidget {
           children: [
             Image.asset(
               imagePath,
-              width: 30,
-              height: 30,
+              width: 20,
+              height: 20,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -1110,33 +1198,40 @@ class MiniScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class FullScreenPage extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  FullScreenPage({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Colors.white, // Set appbar background color to white
-        iconTheme: IconThemeData(color: Colors.black), // Set back button color
+  Widget _buildCancelButton(BuildContext context) {
+    return GestureDetector(
+      onTap: onClose,
+      child: Container(
+        width: 170,
+        height: 50,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 224, 220, 220),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: Text(
+            "Cancel",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.red,
+            ),
+          ),
+        ),
       ),
-      body: child,
     );
   }
 }
 
+
 class CashPayment extends StatefulWidget {
   @override
   final double totalPrice;
+  final double sumOfTotalDiscounts; 
   String orderNumber = OrderManager().orderId;
 
-  CashPayment({Key? key, required this.totalPrice}) : super(key: key);
+  CashPayment({Key? key, required this.totalPrice, required this.sumOfTotalDiscounts}) : super(key: key);
 
   @override
   _CashPaymentState createState() => _CashPaymentState();
@@ -1162,8 +1257,7 @@ class _CashPaymentState extends State<CashPayment> {
       final double orderprofit = totalPrice -
           products
               .map((product) => product.buyingPrice ?? 0.0)
-              .reduce((value, element) => value + element);
-      
+              .reduce((value, element) => value + element)-widget.sumOfTotalDiscounts;
       OrderDetails orderDetails = OrderDetails(
         orderId: orderId,
         totalPrice: totalPrice,
@@ -1179,7 +1273,7 @@ class _CashPaymentState extends State<CashPayment> {
       // Add the completed order to the repository
       OrderRepository.addCompletedOrder(orderDetails);
 
-      // Show confirmation dialog
+      // Show confirmation dialog 
       showDialog(
         context: context,
         barrierDismissible: false, // Dialog will not close on tap outside
@@ -1188,7 +1282,7 @@ class _CashPaymentState extends State<CashPayment> {
           Future.delayed(const Duration(seconds: 1), () {
             Navigator.of(context).pop(true); // Close the dialog
           });
-          return AlertDialog(
+          return const AlertDialog(
             title: Icon(Icons.check_circle, color: Colors.green, size: 60),
             content: Text("Order completed successfully",
                 textAlign: TextAlign.center),
@@ -1232,9 +1326,9 @@ class _CashPaymentState extends State<CashPayment> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Cash Payment"),
+        title: const Text("Cash Payment"),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -1245,15 +1339,15 @@ class _CashPaymentState extends State<CashPayment> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
-              padding: EdgeInsets.all(16.0),
+              margin: const EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
+              padding: const EdgeInsets.all(16.0),
               width: 600,
               height: 550, // Increased height to accommodate new field
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.black, width: 2),
                 image: DecorationImage(
-                  image: AssetImage("lib/assets/PaymentIcon.png"),
+                  image: const AssetImage("lib/assets/PaymentIcon.png"),
                   fit: BoxFit
                       .cover, // This is to ensure the image covers the whole container
                   colorFilter: ColorFilter.mode(
@@ -1266,7 +1360,7 @@ class _CashPaymentState extends State<CashPayment> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Center(
+                  const Center(
                     child: Text(
                       "Cash Payment",
                       style: TextStyle(
@@ -1276,17 +1370,17 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         "Enter Ksh:",
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(width: 30),
+                      const SizedBox(width: 30),
                       Container(
                         width: 200, // Adjust this width as needed
                         child: TextFormField(
@@ -1302,20 +1396,20 @@ class _CashPaymentState extends State<CashPayment> {
                             filled: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                   color: Colors.black,
                                   width: 2.0), // Black border with 2.0 width
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                   color: Colors.black,
                                   width:
                                       2.0), // Same black border for the enabled state
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
+                              borderSide: const BorderSide(
                                   color: Colors.black,
                                   width:
                                       2.0), // Same black border for the focused state
@@ -1331,17 +1425,17 @@ class _CashPaymentState extends State<CashPayment> {
                     ],
                   ),
 
-                  SizedBox(height: 30), // Space between fields
+                  const SizedBox(height: 30), // Space between fields
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         "Customer Phone:",
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 16,
                         ),
                       ),
-                      SizedBox(width: 30),
+                      const SizedBox(width: 30),
                       Expanded(
                         child: TextFormField(
                           controller: customerPhoneController,
@@ -1351,22 +1445,22 @@ class _CashPaymentState extends State<CashPayment> {
                             filled: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.black),
+                              borderSide: const BorderSide(color: Colors.black),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  Spacer(),
+                  const Spacer(),
 
-                  SizedBox(height: 50), // Space for clarity
+                  const SizedBox(height: 50), // Space for clarity
                   // Cash Paid
-// Cash Paid
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text("Cash Paid: "),
+                      const Text("Cash Paid: "),
                       Expanded(
                         child: Stack(
                           alignment: Alignment.bottomCenter,
@@ -1382,7 +1476,7 @@ class _CashPaymentState extends State<CashPayment> {
                             ),
                             Text(
                               "$cashPaid",
-                              style: TextStyle(
+                              style: const TextStyle(
                                   // Other styles as needed
                                   ),
                             ),
@@ -1391,13 +1485,13 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20), // Adjust the height for spacing
+                  const SizedBox(height: 20), // Adjust the height for spacing
 
 // Balance
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text("Balance: "),
+                      const Text("Balance: "),
                       Expanded(
                         child: Stack(
                           alignment: Alignment.bottomCenter,
@@ -1412,8 +1506,8 @@ class _CashPaymentState extends State<CashPayment> {
                               ),
                             ),
                             Text(
-                              "${getBalance().toStringAsFixed(2)}",
-                              style: TextStyle(
+                              getBalance().toStringAsFixed(2),
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 // Other styles as needed
                               ),
@@ -1423,29 +1517,29 @@ class _CashPaymentState extends State<CashPayment> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 30), // Adjust the height for spacing
+                  const SizedBox(height: 30), // Adjust the height for spacing
 
-                  SizedBox(height: 30),
-                  SizedBox(height: 30),
-                  Spacer(),
+                  const SizedBox(height: 30),
+                  const SizedBox(height: 30),
+                  const Spacer(),
 
                   // Complete and Send Receipt Button
                   Center(
                     child: ElevatedButton(
                       onPressed: completeAndSendReceipt,
-                      child: Text("Complete and Send Receipt"),
+                      child: const Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.green,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(color: Colors.black),
+                          side: const BorderSide(color: Colors.black),
                         ),
                       ),
                     ),
                   ),
 
-                  SizedBox(height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
+                  const SizedBox(height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
                 ],
               ),
             ),
@@ -1472,10 +1566,10 @@ class _MobilePaymentState extends State<MobilePayment> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Mobile Payment"),
+        title: const Text("Mobile Payment"),
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -1486,15 +1580,15 @@ class _MobilePaymentState extends State<MobilePayment> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              margin: EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
-              padding: EdgeInsets.all(16.0),
+              margin: const EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
+              padding: const EdgeInsets.all(16.0),
               width: 600,
               height: 550, // Increased height to accommodate new field
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.black, width: 2),
                 image: DecorationImage(
-                  image: AssetImage("lib/assets/PaymentIcon.png"),
+                  image: const AssetImage("lib/assets/PaymentIcon.png"),
                   fit: BoxFit
                       .cover, // This is to ensure the image covers the whole container
                   colorFilter: ColorFilter.mode(
@@ -1507,8 +1601,8 @@ class _MobilePaymentState extends State<MobilePayment> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 10),
-                  Center(
+                  const SizedBox(height: 10),
+                  const Center(
                     child: Text(
                       "M-Pesa Payment",
                       style: TextStyle(
@@ -1518,7 +1612,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment:
                         MainAxisAlignment.center, // Center the row contents
@@ -1531,7 +1625,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                                   "Ksh. ${totalPrice.toString()}"), // Display "Ksh." followed by total price
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 32, // Make text bold
                           ), // Center align the text
@@ -1554,10 +1648,10 @@ class _MobilePaymentState extends State<MobilePayment> {
                     ],
                   ),
 
-                  SizedBox(height: 30), // Space between fields
+                  const SizedBox(height: 30), // Space between fields
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         "M-Pesa Code:",
                         style: TextStyle(
                           color: Colors.black,
@@ -1565,7 +1659,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                           fontSize: 20,
                         ),
                       ),
-                      SizedBox(width: 30),
+                      const SizedBox(width: 30),
                       Expanded(
                         child: TextFormField(
                           controller: customerPhoneController,
@@ -1575,29 +1669,29 @@ class _MobilePaymentState extends State<MobilePayment> {
                             filled: true,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.black),
+                              borderSide: const BorderSide(color: Colors.black),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  Spacer(),
-                  SizedBox(height: 10), // Space for clarity
+                  const Spacer(),
+                  const SizedBox(height: 10), // Space for clarity
 
                   // PaymentInfoDisplay(), // Before payment
                   PaymentInfoDisplay(
                       customerName: "John doe",
                       amountPaid: "Ksh. 500"), // After payment
-                  Spacer(),
+                  const Spacer(),
 
-                  SizedBox(height: 50), // Space for clarity
+                  const SizedBox(height: 50), // Space for clarity
                   // Cash Paid
 // Cash Paid
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Cash Paid: ",
                         style: TextStyle(
                           fontWeight: FontWeight.bold, // Make label text bold
@@ -1620,7 +1714,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                             ),
                             Text(
                               "$cashPaid",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontWeight:
                                     FontWeight.bold, // Make value text bold
                                 fontSize:
@@ -1633,13 +1727,13 @@ class _MobilePaymentState extends State<MobilePayment> {
                     ],
                   ),
 
-                  SizedBox(height: 20), // Adjust the height for spacing
+                  const SizedBox(height: 20), // Adjust the height for spacing
 
 // Balance
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Balance: ",
                         style: TextStyle(
                           fontWeight: FontWeight.bold, // Make label text bold
@@ -1662,7 +1756,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                             ),
                             Text(
                               "${cashPaid - totalPrice}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontWeight:
                                     FontWeight.bold, // Make value text bold
                                 fontSize:
@@ -1678,8 +1772,8 @@ class _MobilePaymentState extends State<MobilePayment> {
                   // SizedBox(height: 0), // Adjust the height for spacing
 
                   //SizedBox(height: 20),
-                  SizedBox(height: 5),
-                  Spacer(),
+                  const SizedBox(height: 5),
+                  const Spacer(),
 
                   // Complete and Send Receipt Button
                   Center(
@@ -1687,19 +1781,19 @@ class _MobilePaymentState extends State<MobilePayment> {
                       onPressed: () {
                         // Add your receipt sending logic here
                       },
-                      child: Text("Complete and Send Receipt"),
+                      child: const Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.green,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(color: Colors.black),
+                          side: const BorderSide(color: Colors.black),
                         ),
                       ),
                     ),
                   ),
 
-                  SizedBox(height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
+                  const SizedBox(height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
                 ],
               ),
             ),
@@ -1725,13 +1819,13 @@ class PaymentInfoDisplay extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.transparent,
         // color: const Color.fromARGB(255, 200, 179, 179),
-        borderRadius: BorderRadius.all(Radius.circular(60)), // Rounded corners
+        borderRadius: const BorderRadius.all(Radius.circular(60)), // Rounded corners
         border: Border.all(color: Colors.black, width: 2),
       ),
       child: Text(
         " $customerName, \n\n  $amountPaid",
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.black,
           fontWeight: FontWeight.bold,
           fontSize: 16,
