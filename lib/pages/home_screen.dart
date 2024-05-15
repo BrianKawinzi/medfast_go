@@ -79,9 +79,11 @@ class _HomeScreenState extends State<HomeScreen>
     }
     return totalRevenue;
   }
+
   Future<void> _fetchmonthlyAmounts() async {
     try {
-      Map<String, double> monthlyAmounts = await DatabaseHelper().getTotalPriceByMonth();
+      Map<String, double> monthlyAmounts =
+          await DatabaseHelper().getTotalPriceByMonth();
 
       setState(() {
         _monthlyAmounts = monthlyAmounts.values.toList();
@@ -647,24 +649,7 @@ class _HomeScreenState extends State<HomeScreen>
                           height: 200,
                           child: IndividualBar(
                             selectedMonthIndex: _selectedMonthIndex,
-<<<<<<< HEAD
                             monthlyAmounts: _monthlyAmounts,
-=======
-                            monthlyAmounts: const [
-                              100,
-                              45,
-                              200,
-                              150,
-                              300,
-                              250,
-                              400,
-                              350,
-                              500,
-                              450,
-                              600,
-                              550
-                            ],
->>>>>>> origin/RC15
                           )),
                     ],
                   ),
