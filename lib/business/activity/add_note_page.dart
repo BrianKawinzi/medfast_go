@@ -5,7 +5,14 @@ import 'package:medfast_go/pages/widgets/button.dart';
 import 'package:medfast_go/utills/dateTime.dart';
 
 class AddNotePage extends StatefulWidget {
-  const AddNotePage({super.key});
+  final Note? note;
+  final bool isEdit;
+
+  const AddNotePage({
+    super.key,
+    this.note,
+    required this.isEdit,
+  });
 
   @override
   State<AddNotePage> createState() => _AddNotePageState();
@@ -22,6 +29,8 @@ class _AddNotePageState extends State<AddNotePage> {
   @override
   void initState() {
     _noteDescription.addListener(_checkButtonVisibility);
+    _noteTittleController.addListener(_checkButtonVisibility);
+    widget.isEdit ? initEdit() : null;
     super.initState();
   }
 
@@ -30,6 +39,11 @@ class _AddNotePageState extends State<AddNotePage> {
       _showButton = _noteDescription.text.isNotEmpty &&
           _noteTittleController.text.isNotEmpty;
     });
+  }
+
+  initEdit() {
+    _noteTittleController.text = widget.note!.tittle;
+    _noteDescription.text = widget.note!.description;
   }
 
   Future<void> _addNote() async {
@@ -41,6 +55,21 @@ class _AddNotePageState extends State<AddNotePage> {
       time: ConvertTime().convertTimeOfDayToAmPm(TimeOfDay.now()),
     );
     await dbHelper.insertNote(note);
+    Navigator.pop(context);
+    _noteDescription.clear();
+    _noteTittleController.clear();
+  }
+
+  Future<void> _updateNote() async {
+    final dbHelper = DatabaseHelper();
+    Note note = Note(
+      id: widget.note!.id,
+      tittle: _noteTittleController.text,
+      description: _noteDescription.text,
+      date: DateTime.now().toIso8601String(),
+      time: ConvertTime().convertTimeOfDayToAmPm(TimeOfDay.now()),
+    );
+    await dbHelper.updateNote(note);
     Navigator.pop(context);
     _noteDescription.clear();
     _noteTittleController.clear();
@@ -97,19 +126,33 @@ class _AddNotePageState extends State<AddNotePage> {
               ),
             ),
             _showButton
-                ? Container(
-                    padding: const EdgeInsets.symmetric(vertical: 50),
-                    alignment: Alignment.bottomCenter,
-                    child: CustomButton(
-                      onTap: () async {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          await _addNote();
-                        }
-                      },
-                      text: 'ADD NOTE',
-                    ),
-                  )
+                ? !widget.isEdit
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(vertical: 50),
+                        alignment: Alignment.bottomCenter,
+                        child: CustomButton(
+                          onTap: () async {
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              await _addNote();
+                            }
+                          },
+                          text: 'ADD NOTE',
+                        ),
+                      )
+                    : Container(
+                        padding: const EdgeInsets.symmetric(vertical: 50),
+                        alignment: Alignment.bottomCenter,
+                        child: CustomButton(
+                          onTap: () async {
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              await _updateNote();
+                            }
+                          },
+                          text: 'EDIT NOTE',
+                        ),
+                      )
                 : const SizedBox()
           ],
         ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:medfast_go/business/activity/add_reminder.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/reminder.dart';
 import 'package:medfast_go/utills/dateTime.dart';
@@ -46,9 +48,11 @@ class _RemindersPageState extends State<RemindersPage> {
       }
     }
     return allReminders.isEmpty
-        ? const Align(
-            alignment: Alignment.center,
-            child: Text(
+        ? Padding(
+            padding: EdgeInsets.symmetric(
+                vertical: MediaQuery.of(context).size.height * 0.2,
+                horizontal: 20),
+            child: const Text(
               "You haven't set a reminder yet. Please use the button below to create one.",
               textAlign: TextAlign.center,
             ),
@@ -76,13 +80,27 @@ class _RemindersPageState extends State<RemindersPage> {
                               itemCount: currentReminders.length,
                               itemBuilder: (_, index) {
                                 Reminder reminder = currentReminders[index];
-                                return ReminderCard(
-                                  reminder: reminder,
-                                  remove: () {
-                                    setState(() {
-                                      currentReminders.removeAt(index);
-                                    });
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AddReminder(
+                                          isEdit: true,
+                                          reminder: reminder,
+                                        ),
+                                      ),
+                                    );
                                   },
+                                  child: ReminderCard(
+                                    reminder: reminder,
+                                    remove: () {
+                                      setState(() {
+                                        currentReminders.removeAt(index);
+                                      });
+                                    },
+                                    isCompleted: false,
+                                  ),
                                 );
                               }),
                           const SizedBox(height: 15),
@@ -115,6 +133,7 @@ class _RemindersPageState extends State<RemindersPage> {
                                       completedReminders.removeAt(index);
                                     });
                                   },
+                                  isCompleted: true,
                                 );
                               }),
                         ],
@@ -129,11 +148,13 @@ class _RemindersPageState extends State<RemindersPage> {
 class ReminderCard extends StatefulWidget {
   final Reminder reminder;
   final Function remove;
+  final bool isCompleted;
 
   const ReminderCard({
     super.key,
     required this.reminder,
     required this.remove,
+    required this.isCompleted,
   });
 
   @override
@@ -142,14 +163,6 @@ class ReminderCard extends StatefulWidget {
 }
 
 class _ReminderCardState extends State<ReminderCard> {
-  bool _isCompleted = false;
-
-  void _toggleCompletion() {
-    setState(() {
-      _isCompleted = !_isCompleted;
-    });
-  }
-
   void _deleteReminder(Reminder reminder) async {
     final dbHelper = DatabaseHelper();
     await dbHelper.deleteReminder(reminder.id!);
@@ -163,7 +176,6 @@ class _ReminderCardState extends State<ReminderCard> {
       elevation: 1,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: _toggleCompletion,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           child: Column(
@@ -243,10 +255,10 @@ class _ReminderCardState extends State<ReminderCard> {
                     ),
                   ),
                   IconButton(
-                    icon:
-                        Icon(_isCompleted ? Icons.check_circle : Icons.circle),
-                    color: _isCompleted ? Colors.green : Colors.grey,
-                    onPressed: _toggleCompletion,
+                    icon: Icon(
+                        widget.isCompleted ? Icons.check_circle : Icons.circle),
+                    color: widget.isCompleted ? Colors.green : Colors.grey,
+                    onPressed: () {},
                   ),
                 ],
               ),

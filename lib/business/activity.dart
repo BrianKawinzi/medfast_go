@@ -36,8 +36,13 @@ class _ActivityState extends State<Activity> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    showAllNotes ? AddNotePage() : const AddReminder(),
+                builder: (context) => showAllNotes
+                    ? const AddNotePage(
+                        isEdit: false,
+                      )
+                    : const AddReminder(
+                        isEdit: false,
+                      ),
               ),
             );
           },

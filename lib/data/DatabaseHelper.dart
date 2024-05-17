@@ -263,6 +263,18 @@ class DatabaseHelper {
     return result;
   }
 
+  // Update a reminder in the reminders table
+  Future<int> updateReminder(Reminder reminder) async {
+    final Database? db = await database;
+    final int result = await db!.update(
+      remindersTableName,
+      reminder.toMap(),
+      where: '$columnId = ?',
+      whereArgs: [reminder.id],
+    );
+    return result;
+  }
+
   // Insert a motes into the notes table
   Future<int> insertNote(Note note) async {
     final Database? db = await database;
@@ -286,6 +298,18 @@ class DatabaseHelper {
       notesTableName,
       where: '$columnId = ?',
       whereArgs: [id],
+    );
+    return result;
+  }
+
+  // Update a note in the notes table
+  Future<int> updateNote(Note note) async {
+    final Database? db = await database;
+    final int result = await db!.update(
+      notesTableName,
+      note.toMap(),
+      where: '$columnId = ?',
+      whereArgs: [note.id],
     );
     return result;
   }

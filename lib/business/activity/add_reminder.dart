@@ -5,7 +5,13 @@ import 'package:medfast_go/pages/widgets/button.dart';
 import 'package:medfast_go/utills/dateTime.dart';
 
 class AddReminder extends StatefulWidget {
-  const AddReminder({super.key});
+  final Reminder? reminder;
+  final bool isEdit;
+  const AddReminder({
+    super.key,
+    this.reminder,
+    required this.isEdit,
+  });
 
   @override
   State<AddReminder> createState() => _AddReminderState();
@@ -21,6 +27,19 @@ class _AddReminderState extends State<AddReminder> {
   // Controller for the date text field
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  @override
+  void initState() {
+    widget.isEdit ? initEditReminder() : null;
+    super.initState();
+  }
+
+  initEditReminder() {
+    _reminderDescriptionController.text = widget.reminder!.description;
+    _reminderTittleController.text = widget.reminder!.tittle;
+    _dateController.text = widget.reminder!.date;
+    _timeController.text = widget.reminder!.time;
+  }
+
   Future<void> _addReminder() async {
     final dbHelper = DatabaseHelper();
     Reminder reminder = Reminder(
@@ -30,6 +49,23 @@ class _AddReminderState extends State<AddReminder> {
       time: _timeController.text,
     );
     await dbHelper.insertReminder(reminder);
+    Navigator.pop(context);
+    _reminderTittleController.clear();
+    _reminderDescriptionController.clear();
+    _dateController.clear();
+    _timeController.clear();
+  }
+
+  Future<void> _updateReminder() async {
+    final dbHelper = DatabaseHelper();
+    Reminder reminder = Reminder(
+      id: widget.reminder!.id,
+      tittle: _reminderTittleController.text,
+      description: _reminderDescriptionController.text,
+      date: _dateController.text,
+      time: _timeController.text,
+    );
+    await dbHelper.updateReminder(reminder);
     Navigator.pop(context);
     _reminderTittleController.clear();
     _reminderDescriptionController.clear();
@@ -145,15 +181,25 @@ class _AddReminderState extends State<AddReminder> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                CustomButton(
-                  onTap: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      await _addReminder();
-                    }
-                  },
-                  text: 'ADD REMINDER',
-                )
+                !widget.isEdit
+                    ? CustomButton(
+                        onTap: () async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            await _addReminder();
+                          }
+                        },
+                        text: 'ADD REMINDER',
+                      )
+                    : CustomButton(
+                        onTap: () async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            await _updateReminder();
+                          }
+                        },
+                        text: 'EDIT REMINDER',
+                      )
               ],
             ),
           ),
