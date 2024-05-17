@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/expenses.dart';
+import 'package:medfast_go/models/note.dart';
+import 'package:medfast_go/models/reminder.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/product.dart';
@@ -51,6 +53,20 @@ class DatabaseHelper {
       'products'; // This will store a JSON string of products
   final String columnCompletedAt = 'completedAt';
   final String columnprofit = 'profit';
+
+  // Table name for Reminders
+  final String remindersTableName = 'reminders';
+  final String columnReminderTittle = 'tittle';
+  final String columnReminderDescription = 'description';
+  final String columnReminderTime = 'time';
+  final String columnReminderdate = 'date';
+
+  // Table name for notes
+  final String notesTableName = 'notes';
+  final String columnNoteTittle = 'tittle';
+  final String columnNoteDescription = 'description';
+  final String columnNoteTime = 'time';
+  final String columnNotedate = 'date';
 
   // Singleton constructor
   factory DatabaseHelper() {
@@ -103,7 +119,7 @@ class DatabaseHelper {
       return database;
     } catch (e) {
       print('Error initializing database: $e');
-      throw e; // Rethrow the exception to propagate it further
+      rethrow; // Rethrow the exception to propagate it further
     }
   }
 
@@ -157,6 +173,28 @@ class DatabaseHelper {
         $columnDate TEXT
       )
     ''');
+
+    // Create the database table for reminders
+    await db.execute('''
+      CREATE TABLE $remindersTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnReminderTittle TEXT,
+        $columnReminderDescription TEXT,
+        $columnReminderdate TEXT,
+        $columnReminderTime TEXT
+      )
+    ''');
+
+    // Create the database table for notes
+    await db.execute('''
+      CREATE TABLE $notesTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnNoteTittle TEXT,
+        $columnNoteDescription TEXT,
+        $columnNotedate TEXT,
+        $columnNoteTime TEXT
+      )
+    ''');
   }
 
   // Handle database upgrades
@@ -195,6 +233,60 @@ class DatabaseHelper {
   Future<int> insertExpense(Expense expense) async {
     final Database? db = await database;
     final int result = await db!.insert(expenseTableName, expense.toMap());
+    return result;
+  }
+
+  // Insert a reminder into the reminders table
+  Future<int> insertReminder(Reminder reminder) async {
+    final Database? db = await database;
+    final int result = await db!.insert(remindersTableName, reminder.toMap());
+    return result;
+  }
+
+  // Get all reminders from the reminders table
+  Future<List<Reminder>> getReminders() async {
+    final Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(remindersTableName);
+    return List.generate(maps.length, (i) {
+      return Reminder.fromMap(maps[i]);
+    });
+  }
+
+  // Delete a reminder
+  Future<int> deleteReminder(int id) async {
+    final Database? db = await database;
+    final int result = await db!.delete(
+      remindersTableName,
+      where: '$columnId = ?',
+      whereArgs: [id],
+    );
+    return result;
+  }
+
+  // Insert a motes into the notes table
+  Future<int> insertNote(Note note) async {
+    final Database? db = await database;
+    final int result = await db!.insert(notesTableName, note.toMap());
+    return result;
+  }
+
+  // Get all notes from the notes table
+  Future<List<Note>> getNotes() async {
+    final Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(notesTableName);
+    return List.generate(maps.length, (i) {
+      return Note.fromMap(maps[i]);
+    });
+  }
+
+  // Delete a note
+  Future<int> deleteNote(int id) async {
+    final Database? db = await database;
+    final int result = await db!.delete(
+      notesTableName,
+      where: '$columnId = ?',
+      whereArgs: [id],
+    );
     return result;
   }
 
@@ -340,24 +432,23 @@ class DatabaseHelper {
 
   //get total price of each and very month
   // Define a function to get the total price of items sold in each month
-Future<Map<String, double>> getTotalPriceByMonth() async {
-  final db = await database;
-  // Query completed orders grouped by month
-  List<Map<String, dynamic>> result = await db!.rawQuery('''
+  Future<Map<String, double>> getTotalPriceByMonth() async {
+    final db = await database;
+    // Query completed orders grouped by month
+    List<Map<String, dynamic>> result = await db!.rawQuery('''
     SELECT strftime('%Y-%m', $columnCompletedAt) AS month,
            SUM($columnTotalPrice) AS totalPrice
     FROM $completedOrderTableName
     GROUP BY month
   ''');
 
-  Map<String, double> totalPriceByMonth = {};
-  // Process query result
-  for (var row in result) {
-    totalPriceByMonth[row['month']] = row['totalPrice'] ?? 0.0;
+    Map<String, double> totalPriceByMonth = {};
+    // Process query result
+    for (var row in result) {
+      totalPriceByMonth[row['month']] = row['totalPrice'] ?? 0.0;
+    }
+    return totalPriceByMonth;
   }
-  return totalPriceByMonth;
-}
-
 
   Future<List<OrderDetails>> getTodayCompletedOrders(DateTime date) async {
     final db = await database;
@@ -434,46 +525,40 @@ Future<Map<String, double>> getTotalPriceByMonth() async {
   // }
 
   // Fetch top 3 best-selling products based on total quantity sold
-Future<List<Product>> getTopSellingProducts() async {
-  Database? db = await database;
-  try {
-    // Calculate sold quantities and profits
-    Map<int, int> soldQuantities = await calculateTotalSoldQuantities();
-    Map<int, double> profit = await calculateProductProfits();
+  Future<List<Product>> getTopSellingProducts() async {
+    Database? db = await database;
+    try {
+      // Calculate sold quantities and profits
+      Map<int, int> soldQuantities = await calculateTotalSoldQuantities();
+      Map<int, double> profit = await calculateProductProfits();
 
-    // Sort products by sold quantity in descending order
-    List<MapEntry<int, int>> sortedProducts = soldQuantities.entries.toList();
-    sortedProducts.sort((a, b) => b.value.compareTo(a.value));
-    List<int> topProductIds = sortedProducts.take(3).map((e) => e.key).toList();
-    List<Map<String, dynamic>> productMaps = await db!.query(productTableName,
-        where: '$columnId IN (${topProductIds.join(', ')})');
+      // Sort products by sold quantity in descending order
+      List<MapEntry<int, int>> sortedProducts = soldQuantities.entries.toList();
+      sortedProducts.sort((a, b) => b.value.compareTo(a.value));
+      List<int> topProductIds =
+          sortedProducts.take(3).map((e) => e.key).toList();
+      List<Map<String, dynamic>> productMaps = await db!.query(productTableName,
+          where: '$columnId IN (${topProductIds.join(', ')})');
 
-    List<Product> products = [];
-    for (var productMap in productMaps) {
-      int productId = productMap['id'];
-      int soldQuantity = soldQuantities[productId] ?? 0;
-      double productProfit = profit[productId] ?? 0.0;
+      List<Product> products = [];
+      for (var productMap in productMaps) {
+        int productId = productMap['id'];
+        int soldQuantity = soldQuantities[productId] ?? 0;
+        double productProfit = profit[productId] ?? 0.0;
 
-      await db.update(
-        productTableName,
-        {'soldQuantity': soldQuantity}, 
-        where: '$columnId = ?',
-        whereArgs: [productId]
-      );
+        await db.update(productTableName, {'soldQuantity': soldQuantity},
+            where: '$columnId = ?', whereArgs: [productId]);
 
-      products.add(
-        Product.fromMap(productMap)
-        ..soldQuantity = soldQuantity
-        ..profit = productProfit
-      );
+        products.add(Product.fromMap(productMap)
+          ..soldQuantity = soldQuantity
+          ..profit = productProfit);
+      }
+      return products;
+    } catch (e) {
+      print('Error fetching top selling products: $e');
+      throw Exception('Failed to fetch top selling products');
     }
-    return products;
-  } catch (e) {
-    print('Error fetching top selling products: $e');
-    throw Exception('Failed to fetch top selling products');
   }
-}
-
 
   Future<Map<int, double>> calculateProductProfits() async {
     Database? db = await database;
