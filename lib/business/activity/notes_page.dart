@@ -42,7 +42,7 @@ class _NotesPageState extends State<NotesPage> {
                 vertical: MediaQuery.of(context).size.height * 0.2,
                 horizontal: 20),
             child: const Text(
-              "You haven't created any notes yet. Please use the button below to create one.",
+              "You haven't created any notes yet, Please use the button below to create one.",
               textAlign: TextAlign.center,
             ),
           )
