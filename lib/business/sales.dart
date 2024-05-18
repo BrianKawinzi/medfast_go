@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
+import 'package:medfast_go/models/M_PesaPayment.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/product.dart';
@@ -194,7 +195,7 @@ class _SalesState extends State<Sales> {
             //updated
             return Card(
               key: Key(product.id.toString()),
-              child: Card(
+              // child: Card(
                 margin: const EdgeInsets.all(8.0),
                 child: ListTile(
                   title: Text(product.productName),
@@ -300,7 +301,7 @@ class _SalesState extends State<Sales> {
                   ),
                  // onTap: () => _navigateToEditProduct(product),
                 ),
-              ),
+              //),
             );
           },
         ),
@@ -1556,11 +1557,9 @@ class MobilePayment extends StatefulWidget {
 }
 
 class _MobilePaymentState extends State<MobilePayment> {
-  TextEditingController cashGivenController = TextEditingController();
   TextEditingController customerPhoneController = TextEditingController();
   double cashPaid = 0.0;
-  double totalPrice =
-      0.0; // You should set this based on your total price logic
+  double totalPrice = 0.0; // You should set this based on your total price logic
 
   @override
   Widget build(BuildContext context) {
@@ -1589,12 +1588,10 @@ class _MobilePaymentState extends State<MobilePayment> {
                 border: Border.all(color: Colors.black, width: 2),
                 image: DecorationImage(
                   image: const AssetImage("lib/assets/PaymentIcon.png"),
-                  fit: BoxFit
-                      .cover, // This is to ensure the image covers the whole container
+                  fit: BoxFit.cover, // This is to ensure the image covers the whole container
                   colorFilter: ColorFilter.mode(
                     Colors.white.withOpacity(0.2), // 20% opacity
-                    BlendMode
-                        .dstATop, // This blend mode allows the image to show through the color filter
+                    BlendMode.dstATop, // This blend mode allows the image to show through the color filter
                   ),
                 ),
               ),
@@ -1614,15 +1611,13 @@ class _MobilePaymentState extends State<MobilePayment> {
                   ),
                   const SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center, // Center the row contents
+                    mainAxisAlignment: MainAxisAlignment.center, // Center the row contents
                     children: [
                       Container(
                         width: 200, // Adjust this width as needed
                         child: TextFormField(
                           controller: TextEditingController(
-                              text:
-                                  "Ksh. ${totalPrice.toString()}"), // Display "Ksh." followed by total price
+                              text: "Ksh. ${totalPrice.toString()}"), // Display "Ksh." followed by total price
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
@@ -1641,8 +1636,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                               borderSide: BorderSide.none,
                             ),
                           ),
-                          readOnly:
-                              true, // Make the field read-only since it's for display purposes
+                          readOnly: true, // Make the field read-only since it's for display purposes
                         ),
                       ),
                     ],
@@ -1685,9 +1679,8 @@ class _MobilePaymentState extends State<MobilePayment> {
                       amountPaid: "Ksh. 500"), // After payment
                   const Spacer(),
 
-                  const SizedBox(height: 50), // Space for clarity
+                  const SizedBox(height: 10), // Space for clarity
                   // Cash Paid
-// Cash Paid
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -1695,8 +1688,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                         "Cash Paid: ",
                         style: TextStyle(
                           fontWeight: FontWeight.bold, // Make label text bold
-                          fontSize:
-                              16, // You can adjust the font size as needed
+                          fontSize: 16, // You can adjust the font size as needed
                         ),
                       ),
                       Expanded(
@@ -1715,10 +1707,8 @@ class _MobilePaymentState extends State<MobilePayment> {
                             Text(
                               "$cashPaid",
                               style: const TextStyle(
-                                fontWeight:
-                                    FontWeight.bold, // Make value text bold
-                                fontSize:
-                                    16, // You can adjust the font size as needed
+                                fontWeight: FontWeight.bold, // Make value text bold
+                                fontSize: 16, // You can adjust the font size as needed
                               ),
                             ),
                           ],
@@ -1729,7 +1719,7 @@ class _MobilePaymentState extends State<MobilePayment> {
 
                   const SizedBox(height: 20), // Adjust the height for spacing
 
-// Balance
+                  // Balance
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -1737,8 +1727,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                         "Balance: ",
                         style: TextStyle(
                           fontWeight: FontWeight.bold, // Make label text bold
-                          fontSize:
-                              16, // You can adjust the font size as needed
+                          fontSize: 16, // You can adjust the font size as needed
                         ),
                       ),
                       Expanded(
@@ -1757,10 +1746,8 @@ class _MobilePaymentState extends State<MobilePayment> {
                             Text(
                               "${cashPaid - totalPrice}",
                               style: const TextStyle(
-                                fontWeight:
-                                    FontWeight.bold, // Make value text bold
-                                fontSize:
-                                    16, // You can adjust the font size as needed
+                                fontWeight: FontWeight.bold, // Make value text bold
+                                fontSize: 16, // You can adjust the font size as needed
                               ),
                             ),
                           ],
@@ -1769,17 +1756,27 @@ class _MobilePaymentState extends State<MobilePayment> {
                     ],
                   ),
 
-                  // SizedBox(height: 0), // Adjust the height for spacing
-
-                  //SizedBox(height: 20),
                   const SizedBox(height: 5),
                   const Spacer(),
 
                   // Complete and Send Receipt Button
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Add your receipt sending logic here
+                      onPressed: () async {
+                        String phoneNumber = customerPhoneController.text;
+                        if (phoneNumber.isEmpty) {
+                          // Show some error message
+                          return;
+                        }
+
+                        MpesaPayment mpesaPayment = MpesaPayment();
+                        await mpesaPayment.lipaNaMpesa(
+                          phoneNumber: phoneNumber,
+                          amount: totalPrice,
+                          accountReference: "Account Reference",
+                          transactionDescription: "Payment Description",
+                          callbackUrl: "https://yourcallbackurl.com/callback",
+                        );
                       },
                       child: const Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
@@ -1818,7 +1815,6 @@ class PaymentInfoDisplay extends StatelessWidget {
       alignment: Alignment.center, // Center the text inside the container
       decoration: BoxDecoration(
         color: Colors.transparent,
-        // color: const Color.fromARGB(255, 200, 179, 179),
         borderRadius: const BorderRadius.all(Radius.circular(60)), // Rounded corners
         border: Border.all(color: Colors.black, width: 2),
       ),
@@ -1834,7 +1830,6 @@ class PaymentInfoDisplay extends StatelessWidget {
     );
   }
 }
-
 
 
 class ProductOrder {
