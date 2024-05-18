@@ -3,7 +3,6 @@ import 'package:medfast_go/business/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products.dart';
 import 'package:medfast_go/business/sales.dart';
-import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/auth_page.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
@@ -56,6 +55,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
+        
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomeScreen(completedOrders: [],),
@@ -85,8 +85,7 @@ class MyApp extends StatelessWidget {
         '/editProduct': (context) {
           final Product product =
               ModalRoute.of(context)!.settings.arguments as Product;
-          return EditProductPage(
-              product: product); // Ensure EditProductPage is correctly named
+          return EditProductPage(product: product);
         },
         '/themes': (context) => const Themes(),
         '/language': (context) => const Language(),
