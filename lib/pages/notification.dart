@@ -1,8 +1,21 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:medfast_go/data/DatabaseHelper.dart'; // Import DatabaseHelper to use its methods
+import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class NotificationItem {
+  String message;
+  DateTime timestamp;
+  bool read; // Added read status
+
+  NotificationItem({
+    required this.message,
+    required this.timestamp,
+    this.read = false, // Default read status is false
+  });
+}
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({Key? key}) : super(key: key);
@@ -13,14 +26,19 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   bool showAllNotifications = true;
-  List<String> expiredProductNotifications =
-      []; // Store expired product notifications
-  // List to store products
+  List<NotificationItem> expiredProductNotifications = [];
   List<Product> products = [];
-  // Variable to store the deleted notification temporarily
   String? _deletedNotification;
+  Set<String> readNotifications = {}; // Changed to store message strings
 
-  // Function to fetch products from the database
+  @override
+  void initState() {
+    super.initState();
+    _fetchProducts();
+    checkExpiredProducts();
+    _loadReadNotifications();
+  }
+
   Future<void> _fetchProducts() async {
     final dbHelper = DatabaseHelper();
     final fetchedProducts = await dbHelper.getProducts();
@@ -29,117 +47,142 @@ class _NotificationsPageState extends State<NotificationsPage> {
     });
   }
 
-  // Function to check for expired products and generate notifications
   Future<void> checkExpiredProducts() async {
     final dbHelper = DatabaseHelper();
     final allProducts = await dbHelper.getProducts();
 
-    // Clear previous notifications
     setState(() {
       expiredProductNotifications.clear();
     });
 
-    // Check each product for expiry
     final currentDate = DateTime.now();
     final twoWeeksFromNow = DateTime.now().add(Duration(days: 14));
     final oneWeekFromNow = DateTime.now().add(Duration(days: 7));
     final twoDaysFromNow = DateTime.now().add(Duration(days: 2));
     final oneMonthFromNow = DateTime.now().add(Duration(days: 30));
+
     for (var product in allProducts) {
       final expiryDate = DateTime.parse(product.expiryDate);
       if (expiryDate.isBefore(currentDate)) {
-        // Product has expired, add notification in red
         setState(() {
-          expiredProductNotifications.add(
-            '${product.productName} has expired on ${product.expiryDate}',
-          );
+          expiredProductNotifications.add(NotificationItem(
+            message:
+                '${product.productName} has expired on ${product.expiryDate}',
+            timestamp: DateTime.now(),
+            read: readNotifications.contains(
+                '${product.productName} has expired on ${product.expiryDate}'),
+          ));
         });
       } else if (expiryDate.isAfter(currentDate) &&
           expiryDate.isBefore(twoDaysFromNow)) {
-        // Product is expiring in 2 days, add notification in red
         setState(() {
-          expiredProductNotifications.add(
-            '${product.productName} will expire in 2 days',
-          );
+          expiredProductNotifications.add(NotificationItem(
+            message: '${product.productName} will expire in 2 days',
+            timestamp: DateTime.now(),
+            read: readNotifications
+                .contains('${product.productName} will expire in 2 days'),
+          ));
         });
       } else if (expiryDate.isAfter(currentDate) &&
           expiryDate.isBefore(oneWeekFromNow)) {
-        // Product is expiring in 1 week, add notification in red
         setState(() {
-          expiredProductNotifications.add(
-            '${product.productName} will expire in 1 week',
-          );
+          expiredProductNotifications.add(NotificationItem(
+            message: '${product.productName} will expire in 1 week',
+            timestamp: DateTime.now(),
+            read: readNotifications
+                .contains('${product.productName} will expire in 1 week'),
+          ));
         });
       } else if (expiryDate.isAfter(currentDate) &&
           expiryDate.isBefore(twoWeeksFromNow)) {
-        // Product is expiring in 2 weeks, add notification in brown
         setState(() {
-          expiredProductNotifications.add(
-            '${product.productName} will expire in 2 weeks',
-          );
+          expiredProductNotifications.add(NotificationItem(
+            message: '${product.productName} will expire in 2 weeks',
+            timestamp: DateTime.now(),
+            read: readNotifications
+                .contains('${product.productName} will expire in 2 weeks'),
+          ));
         });
       } else if (expiryDate.isAfter(currentDate) &&
           expiryDate.isBefore(oneMonthFromNow)) {
-        // Product is expiring in one month, add notification in brown
         setState(() {
-          expiredProductNotifications.add(
-            '${product.productName} will expire in one month',
-          );
+          expiredProductNotifications.add(NotificationItem(
+            message: '${product.productName} will expire in one month',
+            timestamp: DateTime.now(),
+            read: readNotifications
+                .contains('${product.productName} will expire in one month'),
+          ));
         });
       }
     }
+
+    sortNotifications(); // Sort notifications after adding
   }
 
-  // Call checkExpiredProducts() in initState() to check for expired products when the page is loaded
-  @override
-  void initState() {
-    super.initState();
-    _fetchProducts();
-    checkExpiredProducts();
+  void sortNotifications() {
+    expiredProductNotifications
+        .sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
+
+  Future<void> _loadReadNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final readNotificationsList =
+        prefs.getStringList('readNotifications') ?? [];
+    setState(() {
+      readNotifications =
+          readNotificationsList.toSet(); // Convert to set of message strings
+    });
+  }
+
+  Future<void> _saveReadNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final readNotificationsList =
+        readNotifications.toList(); // Convert set to list of message strings
+    await prefs.setStringList('readNotifications', readNotificationsList);
+  }
+
+  void _markAllAsRead() {
+    setState(() {
+      expiredProductNotifications.forEach((notification) {
+        notification.read = true;
+        readNotifications.add(notification.message);
+      });
+    });
+    _saveReadNotifications();
   }
 
   Widget _buildNotificationsList() {
     return ListView.builder(
       itemCount: expiredProductNotifications.length,
       itemBuilder: (context, index) {
-        // Check if the notification contains specific strings to determine expiration duration
-        final isTwoDays = expiredProductNotifications[index]
-            .contains("will expire in 2 days");
-        final isOneWeek = expiredProductNotifications[index]
-            .contains("will expire in 1 week");
-        final isTwoWeeks = expiredProductNotifications[index]
-            .contains("will expire in 2 weeks");
-        final isOneMonth = expiredProductNotifications[index]
-            .contains("will expire in one month");
-
-        // Determine the background color and text color based on expiration duration
+        var notification = expiredProductNotifications[index];
         Color backgroundColor;
         Color textColor = Colors.white;
 
-        if (isTwoDays) {
-          backgroundColor =
-              Colors.brown; // Products expiring in 2 days - brown color
-        } else if (isOneWeek) {
-          backgroundColor = Colors
-              .grey[800]!; // Products expiring in 1 week - dark grey color
-        } else if (isTwoWeeks) {
-          backgroundColor = Colors
-              .blue[900]!; // Products expiring in 2 weeks - navy blue color
-        } else if (isOneMonth) {
-          backgroundColor = Colors
-              .blue[200]!; // Products expiring in 1 month - light blue color
+        if (notification.message.contains("will expire in 2 days")) {
+          backgroundColor = Colors.brown;
+        } else if (notification.message.contains("will expire in 1 week")) {
+          backgroundColor = Colors.grey[800]!;
+        } else if (notification.message.contains("will expire in 2 weeks")) {
+          backgroundColor = Colors.blue[900]!;
+        } else if (notification.message.contains("will expire in one month")) {
+          backgroundColor = Colors.blue[200]!;
         } else {
-          backgroundColor = Colors.red; // Default color for expired products
+          backgroundColor = Colors.red;
         }
 
-        // Extract the image file path from the product if available
+        if (notification.read) {
+          backgroundColor = Colors.grey;
+        }
+
         var product = products[index];
         var imageFile = File(product.image ?? '');
 
         return GestureDetector(
           onTap: () {
-            _showExpiryDateDialog(context, product.expiryDate);
-          }, // Show the expiry date dialog on tap
+            _showExpiryDateDialog(context, product.expiryDate,
+                notification); // Pass notification instead of index
+          },
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -151,10 +194,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
               child: ListTile(
                 leading: ClipOval(
                   child: Container(
-                    color: Colors.white, // Set the background color to white
+                    color: Colors.white,
                     child: SizedBox(
-                      width: 35, // Adjust width as needed
-                      height: 35, // Adjust height as needed
+                      width: 35,
+                      height: 35,
                       child: imageFile.existsSync()
                           ? Image.file(
                               imageFile,
@@ -163,12 +206,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 return const Icon(Icons.error);
                               },
                             )
-                          : const Placeholder(), // Display a placeholder if no image is available
+                          : const Placeholder(),
                     ),
                   ),
                 ),
                 title: Text(
-                  expiredProductNotifications[index],
+                  notification.message,
                   style: TextStyle(
                     color: textColor,
                   ),
@@ -189,38 +232,37 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Future<void> _deleteNotification(int index) async {
     setState(() {
-      // Store the deleted notification temporarily
-      _deletedNotification = expiredProductNotifications[index];
-      // Check if the index is within the bounds of the list
+      _deletedNotification = expiredProductNotifications[index].message;
       if (index >= 0 && index < expiredProductNotifications.length) {
         expiredProductNotifications.removeAt(index);
       }
     });
 
-    // Remove the notification from the database as well
     final dbHelper = DatabaseHelper();
-    // Here, you need to implement a method in DatabaseHelper to delete the notification based on its content
     await dbHelper.deleteNotification(_deletedNotification!);
 
-    // Show a Snackbar with an "Undo" action
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text("Notification deleted"),
       action: SnackBarAction(
         label: "Undo",
         onPressed: () {
-          // Restore the deleted notification if "Undo" is clicked
           setState(() {
-            expiredProductNotifications.add(_deletedNotification!);
-            _deletedNotification = null; // Clear the temporary variable
+            expiredProductNotifications.insert(
+              index,
+              NotificationItem(
+                message: _deletedNotification!,
+                timestamp: DateTime.now(),
+              ),
+            );
+            _deletedNotification = null;
           });
         },
       ),
     ));
   }
 
-  // Function to show a dialog with the expiry date
-  void _showExpiryDateDialog(BuildContext context, String expiryDate) {
-    // Check if the expiry date has passed
+  void _showExpiryDateDialog(
+      BuildContext context, String expiryDate, NotificationItem notification) {
     final isExpired = DateTime.parse(expiryDate).isBefore(DateTime.now());
 
     showDialog(
@@ -235,6 +277,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
             TextButton(
               child: Text("OK"),
               onPressed: () {
+                setState(() {
+                  notification.read = true; // Mark notification as read
+                  readNotifications.add(notification
+                      .message); // Add message to read notifications
+                });
+                _saveReadNotifications();
                 Navigator.of(context).pop();
               },
             ),
@@ -292,7 +340,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ),
                         ),
                         Container(
-                          width: 24.0, // Adjust as needed
+                          width: 24.0,
                           height: 2.0,
                           color: showAllNotifications
                               ? Theme.of(context).primaryColor
@@ -306,6 +354,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     onTap: () {
                       setState(() {
                         showAllNotifications = false;
+                        _markAllAsRead();
                       });
                     },
                     child: Column(
@@ -322,7 +371,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ),
                         ),
                         Container(
-                          width: 80.0, // Adjust as needed
+                          width: 80.0,
                           height: 2.0,
                           color: !showAllNotifications
                               ? Theme.of(context).primaryColor
@@ -336,7 +385,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
             ),
           ),
           const SizedBox(height: 20),
-          // Display expired product notifications
           Expanded(
             child: _buildNotificationsList(),
           ),
