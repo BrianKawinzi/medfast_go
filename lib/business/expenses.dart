@@ -259,8 +259,8 @@
 // }
 
 import 'package:flutter/material.dart';
-import 'package:medfast_go/business/EXPENSES/expense_detail_page.dart';
 import 'package:medfast_go/business/Expenses/custom_expense_details_page.dart';
+import 'package:medfast_go/business/Expenses/expense_detail_page.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 
 import '../models/expenses.dart';

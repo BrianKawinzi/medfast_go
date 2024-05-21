@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,15 +6,12 @@ import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
-import 'package:medfast_go/pages/components/circular_progress.dart';
-import 'package:medfast_go/pages/widgets/CustomProgressIndicator.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
-import 'package:medfast_go/bargraph/individual_bar.dart';
-import 'package:medfast_go/pages/widgets/progress_indicator.dart';
 import 'package:medfast_go/pages/widgets/revenue_card.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:medfast_go/pages/notification.dart';
 import 'dart:math' as math;
+import 'package:medfast_go/pages/faq.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<OrderDetails> completedOrders;
@@ -24,7 +22,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   late List<OrderDetails> _completedOrders;
   final List<String> _months = [
     '',
@@ -41,12 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
     'Nov',
     'Dec'
   ];
+  bool hasNotification = true;
 
-  late int _selectedYear = DateTime.now().year;
+  late final int _selectedYear = DateTime.now().year;
   late int _selectedMonthIndex = DateTime.now().month;
   //late String _selectedMonth = where index for months is _selectedMonthIndex
   late String _selectedMonth = _months[_selectedMonthIndex];
-  List<double> _monthlyAmounts = [];
 
   double? _totalRevenueForGraph;
 
@@ -64,7 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _totalRevenueForGraph = revenue;
       });
     });
-    _fetchmonthlyAmounts();
   }
 
   //calculate revenue method
@@ -79,18 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     return totalRevenue;
-  }
-  Future<void> _fetchmonthlyAmounts() async {
-    try {
-      Map<String, double> monthlyAmounts = await DatabaseHelper().getTotalPriceByMonth();
-
-      setState(() {
-        _monthlyAmounts = monthlyAmounts.values.toList();
-      });
-    } catch (e) {
-      //Handle error
-      print('Error fetching monthly amounts: $e');
-    }
   }
 
   static Future<int> countCustomers() async {
@@ -119,9 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
   }
 
-
-
-
   Widget buildMetricCard() {
     return Card(
       elevation: 5,
@@ -131,20 +114,20 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Today's Metrics",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             FutureBuilder<double>(
               future: DatabaseHelper().getDailyProfit(DateTime.now()),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasData) {
                   double profit = snapshot.data!;
                   int itemsSold = profit.toInt();
-                  int completedOrders = (profit / 10).toInt();
+                  int completedOrders = profit ~/ 10;
                   double expenses = profit;
 
                   return Column(
@@ -164,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return Center(
+                                return const Center(
                                     child: CircularProgressIndicator());
                               } else if (snapshot.hasData) {
                                 int itemsSold = snapshot.data!;
@@ -185,13 +168,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                 );
                               } else {
-                                return Text('Error fetching data');
+                                return const Text('Error fetching data');
                               }
                             },
                           ),
                         ],
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -201,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text("Error: ${snapshot.error}");
                               } else if (snapshot.hasData) {
@@ -213,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   title: "Completed Orders",
                                 );
                               } else {
-                                return Text("No data available");
+                                return const Text("No data available");
                               }
                             },
                           ),
@@ -223,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text('Error: ${snapshot.error}');
                               } else {
@@ -242,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   );
                 } else {
-                  return Text('Error fetching data');
+                  return const Text('Error fetching data');
                 }
               },
             ),
@@ -284,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           title,
           style: TextStyle(
@@ -307,20 +290,20 @@ class _HomeScreenState extends State<HomeScreen> {
           vertical: 4.0, horizontal: 8.0), // Adjusted padding
       margin: const EdgeInsets.only(right: 8.0),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            Color.fromARGB(255, 7, 204, 59)!,
-            Color.fromARGB(255, 191, 190, 193)!
+            Color.fromARGB(255, 7, 204, 59),
+            Color.fromARGB(255, 191, 190, 193)
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Color.fromARGB(255, 77, 161, 58).withOpacity(0.5),
+            color: const Color.fromARGB(255, 77, 161, 58).withOpacity(0.5),
             spreadRadius: 1,
             blurRadius: 4,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
         borderRadius: BorderRadius.circular(10),
@@ -329,12 +312,12 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 18, color: Color.fromARGB(255, 81, 77, 77)),
+          Icon(icon, size: 18, color: const Color.fromARGB(255, 81, 77, 77)),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
               '$label\n$value',
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color.fromARGB(255, 30, 5, 47),
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -353,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required double revenue,
   }) {
     return Container(
-      padding: EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
           Container(
@@ -368,12 +351,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   : null,
             ),
-            child: imageUrl.isEmpty ? Icon(Icons.image_not_supported) : null,
+            child:
+                imageUrl.isEmpty ? const Icon(Icons.image_not_supported) : null,
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
             name,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -434,14 +418,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 15),
+                    const SizedBox(width: 15),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             product.productName,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Text(
@@ -460,11 +444,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                                 fontSize: 14, color: Colors.grey[800])),
                         Text('Ksh${product.sellingPrice.toStringAsFixed(2)}',
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.bold)),
                       ],
                     ),
-                    SizedBox(width: 15),
+                    const SizedBox(width: 15),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -524,19 +508,43 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => NotificationsPage()),
+                MaterialPageRoute(
+                    builder: (context) => const NotificationsPage()),
               );
             },
-            icon: const Icon(
-              Icons.notifications,
-              color: Colors.white,
+            icon: Stack(
+              children: [
+                const Icon(
+                  Icons.notifications,
+                  color: Colors.white,
+                ),
+                if (hasNotification) // Show red dot if there's a notification
+                  Positioned(
+                    left: 13,
+                    bottom: 14,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 10,
+                        minHeight: 10,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
 
           //help button
           IconButton(
             onPressed: () {
-              //handle help logic here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FAQ()),
+              );
             },
             icon: const Icon(
               Icons.help_outline_rounded,
@@ -555,7 +563,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              
               buildMetricCard(),
               // Revenue card
 
@@ -582,10 +589,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return Text(
 
                                     //assign snapshot.data to _totalRevenueForGraph
-                                
 
                                     'KSH ${snapshot.data!.toStringAsFixed(0)}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 18.0,
                                         fontWeight: FontWeight.bold));
                               } else {
@@ -601,8 +607,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: const Icon(Icons.arrow_drop_down),
                             elevation: 16,
                             style: const TextStyle(
-                                color: Color.fromARGB(255, 13, 13,
-                                    13)),
+                                color: Color.fromARGB(255, 13, 13, 13)),
                             underline: Container(
                               height: 2,
                               color: Colors.deepPurpleAccent,
@@ -629,7 +634,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 200,
                           child: IndividualBar(
                             selectedMonthIndex: _selectedMonthIndex,
-                            monthlyAmounts: _monthlyAmounts,
+                            monthlyAmounts: const [
+                              100,
+                              45,
+                              200,
+                              150,
+                              300,
+                              250,
+                              400,
+                              350,
+                              500,
+                              450,
+                              600,
+                              550
+                            ],
                           )),
                     ],
                   ),
@@ -647,7 +665,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: GridView.count(
                           shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: 2,
                           mainAxisSpacing: 8.0,
                           crossAxisSpacing: 8.0,
@@ -859,7 +877,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     children: [
                                       Text(
                                         product.productName,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                             fontSize: 14.0,
                                             fontWeight: FontWeight.bold),
                                       ),
