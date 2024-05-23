@@ -203,21 +203,41 @@ class _ProductsState extends State<Products> {
     _fetchProducts();
   }
 
+  int _calculateTotalQuantity() {
+    int totalQuantity = 0;
+    for (var product in products) {
+      totalQuantity += product.quantity;
+    }
+    return totalQuantity;
+  }
+
+  double _calculateTotalWorth() {
+    double totalWorth = 0;
+    for (var product in products) {
+      totalWorth += product.quantity * product.sellingPrice;
+    }
+    return totalWorth;
+  }
+
   @override
   Widget build(BuildContext context) {
+    int totalQuantity = _calculateTotalQuantity();
+    double totalWorth = _calculateTotalWorth();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () =>Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BottomNavigation())),
+          onTap: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BottomNavigation())),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
+              // Implement menu action
             },
           ),
         ],
@@ -251,7 +271,7 @@ class _ProductsState extends State<Products> {
                       onChanged: (query) => _filterProducts(query),
                       decoration: const InputDecoration(
                         border: InputBorder.none,
-                        labelText: 'Search Products',
+                        hintText: 'Search Products',
                         labelStyle: TextStyle(color: Colors.green),
                         prefixIcon: Icon(Icons.search),
                       ),
@@ -269,16 +289,34 @@ class _ProductsState extends State<Products> {
               ),
             ),
             Expanded(child: _buildProductList()),
+            if (products.isNotEmpty)
+              Container(
+                width: double.infinity,
+                height: 40, // Approx. 1 cm high
+                color: Colors.green[100],
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Total Quantity: $totalQuantity'),
+                    Text('Stock value: \Ksh${totalWorth.toStringAsFixed(2)}'),
+                  ],
+                ),
+              ),
+              
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+     floatingActionButton: Padding(
+      padding: const EdgeInsets.only(bottom: 30.9), // 0.5 cm in logical pixels
+      child: FloatingActionButton(
         onPressed: () {
           _showProductForm(context);
         },
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         child: const Icon(Icons.add),
       ),
+    ),
     );
   }
 
@@ -293,8 +331,7 @@ class _ProductsState extends State<Products> {
             padding: const EdgeInsets.all(30.0),
             child: Wrap(
               alignment: WrapAlignment.center,
-              spacing:
-                  10, // Adjust this value as needed for spacing between buttons
+              spacing: 10, // Adjust this value as needed for spacing between buttons
               children: [
                 Material(
                   borderRadius: BorderRadius.circular(45),
