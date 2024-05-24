@@ -112,7 +112,7 @@ class DatabaseHelper {
       final String path = join(await getDatabasesPath(), 'medfast_go.db');
       final Database database = await openDatabase(
         path,
-        version: 3,
+        version: 4,
         onCreate: _createDb,
         onUpgrade: _upgradeDb,
       );
@@ -198,18 +198,48 @@ class DatabaseHelper {
   }
 
   // Handle database upgrades
-  void _upgradeDb(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
+ void _upgradeDb(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
       // Upgrade logic for version 2
       await db.execute('''
-      CREATE TABLE $completedOrderTableName (
-        $columnOrderId TEXT,
-        $columnTotalPrice REAL,
-        $columnProducts TEXT,
-        $columnCompletedAt TEXT,
-        $columnprofit REAL
-      )
-    ''');
+        CREATE TABLE $completedOrderTableName (
+          $columnOrderId TEXT,
+          $columnTotalPrice REAL,
+          $columnProducts TEXT,
+          $columnCompletedAt TEXT,
+          $columnprofit REAL
+        )
+      ''');
+    }
+    if (oldVersion < 3) {
+      // Upgrade logic for version 3
+      await db.execute('''
+        ALTER TABLE $productTableName ADD COLUMN $columnsoldQuantity INTEGER DEFAULT 0
+      ''');
+      await db.execute('''
+        ALTER TABLE $productTableName ADD COLUMN $columnProductprofit REAL DEFAULT 0.0
+      ''');
+    }
+    if (oldVersion < 4) {
+      // Upgrade logic for version 4
+      await db.execute('''
+        CREATE TABLE $remindersTableName (
+          $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+          $columnReminderTittle TEXT,
+          $columnReminderDescription TEXT,
+          $columnReminderdate TEXT,
+          $columnReminderTime TEXT
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE $notesTableName (
+          $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+          $columnNoteTittle TEXT,
+          $columnNoteDescription TEXT,
+          $columnNotedate TEXT,
+          $columnNoteTime TEXT
+        )
+      ''');
     }
   }
 
