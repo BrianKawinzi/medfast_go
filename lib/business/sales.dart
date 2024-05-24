@@ -834,7 +834,7 @@ void _removeItemFromCart(String productName) {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              // Add your search functionality here
+              // Add your search functionality here gere
             },
           ),
         ],
