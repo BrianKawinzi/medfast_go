@@ -698,14 +698,12 @@ void _upgradeDb(Database db, int oldVersion, int newVersion) async {
     }
   }
 
-  Future<void> updateProductQuantity(int productId, int newQuantity) async {
-    // Database update logic here
-    Database? db =
-        await database; // Assuming you have a getter for the database
+   Future<void> updateProductQuantity(int productId, int newQuantity) async {
+    final db = await database;
     await db?.update(
-      'products',
-      {'quantity': newQuantity},
-      where: 'id = ?',
+      productTableName,
+      {columnQuantity: newQuantity},
+      where: '$columnId = ?',
       whereArgs: [productId],
     );
   }
