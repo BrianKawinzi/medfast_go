@@ -197,8 +197,7 @@ class DatabaseHelper {
     ''');
   }
 
-  // Handle database upgrades
- void _upgradeDb(Database db, int oldVersion, int newVersion) async {
+void _upgradeDb(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       // Upgrade logic for version 2
       await db.execute('''
@@ -222,7 +221,7 @@ class DatabaseHelper {
     }
     if (oldVersion < 4) {
       // Upgrade logic for version 4
-      await db.execute('''
+      await _createTableIfNotExists(db, remindersTableName, '''
         CREATE TABLE $remindersTableName (
           $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
           $columnReminderTittle TEXT,
@@ -231,7 +230,7 @@ class DatabaseHelper {
           $columnReminderTime TEXT
         )
       ''');
-      await db.execute('''
+      await _createTableIfNotExists(db, notesTableName, '''
         CREATE TABLE $notesTableName (
           $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
           $columnNoteTittle TEXT,
@@ -240,6 +239,16 @@ class DatabaseHelper {
           $columnNoteTime TEXT
         )
       ''');
+    }
+  }
+
+  Future<void> _createTableIfNotExists(Database db, String tableName, String createTableQuery) async {
+    var tableExists = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='$tableName';"
+    );
+
+    if (tableExists.isEmpty) {
+      await db.execute(createTableQuery);
     }
   }
 
