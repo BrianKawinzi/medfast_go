@@ -24,21 +24,11 @@ class _AddNotePageState extends State<AddNotePage> {
   final TextEditingController _noteDescription = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _showButton = false;
 
   @override
   void initState() {
-    _noteDescription.addListener(_checkButtonVisibility);
-    _noteTittleController.addListener(_checkButtonVisibility);
     widget.isEdit ? initEdit() : null;
     super.initState();
-  }
-
-  void _checkButtonVisibility() {
-    setState(() {
-      _showButton = _noteDescription.text.isNotEmpty &&
-          _noteTittleController.text.isNotEmpty;
-    });
   }
 
   initEdit() {
@@ -107,6 +97,12 @@ class _AddNotePageState extends State<AddNotePage> {
                     children: [
                       TextFormField(
                         controller: _noteTittleController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter note tittle';
+                          }
+                          return null;
+                        },
                         decoration: const InputDecoration(
                           hintText: 'Tittle',
                           border: InputBorder.none, // Hide border
@@ -114,7 +110,14 @@ class _AddNotePageState extends State<AddNotePage> {
                       ),
                       const SizedBox(height: 8.0),
                       TextFormField(
+                        maxLines: null,
                         controller: _noteDescription,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter note description';
+                          }
+                          return null;
+                        },
                         decoration: const InputDecoration(
                           hintText: 'Note something down',
                           border: InputBorder.none,
@@ -125,35 +128,33 @@ class _AddNotePageState extends State<AddNotePage> {
                 ),
               ),
             ),
-            _showButton
-                ? !widget.isEdit
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(vertical: 50),
-                        alignment: Alignment.bottomCenter,
-                        child: CustomButton(
-                          onTap: () async {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              await _addNote();
-                            }
-                          },
-                          text: 'ADD NOTE',
-                        ),
-                      )
-                    : Container(
-                        padding: const EdgeInsets.symmetric(vertical: 50),
-                        alignment: Alignment.bottomCenter,
-                        child: CustomButton(
-                          onTap: () async {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              await _updateNote();
-                            }
-                          },
-                          text: 'EDIT NOTE',
-                        ),
-                      )
-                : const SizedBox()
+            !widget.isEdit
+                ? Container(
+                    padding: const EdgeInsets.symmetric(vertical: 50),
+                    alignment: Alignment.bottomCenter,
+                    child: CustomButton(
+                      onTap: () async {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          await _addNote();
+                        }
+                      },
+                      text: 'ADD NOTE',
+                    ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.symmetric(vertical: 50),
+                    alignment: Alignment.bottomCenter,
+                    child: CustomButton(
+                      onTap: () async {
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          await _updateNote();
+                        }
+                      },
+                      text: 'EDIT NOTE',
+                    ),
+                  ),
           ],
         ),
       ),

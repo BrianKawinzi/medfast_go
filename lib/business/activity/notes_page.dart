@@ -72,6 +72,28 @@ class _NotesPageState extends State<NotesPage> {
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   direction: DismissDirection.endToStart,
+                  confirmDismiss: (direction) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirm'),
+                          content:
+                              const Text('Are you sure you want to delete ?'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                   onDismissed: (direction) {
                     _deleteNote(notes[index]);
                     setState(() {
@@ -82,14 +104,21 @@ class _NotesPageState extends State<NotesPage> {
                     child: ListTile(
                       title: Text(
                         notes[index].tittle,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        maxLines: 2,
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             notes[index].description,
-                            style: const TextStyle(color: Colors.black),
+                            style: const TextStyle(
+                                color: Colors.black,
+                                overflow: TextOverflow.ellipsis),
+                            maxLines: 2,
                           ),
                           const SizedBox(height: 10),
                           Text(
@@ -97,6 +126,20 @@ class _NotesPageState extends State<NotesPage> {
                             style: const TextStyle(color: Colors.grey),
                           ),
                         ],
+                      ),
+                      trailing: IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddNotePage(
+                                isEdit: true,
+                                note: notes[index],
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit),
                       ),
                     ),
                   ),

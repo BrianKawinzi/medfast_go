@@ -900,40 +900,34 @@ void _removeItemFromCart(String productName) {
               ),
             ),
           ),
-          Positioned(
+         Positioned(
             left: 10,
-            bottom: 10 + 1 * 38.1, 
+            bottom: 10 + 1 * 38.1,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black, 
-                borderRadius: BorderRadius.circular(
-                    5), 
+                color: const Color.fromARGB(255, 190, 184, 184),
+                borderRadius: BorderRadius.circular(5),
               ),
-              padding: const EdgeInsets.all(
-                  2), 
+              padding: const EdgeInsets.all(2),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  elevation: 10, 
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 15), 
+                  backgroundColor: totalPrice > 0 ? Colors.green : Color.fromARGB(255, 208, 204, 204),
+                  elevation: 10,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 ),
-                onPressed: () {
-                  _showMiniScreen(); 
-                },
+                onPressed: totalPrice > 0 ? () {
+                  _showMiniScreen();
+                } : null,
                 child: const Row(
-                  mainAxisSize:
-                      MainAxisSize.min, 
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.shopping_bag,
-                        color: Colors.yellow), 
+                    Icon(Icons.shopping_bag, color: Colors.yellow),
                     SizedBox(width: 8),
                     Text(
                       'Sale',
                       style: TextStyle(
-                        color: Colors.black, 
-                        fontWeight: FontWeight.bold, 
+                        color: Color.fromARGB(255, 215, 210, 210),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -941,6 +935,7 @@ void _removeItemFromCart(String productName) {
               ),
             ),
           ),
+
           Positioned(
             right: 10,
             bottom: 10 +
@@ -986,7 +981,7 @@ void _removeItemFromCart(String productName) {
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.black,
+                          foregroundColor: const Color.fromARGB(255, 117, 114, 114),
                           backgroundColor:
                               Colors.white, 
                         ),
