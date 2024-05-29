@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:mpesa_flutter_plugin/mpesa_flutter_plugin.dart';
 
 class MpesaPayment {
@@ -14,14 +13,15 @@ class MpesaPayment {
     required String accountReference,
     required String transactionDescription,
     required String callbackUrl,
+    required String businessShortCode,
   }) async {
     try {
       var response = await MpesaFlutterPlugin.initializeMpesaSTKPush(
-        businessShortCode: "174379",
+        businessShortCode: businessShortCode,
         transactionType: TransactionType.CustomerPayBillOnline,
         amount: amount,
         partyA: phoneNumber,
-        partyB: "174379",
+        partyB: businessShortCode,
         callBackURL: Uri.parse(callbackUrl),
         accountReference: accountReference,
         phoneNumber: phoneNumber,
