@@ -8,35 +8,38 @@ environment:
   sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
+  barcode_scan2: ^4.3.0
+  charts_flutter: ^0.11.0
+  collection: ^1.15.0
+  csv: ^5.0.1
+  cupertino_icons: ^1.0.2
+  excel: ^4.0.3
+  file_picker: ^8.0.3
+  fl_chart: ^0.40.0
   flutter:
     sdk: flutter
-  image_picker: ^0.8.4
+  flutter_file_dialog: ^3.0.2
   flutter_typeahead: ^3.1.1
-  shared_preferences: ^2.0.13
-  intl_phone_number_input: ^0.7.3+1
-  cupertino_icons: ^1.0.2
+  fluttertoast: ^8.0.7
   geolocator: ^8.0.0
   http: ^0.13.3
-  permission_handler: ^8.0.1
+  image_picker: ^0.8.4
   intl: ^0.17.0
-  sqflite: ^2.0.0
-  path_provider_foundation: ^2.3.1
-  qr_code_scanner: ^1.0.1
-  provider: ^6.1.1
-  path_provider: ^2.0.8
-  csv: ^5.0.1
-  fluttertoast: ^8.0.7
-  flutter_file_dialog: ^3.0.2
-  collection: ^1.15.0
-  fl_chart: ^0.40.0
-  charts_flutter: ^0.11.0
+  intl_phone_number_input: ^0.7.3+1
   mpesa_flutter_plugin: ^1.0.0
+  path_provider: ^2.0.8
+  path_provider_foundation: ^2.3.1
+  permission_handler: ^8.0.1
+  provider: ^6.1.1
+  qr_code_scanner: ^1.0.1
+  shared_preferences: ^2.0.13
+  sqflite: ^2.0.0
 
 dev_dependencies:
+  flutter_launcher_icons: "^0.9.2"
+  flutter_lints: ^2.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
-  flutter_launcher_icons: "^0.9.2"
 
 flutter_icons:
   image_path: "lib/assets/medgfastlogo.png"
@@ -63,10 +66,8 @@ flutter:
     - lib/assets/noimage.png
   # An image asset can refer to one or more resolution-specific "variants", see the link below
   # https://flutter.dev/assets-and-images/#resolution-aware
-
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
-
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a

@@ -1,10 +1,15 @@
 import 'dart:io';
+import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:medfast_go/business/editproductpage.dart';
+import 'package:medfast_go/business/products/import_product.dart';
+import 'package:medfast_go/business/products/qr_scanner.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Products extends StatefulWidget {
   const Products({super.key, required String productName});
@@ -230,7 +235,8 @@ class _ProductsState extends State<Products> {
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BottomNavigation())),
+          onTap: () => Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) => const BottomNavigation())),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
@@ -279,9 +285,29 @@ class _ProductsState extends State<Products> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.qr_code_scanner),
-                    onPressed: () {
-                      if (kDebugMode) {
-                        print("Retrieving product by barcode...");
+                    onPressed: () async {
+                      try {
+                        final status = await Permission.camera.request();
+                        if (status.isGranted) {
+                          try {
+                            var result = await BarcodeScanner.scan();
+                            String barcode = result.rawContent;
+                            final dbHelper = DatabaseHelper();
+                            Product product =
+                                await dbHelper.getProductByBarcode(barcode);
+                            if (product != '') {
+                              _navigateToEditProduct(product);
+                            }
+                          } catch (e) {
+                            print(e);
+                          }
+                        } else {
+                          throw PlatformException(
+                              code: 'PERMISSION_DENIED',
+                              message: 'Camera permission is required.');
+                        }
+                      } catch (e) {
+                        print(e);
                       }
                     },
                   ),
@@ -299,24 +325,68 @@ class _ProductsState extends State<Products> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Total Quantity: $totalQuantity'),
-                    Text('Stock value: \Ksh${totalWorth.toStringAsFixed(2)}'),
+                    Text('Stock value: Ksh${totalWorth.toStringAsFixed(2)}'),
                   ],
                 ),
               ),
-              
           ],
         ),
       ),
-     floatingActionButton: Padding(
-      padding: const EdgeInsets.only(bottom: 30.9), // 0.5 cm in logical pixels
-      child: FloatingActionButton(
-        onPressed: () {
-          _showProductForm(context);
-        },
-        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding:
+            const EdgeInsets.only(bottom: 30.9), // 0.5 cm in logical pixels
+        child: FloatingActionButton(
+          onPressed: () {
+            _showPopupMenu(context);
+          },
+          backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+          child: const Icon(Icons.add),
+        ),
       ),
-    ),
+    );
+  }
+
+  void _showPopupMenu(BuildContext context) {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox button = context.findRenderObject() as RenderBox;
+
+    final RelativeRect position = RelativeRect.fromLTRB(
+      0,
+      button.size.height,
+      button.size.width / 2,
+      0,
+    );
+
+    showMenu(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem(
+          child: ListTile(
+            leading: const Icon(Icons.camera),
+            title: const Text('Add single product'),
+            onTap: () {
+              Navigator.pop(context);
+              _showProductForm(context);
+            },
+          ),
+        ),
+        PopupMenuItem(
+          child: ListTile(
+            leading: const Icon(Icons.picture_as_pdf),
+            title: const Text('Import from excel'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  (MaterialPageRoute(
+                    builder: (context) => const ProductImport(),
+                  )));
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -331,16 +401,20 @@ class _ProductsState extends State<Products> {
             padding: const EdgeInsets.all(30.0),
             child: Wrap(
               alignment: WrapAlignment.center,
-              spacing: 10, // Adjust this value as needed for spacing between buttons
+              spacing:
+                  10, // Adjust this value as needed for spacing between buttons
               children: [
                 Material(
                   borderRadius: BorderRadius.circular(45),
                   elevation: 6,
                   child: InkWell(
                     onTap: () {
-                      if (kDebugMode) {
-                        print("Retrieving product by barcode...");
-                      }
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          (MaterialPageRoute(
+                            builder: (context) => const BarcodeScanners(),
+                          )));
                     },
                     child: Ink(
                       decoration: BoxDecoration(
