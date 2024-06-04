@@ -31,6 +31,7 @@ class DatabaseHelper {
   final String columnDate = 'date';
   final String columnsoldQuantity = 'soldQuantity';
   final String columnProductprofit = 'profit';
+  final String columnProductBarCode = 'barcode';
 
   // Table name for expenses
   final String expenseTableName = 'expenses';
@@ -138,7 +139,8 @@ class DatabaseHelper {
         $columnExpiryDate TEXT,
         $columnImage TEXT,
         $columnProductprofit REAL,
-        $columnsoldQuantity INTEGER
+        $columnsoldQuantity INTEGER,
+        $columnProductBarCode TEXT
       )
     ''');
 
@@ -197,7 +199,7 @@ class DatabaseHelper {
     ''');
   }
 
-void _upgradeDb(Database db, int oldVersion, int newVersion) async {
+  void _upgradeDb(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       // Upgrade logic for version 2
       await db.execute('''
@@ -242,10 +244,10 @@ void _upgradeDb(Database db, int oldVersion, int newVersion) async {
     }
   }
 
-  Future<void> _createTableIfNotExists(Database db, String tableName, String createTableQuery) async {
+  Future<void> _createTableIfNotExists(
+      Database db, String tableName, String createTableQuery) async {
     var tableExists = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='$tableName';"
-    );
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='$tableName';");
 
     if (tableExists.isEmpty) {
       await db.execute(createTableQuery);
@@ -266,6 +268,22 @@ void _upgradeDb(Database db, int oldVersion, int newVersion) async {
     return List.generate(maps.length, (i) {
       return Product.fromMap(maps[i]);
     });
+  }
+
+// get a rpduct with a specific barcode
+  Future getProductByBarcode(String barcode) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      productTableName,
+      where: 'barcode = ?',
+      whereArgs: [barcode],
+    );
+
+    if (maps.isNotEmpty) {
+      return Product.fromMap(maps.first);
+    } else {
+      return null;
+    }
   }
 
   // Insert an expense into the expenses table
@@ -698,7 +716,7 @@ void _upgradeDb(Database db, int oldVersion, int newVersion) async {
     }
   }
 
-   Future<void> updateProductQuantity(int productId, int newQuantity) async {
+  Future<void> updateProductQuantity(int productId, int newQuantity) async {
     final db = await database;
     await db?.update(
       productTableName,

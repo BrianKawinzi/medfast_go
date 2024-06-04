@@ -3,7 +3,7 @@ import 'package:medfast_go/business/activity.dart';
 import 'package:medfast_go/business/customers.dart';
 import 'package:medfast_go/business/expenses.dart';
 import 'package:medfast_go/business/other_incomes.dart';
-import 'package:medfast_go/business/products.dart';
+import 'package:medfast_go/business/products/products.dart';
 import 'package:medfast_go/business/purchase_order.dart';
 import 'package:medfast_go/business/representative.dart';
 import 'package:medfast_go/business/sale_order.dart';
