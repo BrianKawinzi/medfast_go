@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:medfast_go/business/products/addproductwithoutbarcode.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 
@@ -12,16 +13,29 @@ class BarcodeScanners extends StatefulWidget {
 
 class _BarcodeScannersState extends State<BarcodeScanners> {
   String? _barcodeResult;
+  late AudioPlayer _audioPlayer;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+  }
 
   Future<void> _scanBarcode() async {
     try {
       var result = await BarcodeScanner.scan();
       String barcode = result.rawContent;
       setState(() => _barcodeResult = barcode);
+      _playBeepSound();
       _handleScannedBarcode(barcode);
     } catch (e) {
       setState(() => _barcodeResult = 'Failed to get the barcode.');
     }
+  }
+
+  void _playBeepSound() async {
+    await _audioPlayer.setAsset('lib/assets/scanbeep.mp3');
+    _audioPlayer.play();
   }
 
   void _handleScannedBarcode(String barcode) {
@@ -42,6 +56,12 @@ class _BarcodeScannersState extends State<BarcodeScanners> {
         const SnackBar(content: Text('Failed to parse barcode')),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 
   @override
