@@ -70,8 +70,7 @@ class MyApp extends StatelessWidget {
                   pharmacyId); // Make sure this matches the class and constructor
         },
 
-        '/password': (context) =>
-            forgotPassword(), // Ensure ForgotPassword is correctly named
+        '/password': (context) => ForgotPassword(),
         '/success': (context) => const SuccessfulPassword(),
         '/verify': (context) => const VerificationPage(),
         '/brandintro': (context) => const BrandIntroPage(),
@@ -91,6 +90,7 @@ class MyApp extends StatelessWidget {
         '/language': (context) => const Language(),
         '/support': (context) => Support(),
         '/faq': (context) => const FAQ(),
+        '/verify': (context) => const VerificationPage(),
         '/SettingsPage': (context) => const SettingsPage(),
       },
     );

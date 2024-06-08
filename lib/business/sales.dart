@@ -25,6 +25,7 @@ class CartProvider with ChangeNotifier {
   final Map<int, int> _productQuantities = {};
 
   List<Product> get cartItems => _cartItems;
+
   Map<int, int> get productQuantities => _productQuantities;
 
   void add(Product product) {
@@ -83,9 +84,11 @@ class CartProvider with ChangeNotifier {
 }
 
 class ProductNotifier with ChangeNotifier {
-  final List<Product> _products = [];
-  List<Product> get products => _products;
   List<Product> cartItems = [];
+
+  final List<Product> _products = [];
+
+  List<Product> get products => _products;
 
   void addProduct(Product product) {
     _products.add(product);
@@ -94,28 +97,44 @@ class ProductNotifier with ChangeNotifier {
 }
 
 class Sales extends StatefulWidget {
-  final List<Product> initialProducts;
-
   const Sales({Key? key, required this.initialProducts}) : super(key: key);
+
+  final List<Product> initialProducts;
 
   @override
   _SalesState createState() => _SalesState();
 }
 
 class _SalesState extends State<Sales> {
-  final TextEditingController searchController = TextEditingController();
-  List<Product> products = [];
   List<Product> allProducts =
       []; // To store all products fetched from the database
-  String hintText = 'Search';
 
-  get totalPrice => null; // Placeholder text for search
+  QRViewController? controller;
+  String hintText = 'Search';
+  List<Product> products = [];
+  Barcode? result;
+  final TextEditingController searchController = TextEditingController();
+
+  @override
+
+  // Create a GlobalKey for the QR Code scanner
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
     _fetchProducts();
   }
+
+  get totalPrice => null; // Placeholder text for search
+
+  int get cartItemCount => Provider.of<CartProvider>(context).cartItems.length;
 
   Future<void> _fetchProducts() async {
     final dbHelper = DatabaseHelper();
@@ -297,13 +316,6 @@ class _SalesState extends State<Sales> {
     }
   }
 
-  @override
-
-  // Create a GlobalKey for the QR Code scanner
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  Barcode? result;
-  QRViewController? controller;
-
   // Load products from the database
   Future<void> _loadProducts() async {
     setState(() {
@@ -311,7 +323,62 @@ class _SalesState extends State<Sales> {
     });
   }
 
-  int get cartItemCount => Provider.of<CartProvider>(context).cartItems.length;
+  // Function to open the barcode scanner
+  Future<void> _openBarcodeScanner() async {
+    try {
+      final status = await Permission.camera.request();
+      if (status.isGranted) {
+        try {
+          var result = await BarcodeScanner.scan();
+          String barcode = result.rawContent;
+          final dbHelper = DatabaseHelper();
+          Product product = await dbHelper.getProductByBarcode(barcode);
+          if (product != '') {
+            setState(() {
+              ProductNotifier().addProduct(product);
+              _addToCart(product);
+            });
+          }
+        } catch (e) {
+          print(e);
+        }
+      } else {
+        throw PlatformException(
+            code: 'PERMISSION_DENIED',
+            message: 'Camera permission is required.');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  // Function to handle the QR code scan result
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+        // Handle the scanned barcode here
+      });
+    });
+  }
+
+  bool _isProductInCart(Product product) {
+    return Provider.of<CartProvider>(context, listen: false)
+        .cartItems
+        .contains(product);
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Item is not added to the cart!'),
+      duration: Duration(seconds: 2),
+    ));
+  }
+
+  void _addToCart(Product product) {
+    Provider.of<CartProvider>(context, listen: false).add(product);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -543,69 +610,6 @@ class _SalesState extends State<Sales> {
       ),
     );
   }
-
-  // Function to open the barcode scanner
-  Future<void> _openBarcodeScanner() async {
-    try {
-      final status = await Permission.camera.request();
-      if (status.isGranted) {
-        try {
-          var result = await BarcodeScanner.scan();
-          String barcode = result.rawContent;
-          final dbHelper = DatabaseHelper();
-          Product product = await dbHelper.getProductByBarcode(barcode);
-          if (product != '') {
-            setState(() {
-              ProductNotifier().addProduct(product);
-              _addToCart(product);
-            });
-          }
-        } catch (e) {
-          print(e);
-        }
-      } else {
-        throw PlatformException(
-            code: 'PERMISSION_DENIED',
-            message: 'Camera permission is required.');
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  // Function to handle the QR code scan result
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-        // Handle the scanned barcode here
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
-  }
-
-  bool _isProductInCart(Product product) {
-    return Provider.of<CartProvider>(context, listen: false)
-        .cartItems
-        .contains(product);
-  }
-
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Item is not added to the cart!'),
-      duration: Duration(seconds: 2),
-    ));
-  }
-
-  void _addToCart(Product product) {
-    Provider.of<CartProvider>(context, listen: false).add(product);
-  }
 }
 
 class OrderRepository {
@@ -649,10 +653,10 @@ class OrderRepository {
 }
 
 class OrderConfirmationScreen extends StatefulWidget {
-  final List<Product> cartItems;
-
   const OrderConfirmationScreen({Key? key, required this.cartItems})
       : super(key: key);
+
+  final List<Product> cartItems;
 
   @override
   _OrderConfirmationScreenState createState() =>
@@ -660,11 +664,12 @@ class OrderConfirmationScreen extends StatefulWidget {
 }
 
 class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
-  late Map<String, int> productQuantity;
-  late Map<String, double> productPrice;
+  bool isMiniScreenVisible = false; // Flag to track if MiniScreen is visible
   Map<String, double> productDiscounts = {};
-  Map<String, double> totalDiscounts = {};
+  late Map<String, double> productPrice;
+  late Map<String, int> productQuantity;
   late double sumOfTotalDiscounts;
+  Map<String, double> totalDiscounts = {};
 
   @override
   void initState() {
@@ -763,8 +768,6 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
       },
     );
   }
-
-  bool isMiniScreenVisible = false; // Flag to track if MiniScreen is visible
 
   void _showMiniScreen() {
     setState(() {
@@ -1100,6 +1103,9 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
 }
 
 class MiniScreen extends StatelessWidget {
+  const MiniScreen({Key? key, required this.onClose, required this.totalPrice})
+      : super(key: key);
+
   final VoidCallback onClose;
   final double totalPrice;
 
@@ -1121,66 +1127,6 @@ class MiniScreen extends StatelessWidget {
         MaterialPageRoute(builder: (context) => MobilePayment()),
       );
     }
-  }
-
-  const MiniScreen({Key? key, required this.onClose, required this.totalPrice})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 0.2 * 38.1),
-        width: 600,
-        height: 180,
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 10, 171, 192),
-          border: Border.all(color: Colors.black, width: 2),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("Pay using",
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (BuildContext context) => CashPayment(
-                        totalPrice: totalPrice,
-                        sumOfTotalDiscounts: 0,
-                      ),
-                    ),
-                  );
-                }),
-                _buildPaymentButton(
-                  "M-Pesa",
-                  "lib/assets/MobilePay.jfif",
-                  () {
-                    navigateToPaymentScreen(context);
-                  },
-                )
-              ],
-            ),
-            const Divider(
-                color: Colors.black, thickness: 2, indent: 50, endIndent: 50),
-            _buildCancelButton(context),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildPaymentButton(
@@ -1239,17 +1185,75 @@ class MiniScreen extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 0.2 * 38.1),
+        width: 600,
+        height: 180,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 10, 171, 192),
+          border: Border.all(color: Colors.black, width: 2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("Pay using",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => CashPayment(
+                        totalPrice: totalPrice,
+                        sumOfTotalDiscounts: 0,
+                      ),
+                    ),
+                  );
+                }),
+                _buildPaymentButton(
+                  "M-Pesa",
+                  "lib/assets/MobilePay.jfif",
+                  () {
+                    navigateToPaymentScreen(context);
+                  },
+                )
+              ],
+            ),
+            const Divider(
+                color: Colors.black, thickness: 2, indent: 50, endIndent: 50),
+            _buildCancelButton(context),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class CashPayment extends StatefulWidget {
-  @override
-  final double totalPrice;
-  final double sumOfTotalDiscounts;
-  String orderNumber = OrderManager().orderId;
-
   CashPayment(
       {Key? key, required this.totalPrice, required this.sumOfTotalDiscounts})
       : super(key: key);
+
+  String orderNumber = OrderManager().orderId;
+  final double sumOfTotalDiscounts;
+
+  @override
+  final double totalPrice;
 
   @override
   _CashPaymentState createState() => _CashPaymentState();
@@ -1257,8 +1261,9 @@ class CashPayment extends StatefulWidget {
 
 class _CashPaymentState extends State<CashPayment> {
   TextEditingController cashGivenController = TextEditingController();
-  TextEditingController customerPhoneController = TextEditingController();
   double cashPaid = 0.0;
+  TextEditingController customerPhoneController = TextEditingController();
+
   //double totalPrice = 0.0; // You should set this based on your total price logic
   double getBalance() {
     return cashPaid - widget.totalPrice;
@@ -1573,20 +1578,19 @@ class _CashPaymentState extends State<CashPayment> {
 }
 
 class ProductOrder {
+  ProductOrder({required this.product, required this.quantity});
+
+  List<Product> cartItems = [];
   final Product product;
   final int quantity;
+
   // Assuming you have a quantity field
   final List<Product> _products = [];
+
   List<Product> get products => _products;
-  List<Product> cartItems = [];
-  ProductOrder({required this.product, required this.quantity});
 }
 
 class OrderManager {
-  late String orderId = '#';
-  int counter = 1;
-  late final String orderNumber;
-
   // Constructor
   OrderManager() {
     //orderId = '#'; // Initial value for order ID
@@ -1601,15 +1605,13 @@ class OrderManager {
     }
     counter += 1;
   }
+
+  int counter = 1;
+  late String orderId = '#';
+  late final String orderNumber;
 }
 
 class SalesHistoryClass {
-  final String productName;
-  int quantitySold;
-  int currentStock;
-  double unitPrice;
-  double profit;
-
   SalesHistoryClass({
     required this.productName,
     required this.quantitySold,
@@ -1617,6 +1619,12 @@ class SalesHistoryClass {
     required this.unitPrice,
     required this.profit,
   });
+
+  int currentStock;
+  final String productName;
+  double profit;
+  int quantitySold;
+  double unitPrice;
 
   double get totalPrice => unitPrice * quantitySold;
 
@@ -1628,8 +1636,8 @@ class SalesHistoryClass {
 }
 
 class SalesHistoryManager {
-  List<SalesHistoryClass> salesHistory = [];
   final DatabaseHelper dbHelper = DatabaseHelper();
+  List<SalesHistoryClass> salesHistory = [];
 
   Future<void> initializeSalesHistory() async {
     List<Product> products = await dbHelper.getProducts();

@@ -1,16 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
+import 'verification_page.dart';
 
-
-class forgotPassword extends StatelessWidget {
-  forgotPassword({super.key});
+class ForgotPassword extends StatelessWidget {
+  ForgotPassword({super.key});
 
   // Text editing controllers
   final emailController = TextEditingController();
 
   // Send code method
-  void sendCode() {}
+  void sendCode(BuildContext context) async {
+    final email = emailController.text;
+    if (email.isNotEmpty) {
+      // Send a request to the API
+      final response = await http.post(
+        Uri.parse(
+            'https://medrxapi.azurewebsites.net/api/Account/request-password-reset'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: '{"email": "$email"}',
+      );
+
+      if (response.statusCode == 200) {
+        // Store email in SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('email', email);
+
+        // Navigate to verification page
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const VerificationPage()),
+        );
+      } else {
+        // Handle error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send code')),
+        );
+      }
+    } else {
+      // Handle empty email
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter your email')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +57,8 @@ class forgotPassword extends StatelessWidget {
         child: Center(
           child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center, // Align children to the center
+              crossAxisAlignment:
+                  CrossAxisAlignment.center, // Align children to the center
               children: [
                 // Back button
                 Padding(
@@ -74,7 +112,7 @@ class forgotPassword extends StatelessWidget {
 
                 // Send code button
                 MyButton(
-                  onTap: sendCode,
+                  onTap: () => sendCode(context),
                   buttonText: "Send Code",
                 ),
               ],

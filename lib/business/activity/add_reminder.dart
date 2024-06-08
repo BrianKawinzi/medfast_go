@@ -133,7 +133,7 @@ class _AddReminderState extends State<AddReminder> {
                           context: context,
                           // initialDate: DateTime.parse(_dateController.text),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime(2030),
+                          lastDate: DateTime(2030), initialDate: DateTime.now(),
                         );
                         if (pickedDate != null) {
                           setState(() {
