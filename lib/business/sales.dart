@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
@@ -119,6 +120,7 @@ class _SalesState extends State<Sales> {
 
   // Create a GlobalKey for the QR Code scanner
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final AudioPlayer audioPlayer = AudioPlayer();
 
   @override
   void dispose() {
@@ -323,6 +325,13 @@ class _SalesState extends State<Sales> {
     });
   }
 
+  Future<void> playSound() async {
+    await audioPlayer.play(
+      volume: 130.0,
+      AssetSource('assets/sounds/mixkit-shop-scanner-beeps-1073.wav'),
+    );
+  }
+
   // Function to open the barcode scanner
   Future<void> _openBarcodeScanner() async {
     try {
@@ -338,6 +347,7 @@ class _SalesState extends State<Sales> {
               ProductNotifier().addProduct(product);
               _addToCart(product);
             });
+            playSound();
           }
         } catch (e) {
           print(e);

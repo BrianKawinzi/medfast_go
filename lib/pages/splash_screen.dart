@@ -60,17 +60,17 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacementNamed(context, '/brandintro');
     });
     return Scaffold(
-      backgroundColor: Colors.green,
+      backgroundColor: Color.fromARGB(255, 238, 240, 238),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'lib/assets/Medrxlogo.png', // Ensure this path is correct for your project.
+              'lib/assets/Flashsplash1.png', // Ensure this path is correct for your project.
             ),
             const SizedBox(height: 20),
             const Text(
-              'MedFast',
+              '',
               style: TextStyle(fontSize: 18, color: Colors.white),
             ),
           ],
