@@ -1,38 +1,46 @@
 import 'package:mpesa_flutter_plugin/mpesa_flutter_plugin.dart';
 
 class MpesaPayment {
-  MpesaPayment() {
-    // Initialize the Mpesa plugin with your consumer key and secret
-    MpesaFlutterPlugin.setConsumerKey("s2u9AHfIk9WBTuf3vLZFw0nmQp3pdJAnSc8AsGtWEC6ywOny");
-    MpesaFlutterPlugin.setConsumerSecret("Z8piKGAEZ27k1lnoisJ4683J6JbXGXerCTxcSkD5wfduc3zxLP35VQtn6TZk2wHA");
-  }
+  int businessShortCode;
+  String password;
+  String timestamp;
+  String transactionType;
+  double amount;
+  int partyA;
+  int partyB;
+  int phoneNumber;
+  String callbackUrl;
+  String accountReference;
+  String transactionDesc;
 
-  Future<void> lipaNaMpesa({
-    required String phoneNumber,
-    required double amount,
-    required String accountReference,
-    required String transactionDescription,
-    required String callbackUrl,
-    required String businessShortCode,
-  }) async {
-    try {
-      var response = await MpesaFlutterPlugin.initializeMpesaSTKPush(
-        businessShortCode: businessShortCode,
-        transactionType: TransactionType.CustomerPayBillOnline,
-        amount: amount,
-        partyA: phoneNumber,
-        partyB: businessShortCode,
-        callBackURL: Uri.parse(callbackUrl),
-        accountReference: accountReference,
-        phoneNumber: phoneNumber,
-        transactionDesc: transactionDescription,
-        baseUri: Uri.parse("https://sandbox.safaricom.co.ke/"),
-        passKey: "mAB1M54uGcy136Gti2W9ikHAw0qZ",
-      );
+  MpesaPayment({
+    required this.businessShortCode,
+    required this.password,
+    required this.timestamp,
+    required this.transactionType,
+    required this.amount,
+    required this.partyA,
+    required this.partyB,
+    required this.phoneNumber,
+    required this.callbackUrl,
+    required this.accountReference,
+    required this.transactionDesc,
+  });
 
-      print("Mpesa response: $response");
-    } catch (e) {
-      print("Mpesa payment failed: $e");
-    }
+  Map<String, dynamic> toJson() {
+    return {
+      'BusinessShortCode': businessShortCode,
+      'Password': password,
+      'Timestamp': timestamp,
+      'TransactionType': transactionType,
+      'Amount': amount,
+      'PartyA': partyA,
+      'PartyB': partyB,
+      'PhoneNumber': phoneNumber,
+      'CallBackURL': callbackUrl,
+      'AccountReference': accountReference,
+      'TransactionDesc': transactionDesc,
+    };
+
   }
 }

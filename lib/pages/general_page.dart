@@ -18,13 +18,13 @@ import 'package:medfast_go/pages/notification.dart';
 import 'package:medfast_go/pages/faq.dart';
 
 class GeneralPage extends StatelessWidget {
-  const GeneralPage({Key? key}) : super(key: key);
+  GeneralPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     checkTwoDaysExpiryNotifications();
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Color.fromARGB(255, 207, 210, 207),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
@@ -103,121 +103,136 @@ class GeneralPage extends StatelessWidget {
       body: GridView.count(
         crossAxisCount: 2,
         children: [
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Products"),
-            child: buildTile("Products", Icons.shopping_bag),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Expenses"),
-            child: buildTile("Expenses", Icons.money_off),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Stores"),
-            child: buildTile("Stores", Icons.store),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Purchase Order"),
-            child: buildTile("Purchase Order", Icons.shopping_cart),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Supplier"),
-            child: buildTile("Supplier", Icons.person),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Activity"),
-            child: buildTile("Activity", Icons.notifications_active_outlined),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Customers"),
-            child: buildTile("Customers", Icons.people),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Representative"),
-            child: buildTile("Representative", Icons.person_add_alt_1_sharp),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Sale History"),
-            child: buildTile("Sale History", Icons.receipt),
-          ),
-          GestureDetector(
-            onTap: () => navigateToPage(context, "Other Income"),
-            child: buildTile("Other Income", Icons.monetization_on),
-          ),
+          buildTile(context, "Products", Icons.shopping_bag, false),
+          buildTile(context, "Expenses", Icons.money_off, false),
+          buildTile(context, "Stores", Icons.store, true),
+          buildTile(context, "Purchase Order", Icons.shopping_cart, true),
+          buildTile(context, "Supplier", Icons.person, true),
+          buildTile(context, "Activity", Icons.notifications_active_outlined, false),
+          buildTile(context, "Customers", Icons.people, false),
+          buildTile(context, "Manage Employee", Icons.person_add_alt_1_sharp, true),
+          buildTile(context, "Sale History", Icons.receipt, false),
+          buildTile(context, "Other Income", Icons.monetization_on, true),
         ],
       ),
     );
   }
-}
 
-Future<String> getPharmacyName() async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
-}
-
-void navigateToPage(BuildContext context, String pageTitle) {
-  switch (pageTitle) {
-    case 'Products':
-      Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const Products(productName: '')));
-      break;
-    case 'Expenses':
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const Expenses()));
-      break;
-    case 'Stores':
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const Stores()));
-      break;
-    case 'Purchase Order':
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const PurchaseOrder()));
-      break;
-    case 'Supplier':
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => Supplier()));
-      break;
-    case 'Activity':
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const Activity()));
-      break;
-    case 'Customers':
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const Customers()));
-      break;
-    case 'Representative':
-      Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const Representative()));
-      break;
-    case 'Other Income':
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => OtherIncome()));
-      break;
-    case 'Sale History':
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) =>
-            const SaleOrder(), // No need to pass orderDetails if it's optional
-      ));
-      break;
-    default:
-      Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const BottomNavigation()));
+  Widget buildTile(BuildContext context, String title, IconData icon, bool isPremium) {
+    return GestureDetector(
+      onTap: isPremium ? null : () => navigateToPage(context, title),
+      child: Stack(
+        children: [
+          buildTileContent(title, icon),
+          if (isPremium)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                color: Color.fromARGB(255, 227, 205, 116),
+                child: Text(
+                  'Premium',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 1, 1, 1),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
-}
 
-bool hasTwoDaysExpiryNotification = false;
+  Widget buildTileContent(String title, IconData icon) {
+    return Card(
+      margin: const EdgeInsets.all(8.0),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 50.0),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-Future<void> checkTwoDaysExpiryNotifications() async {
-  final dbHelper = DatabaseHelper();
-  final products = await dbHelper.getProducts();
+  Future<String> getPharmacyName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('pharmacy_name') ?? 'Default Pharmacy';
+  }
 
-  final twoDaysFromNow = DateTime.now().add(const Duration(days: 2));
-  for (var product in products) {
-    final expiryDate = DateTime.parse(product.expiryDate);
-    if (expiryDate.isBefore(twoDaysFromNow)) {
-      hasTwoDaysExpiryNotification = true;
-      return;
+  void navigateToPage(BuildContext context, String pageTitle) {
+    switch (pageTitle) {
+      case 'Products':
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const Products(productName: '')));
+        break;
+      case 'Expenses':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const Expenses()));
+        break;
+      case 'Stores':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const Stores()));
+        break;
+      case 'Purchase Order':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const PurchaseOrder()));
+        break;
+      case 'Supplier':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => Supplier()));
+        break;
+      case 'Activity':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const Activity()));
+        break;
+      case 'Customers':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => const Customers()));
+        break;
+      case 'Representative':
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const Representative()));
+        break;
+      case 'Other Income':
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => OtherIncome()));
+        break;
+      case 'Sale History':
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) =>
+              const SaleOrder(), // No need to pass orderDetails if it's optional
+        ));
+        break;
+      default:
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const BottomNavigation()));
     }
   }
 
-  hasTwoDaysExpiryNotification = false;
+  bool hasTwoDaysExpiryNotification = false;
+
+  Future<void> checkTwoDaysExpiryNotifications() async {
+    final dbHelper = DatabaseHelper();
+    final products = await dbHelper.getProducts();
+
+    final twoDaysFromNow = DateTime.now().add(const Duration(days: 2));
+    for (var product in products) {
+      final expiryDate = DateTime.parse(product.expiryDate);
+      if (expiryDate.isBefore(twoDaysFromNow)) {
+        hasTwoDaysExpiryNotification = true;
+        return;
+      }
+    }
+
+    hasTwoDaysExpiryNotification = false;
+  }
 }

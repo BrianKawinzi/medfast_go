@@ -131,24 +131,24 @@ class NavigationDrawerWidget extends StatelessWidget {
               onClicked: () =>
                   Navigator.of(context).popAndPushNamed('/profile'),
             ),
-            buildMenuItem(
-              text: 'Themes',
-              icon: Icons.color_lens,
-              onClicked: () {
-                Navigator.of(context).pop();
-                Navigator.of(context)
-                    .pushNamed('/themes'); // Navigate to the Themes page
-              },
-            ),
-            buildMenuItem(
-              text: 'Language',
-              icon: Icons.language,
-              onClicked: () {
-                Navigator.of(context).pop(); // Close the drawer
-                Navigator.of(context)
-                    .pushNamed('/language'); // Navigate to the language page
-              },
-            ),
+            // buildMenuItem(
+            //   text: 'Themes',
+            //   icon: Icons.color_lens,
+            //   onClicked: () {
+            //     Navigator.of(context).pop();
+            //     Navigator.of(context)
+            //         .pushNamed('/themes'); // Navigate to the Themes page
+            //   },
+            // ),
+            // buildMenuItem(
+            //   text: 'Language',
+            //   icon: Icons.language,
+            //   onClicked: () {
+            //     Navigator.of(context).pop(); // Close the drawer
+            //     Navigator.of(context)
+            //         .pushNamed('/language'); // Navigate to the language page
+            //   },
+            // ),
             buildMenuItem(
               text: 'Support',
               icon: Icons.support,
@@ -168,15 +168,15 @@ class NavigationDrawerWidget extends StatelessWidget {
               },
             ),
             const Divider(color: Colors.white70),
-            buildMenuItem(
-              text: 'Settings',
-              icon: Icons.settings,
-              onClicked: () {
-                Navigator.of(context).pop(); // Close the drawer
-                Navigator.of(context).pushNamed(
-                    '/SettingsPage'); // Navigate to the settings page
-              },
-            ),
+            // buildMenuItem(
+            //   text: 'Settings',
+            //   icon: Icons.settings,
+            //   onClicked: () {
+            //     Navigator.of(context).pop(); // Close the drawer
+            //     Navigator.of(context).pushNamed(
+            //         '/SettingsPage'); // Navigate to the settings page
+            //   },
+            // ),
             buildMenuItem(
               text: 'Log Out',
               icon: Icons.exit_to_app,
