@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:medfast_go/models/M_PesaPayment.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mpesa_flutter_plugin/initializer.dart';
+import 'package:mpesa_flutter_plugin/payment_enums.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize the Mpesa plugin with your consumer key and secret
+  await MpesaFlutterPlugin.setConsumerKey("s2u9AHfIk9WBTuf3vLZFw0nmQp3pdJAnSc8AsGtWEC6ywOny");
+  await MpesaFlutterPlugin.setConsumerSecret("Z8piKGAEZ27k1lnoisJ4683J6JbXGXerCTxcSkD5wfduc3zxLP35VQtn6TZk2wHA");
+
+  runApp(MaterialApp(
+    home: MobilePayment(),
+  ));
+}
+
 
 class PaymentCredentialsForm extends StatefulWidget {
   @override
@@ -29,7 +42,7 @@ class _PaymentCredentialsFormState extends State<PaymentCredentialsForm> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('tillNumber', _tillNumberController.text);
     await prefs.setString('storeNumber', _storeNumberController.text);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Credentials saved')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credentials saved')));
     Navigator.pop(context); // Navigate back after saving
   }
 
@@ -37,17 +50,17 @@ class _PaymentCredentialsFormState extends State<PaymentCredentialsForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Enter Payment Credentials'),
+        title: const Text('Enter Payment Credentials'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: <Widget>[
               TextFormField(
                 controller: _tillNumberController,
-                decoration: InputDecoration(labelText: 'Till Number'),
+                decoration: const InputDecoration(labelText: 'Till Number'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your Till Number';
@@ -57,7 +70,7 @@ class _PaymentCredentialsFormState extends State<PaymentCredentialsForm> {
               ),
               TextFormField(
                 controller: _storeNumberController,
-                decoration: InputDecoration(labelText: 'Store Number'),
+                decoration: const InputDecoration(labelText: 'Store Number'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your Store Number';
@@ -65,14 +78,14 @@ class _PaymentCredentialsFormState extends State<PaymentCredentialsForm> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState?.validate() ?? false) {
                     _saveCredentials();
                   }
                 },
-                child: Text('Save Credentials'),
+                child: const Text('Save Credentials'),
               ),
             ],
           ),
@@ -81,6 +94,7 @@ class _PaymentCredentialsFormState extends State<PaymentCredentialsForm> {
     );
   }
 }
+
 class MobilePayment extends StatefulWidget {
   @override
   _MobilePaymentState createState() => _MobilePaymentState();
@@ -88,8 +102,12 @@ class MobilePayment extends StatefulWidget {
 
 class _MobilePaymentState extends State<MobilePayment> {
   TextEditingController customerPhoneController = TextEditingController();
-  double cashPaid = 0.0;
-  double totalPrice = 0.0; // You should set this based on your total price logic
+  TextEditingController totalPriceController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +123,7 @@ class _MobilePaymentState extends State<MobilePayment> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: Icon(Icons.edit),
             onPressed: () {
               Navigator.push(
                 context,
@@ -120,7 +138,7 @@ class _MobilePaymentState extends State<MobilePayment> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
+              margin: const EdgeInsets.all(16.0),
               padding: const EdgeInsets.all(16.0),
               width: 600,
               height: 550, // Increased height to accommodate new field
@@ -152,22 +170,18 @@ class _MobilePaymentState extends State<MobilePayment> {
                   ),
                   const SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Center the row contents
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        width: 200, // Adjust this width as needed
+                        width: 200,
                         child: TextFormField(
-                          controller: TextEditingController(
-                              text: "Ksh. ${totalPrice.toString()}"), // Display "Ksh." followed by total price
+                          controller: totalPriceController,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 32, // Make text bold
-                          ), // Center align the text
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
+                            fontSize: 32,
+                          ),
                           decoration: InputDecoration(
                             hintText: "Total Price",
                             fillColor: Colors.green,
@@ -177,16 +191,15 @@ class _MobilePaymentState extends State<MobilePayment> {
                               borderSide: BorderSide.none,
                             ),
                           ),
-                          readOnly: true, // Make the field read-only since it's for display purposes
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30), // Space between fields
+                  const SizedBox(height: 30),
                   Row(
                     children: [
                       const Text(
-                        "M-Pesa Code:",
+                        "Phone No:",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -198,7 +211,7 @@ class _MobilePaymentState extends State<MobilePayment> {
                         child: TextFormField(
                           controller: customerPhoneController,
                           decoration: InputDecoration(
-                            hintText: "",
+                            hintText: "Enter Phone Number",
                             fillColor: Colors.white,
                             filled: true,
                             border: OutlineInputBorder(
@@ -211,117 +224,68 @@ class _MobilePaymentState extends State<MobilePayment> {
                     ],
                   ),
                   const Spacer(),
-                  const SizedBox(height: 10), // Space for clarity
-                  PaymentInfoDisplay(
-                      customerName: "",
-                      amountPaid: "Ksh. "), // After payment
+                  const SizedBox(height: 10),
                   const Spacer(),
-                  const SizedBox(height: 10), // Space for clarity
-                  // Cash Paid
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Cash Paid: ",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold, // Make label text bold
-                          fontSize: 16, // You can adjust the font size as needed
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          alignment: Alignment.bottomCenter,
-                          children: [
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 2, // Increase the thickness of the line
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              "$cashPaid",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold, // Make value text bold
-                                fontSize: 16, // You can adjust the font size as needed
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20), // Adjust the height for spacing
-                  // Balance
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Balance: ",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold, // Make label text bold
-                          fontSize: 16, // You can adjust the font size as needed
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          alignment: Alignment.bottomCenter,
-                          children: [
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 2, // Increase the thickness of the line
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              "${cashPaid - totalPrice}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold, // Make value text bold
-                                fontSize: 16, // You can adjust the font size as needed
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 10),
                   const Spacer(),
-                  // Complete and Send Receipt Button
                   Center(
                     child: ElevatedButton(
                       onPressed: () async {
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        String tillNumber = prefs.getString('tillNumber') ?? '';
+                        String storeNumber = prefs.getString('storeNumber') ?? '';
                         String phoneNumber = customerPhoneController.text;
-                        if (phoneNumber.isEmpty) {
-                          // Show some error message
+                        double amount = double.tryParse(totalPriceController.text) ?? 0.0;
+
+                        if (phoneNumber.isEmpty || amount <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter valid details')));
                           return;
                         }
-                        MpesaPayment mpesaPayment = MpesaPayment();
-                        await mpesaPayment.lipaNaMpesa(
-                          phoneNumber: phoneNumber,
-                          amount: totalPrice,
-                          accountReference: "Account Reference",
-                          transactionDescription: "Payment Description",
-                          callbackUrl: "https://yourcallbackurl.com/callback", businessShortCode: '',
-                        );
+
+                        // Debug information
+                        print("Till Number: $tillNumber");
+                        print("Store Number: $storeNumber");
+                        print("Phone Number: $phoneNumber");
+                        print("Amount: $amount");
+
+                        try {
+                          var response = await MpesaFlutterPlugin.initializeMpesaSTKPush(
+                        businessShortCode: "600584", // Default sandbox short code
+                        transactionType: TransactionType.CustomerPayBillOnline,
+                        amount: amount,
+                        partyA: phoneNumber,
+                        partyB: tillNumber, // Default sandbox short code
+                        callBackURL: Uri.parse("https://mydomain.com/path"),
+                        accountReference: "medfast_go",
+                        phoneNumber: "600000",
+                        transactionDesc: "Payment Description",
+                        baseUri: Uri.parse("https://sandbox.safaricom.co.ke"),
+                        passKey: "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919", // Default sandbox passkey
+                      );
+
+                          print("Response: $response");
+
+                          if (response['ResponseCode'] == '0') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PaymentConfirmationScreen(
+                                  items: ["Item 1", "Item 2"], // Replace with your actual items
+                                  amountPaid: amount,
+                                  balance: 0.0,
+                                ),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment failed')));
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        }
                       },
-                      child: const Text("Complete and Send Receipt"),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(color: Colors.black),
-                        ),
-                      ),
+                      child: const Text("Submit Payment"),
                     ),
                   ),
-                  const SizedBox(height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
                 ],
               ),
             ),
@@ -332,30 +296,38 @@ class _MobilePaymentState extends State<MobilePayment> {
   }
 }
 
-class PaymentInfoDisplay extends StatelessWidget {
-  final String customerName; // Placeholder for customer name
-  final String amountPaid; // Placeholder for amount paid
+class PaymentConfirmationScreen extends StatelessWidget {
+  final List<String> items;
+  final double amountPaid;
+  final double balance;
 
-  PaymentInfoDisplay({this.customerName = "-", this.amountPaid = "-"});
+  PaymentConfirmationScreen({
+    required this.items,
+    required this.amountPaid,
+    required this.balance,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 200, // Different width and height for an oval
-      height: 120,
-      alignment: Alignment.center, // Center the text inside the container
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: const BorderRadius.all(Radius.circular(60)), // Rounded corners
-        border: Border.all(color: Colors.black, width: 2),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Payment Confirmation'),
       ),
-      child: Text(
-        " $customerName, \n\n  $amountPaid",
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Items:',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            for (var item in items) Text(item),
+            const SizedBox(height: 20),
+            Text('Amount Paid: \$${amountPaid.toStringAsFixed(2)}'),
+            const SizedBox(height: 20),
+            Text('Balance: \$${balance.toStringAsFixed(2)}'),
+          ],
         ),
       ),
     );

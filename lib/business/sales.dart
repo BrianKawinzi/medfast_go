@@ -348,7 +348,6 @@ class _SalesState extends State<Sales> {
               _addToCart(product);
             });
             playSound();
-            CommonU
           }
         } catch (e) {
           print(e);

@@ -17,6 +17,7 @@ import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
 import 'package:medfast_go/pages/profile.dart';
+import 'package:mpesa_flutter_plugin/mpesa_flutter_plugin.dart';
 import 'package:provider/provider.dart';
 import 'package:medfast_go/pages/themes.dart';
 import 'package:medfast_go/pages/language.dart';
@@ -27,9 +28,18 @@ import 'package:medfast_go/pages/settings_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize M-Pesa consumer key and secret
+  try {
+    await MpesaFlutterPlugin.setConsumerKey("s2u9AHfIk9WBTuf3vLZFw0nmQp3pdJAnSc8AsGtWEC6ywOny");
+    await MpesaFlutterPlugin.setConsumerSecret("Z8piKGAEZ27k1lnoisJ4683J6JbXGXerCTxcSkD5wfduc3zxLP35VQtn6TZk2wHA");
+    print("M-Pesa consumer key and secret set successfully");
+  } catch (e) {
+    print("Error setting M-Pesa consumer key and secret: $e");
+  }
+
   runApp(
     ChangeNotifierProvider(
-      create: (context) => CartProvider(),
+      create: (context) => CartProvider(), 
       child: const MyApp(),
     ),
   );
