@@ -13,6 +13,7 @@ import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,8 @@ import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:audioplayers/audioplayers.dart' as audioplayers;
+import 'package:just_audio/just_audio.dart' as just_audio;
 
 class CartProvider with ChangeNotifier {
   final List<Product> _cartItems = [];
@@ -115,6 +118,7 @@ class _SalesState extends State<Sales> {
   List<Product> products = [];
   Barcode? result;
   final TextEditingController searchController = TextEditingController();
+   late just_audio.AudioPlayer _audioPlayer;
 
   @override
 
@@ -125,15 +129,17 @@ class _SalesState extends State<Sales> {
   @override
   void dispose() {
     controller?.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
+
 
   @override
   void initState() {
     super.initState();
+    _audioPlayer = just_audio.AudioPlayer();
     _fetchProducts();
   }
-
   get totalPrice => null; // Placeholder text for search
 
   int get cartItemCount => Provider.of<CartProvider>(context).cartItems.length;
@@ -325,11 +331,12 @@ class _SalesState extends State<Sales> {
     });
   }
 
-  Future<void> playSound() async {
-    await audioPlayer.play(
-      volume: 130.0,
-      AssetSource('assets/sounds/mixkit-shop-scanner-beeps-1073.wav'),
-    );
+   Future<void> _playBeepSound() async {
+    final byteData = await rootBundle.load('lib/assets/scanbeep.mp3');
+    final file = File('${(await getTemporaryDirectory()).path}/scanbeep.mp3');
+    await file.writeAsBytes(byteData.buffer.asUint8List());
+    await _audioPlayer.setFilePath(file.path);
+    _audioPlayer.play();
   }
 
   // Function to open the barcode scanner
@@ -347,7 +354,7 @@ class _SalesState extends State<Sales> {
               ProductNotifier().addProduct(product);
               _addToCart(product);
             });
-            playSound();
+           await _playBeepSound();
           }
         } catch (e) {
           print(e);
