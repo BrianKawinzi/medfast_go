@@ -340,24 +340,19 @@ class _SalesState extends State<Sales> {
   }
 
   // Function to open the barcode scanner
-  Future<void> _openBarcodeScanner() async {
+    Future<void> _openBarcodeScanner() async {
     try {
       final status = await Permission.camera.request();
       if (status.isGranted) {
-        try {
-          var result = await BarcodeScanner.scan();
-          String barcode = result.rawContent;
-          final dbHelper = DatabaseHelper();
-          Product product = await dbHelper.getProductByBarcode(barcode);
-          if (product != '') {
-            setState(() {
-              ProductNotifier().addProduct(product);
-              _addToCart(product);
-            });
-           await _playBeepSound();
-          }
-        } catch (e) {
-          print(e);
+        var result = await BarcodeScanner.scan();
+        String barcode = result.rawContent;
+        final dbHelper = DatabaseHelper();
+        Product product = await dbHelper.getProductByBarcode(barcode);
+        if (product != null) {
+          setState(() {
+            Provider.of<CartProvider>(context, listen: false).add(product);
+          });
+          await _playBeepSound();
         }
       } else {
         throw PlatformException(
