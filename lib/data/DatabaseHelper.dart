@@ -31,6 +31,7 @@ class DatabaseHelper {
   final String columnDate = 'date';
   final String columnsoldQuantity = 'soldQuantity';
   final String columnProductprofit = 'profit';
+  final String columnProductBarCode = 'barcode';
 
   // Table name for expenses
   final String expenseTableName = 'expenses';
@@ -112,7 +113,7 @@ class DatabaseHelper {
       final String path = join(await getDatabasesPath(), 'medfast_go.db');
       final Database database = await openDatabase(
         path,
-        version: 4,
+        version: 5,
         onCreate: _createDb,
         onUpgrade: _upgradeDb,
       );
@@ -138,7 +139,8 @@ class DatabaseHelper {
         $columnExpiryDate TEXT,
         $columnImage TEXT,
         $columnProductprofit REAL,
-        $columnsoldQuantity INTEGER
+        $columnsoldQuantity INTEGER,
+        $columnProductBarCode TEXT
       )
     ''');
 
@@ -197,55 +199,61 @@ class DatabaseHelper {
     ''');
   }
 
-void _upgradeDb(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // Upgrade logic for version 2
-      await db.execute('''
-        CREATE TABLE $completedOrderTableName (
-          $columnOrderId TEXT,
-          $columnTotalPrice REAL,
-          $columnProducts TEXT,
-          $columnCompletedAt TEXT,
-          $columnprofit REAL
-        )
-      ''');
-    }
-    if (oldVersion < 3) {
-      // Upgrade logic for version 3
-      await db.execute('''
-        ALTER TABLE $productTableName ADD COLUMN $columnsoldQuantity INTEGER DEFAULT 0
-      ''');
-      await db.execute('''
-        ALTER TABLE $productTableName ADD COLUMN $columnProductprofit REAL DEFAULT 0.0
-      ''');
-    }
-    if (oldVersion < 4) {
-      // Upgrade logic for version 4
-      await _createTableIfNotExists(db, remindersTableName, '''
-        CREATE TABLE $remindersTableName (
-          $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-          $columnReminderTittle TEXT,
-          $columnReminderDescription TEXT,
-          $columnReminderdate TEXT,
-          $columnReminderTime TEXT
-        )
-      ''');
-      await _createTableIfNotExists(db, notesTableName, '''
-        CREATE TABLE $notesTableName (
-          $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
-          $columnNoteTittle TEXT,
-          $columnNoteDescription TEXT,
-          $columnNotedate TEXT,
-          $columnNoteTime TEXT
-        )
-      ''');
-    }
+  void _upgradeDb(Database db, int oldVersion, int newVersion) async {
+  if (oldVersion < 2) {
+    // Upgrade logic for version 2
+    await db.execute('''
+      CREATE TABLE $completedOrderTableName (
+        $columnOrderId TEXT,
+        $columnTotalPrice REAL,
+        $columnProducts TEXT,
+        $columnCompletedAt TEXT,
+        $columnprofit REAL
+      )
+    ''');
   }
+  if (oldVersion < 3) {
+    // Upgrade logic for version 3
+    await db.execute('''
+      ALTER TABLE $productTableName ADD COLUMN $columnsoldQuantity INTEGER DEFAULT 0
+    ''');
+    await db.execute('''
+      ALTER TABLE $productTableName ADD COLUMN $columnProductprofit REAL DEFAULT 0.0
+    ''');
+  }
+  if (oldVersion < 4) {
+    // Upgrade logic for version 4
+    await _createTableIfNotExists(db, remindersTableName, '''
+      CREATE TABLE $remindersTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnReminderTittle TEXT,
+        $columnReminderDescription TEXT,
+        $columnReminderdate TEXT,
+        $columnReminderTime TEXT
+      )
+    ''');
+    await _createTableIfNotExists(db, notesTableName, '''
+      CREATE TABLE $notesTableName (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnNoteTittle TEXT,
+        $columnNoteDescription TEXT,
+        $columnNotedate TEXT,
+        $columnNoteTime TEXT
+      )
+    ''');
+  }
+  if (oldVersion < 5) {
+    // Upgrade logic for version 5
+    await db.execute('''
+      ALTER TABLE $productTableName ADD COLUMN $columnProductBarCode TEXT
+    ''');
+  }
+}
 
-  Future<void> _createTableIfNotExists(Database db, String tableName, String createTableQuery) async {
+  Future<void> _createTableIfNotExists(
+      Database db, String tableName, String createTableQuery) async {
     var tableExists = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='$tableName';"
-    );
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='$tableName';");
 
     if (tableExists.isEmpty) {
       await db.execute(createTableQuery);
@@ -266,6 +274,22 @@ void _upgradeDb(Database db, int oldVersion, int newVersion) async {
     return List.generate(maps.length, (i) {
       return Product.fromMap(maps[i]);
     });
+  }
+
+// get a rpduct with a specific barcode
+  Future getProductByBarcode(String barcode) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      productTableName,
+      where: 'barcode = ?',
+      whereArgs: [barcode],
+    );
+
+    if (maps.isNotEmpty) {
+      return Product.fromMap(maps.first);
+    } else {
+      return null;
+    }
   }
 
   // Insert an expense into the expenses table
@@ -699,13 +723,11 @@ void _upgradeDb(Database db, int oldVersion, int newVersion) async {
   }
 
   Future<void> updateProductQuantity(int productId, int newQuantity) async {
-    // Database update logic here
-    Database? db =
-        await database; // Assuming you have a getter for the database
+    final db = await database;
     await db?.update(
-      'products',
-      {'quantity': newQuantity},
-      where: 'id = ?',
+      productTableName,
+      {columnQuantity: newQuantity},
+      where: '$columnId = ?',
       whereArgs: [productId],
     );
   }

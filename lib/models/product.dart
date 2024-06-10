@@ -1,4 +1,5 @@
 class Product {
+  String? barcode;
   final int id;
   String productName;
   String medicineDescription;
@@ -10,7 +11,7 @@ class Product {
   int quantity;
   int soldQuantity;
   final String manufactureDate;
-  final String? unit; 
+  final String? unit;
 
   Product({
     required this.id,
@@ -21,10 +22,11 @@ class Product {
     required this.sellingPrice,
     this.image,
     this.soldQuantity = 0,
-    this.profit =0,
+    this.profit = 0,
     required this.expiryDate,
     required this.manufactureDate,
     this.unit,
+    this.barcode,
   });
 
   // Named constructor to create a Product object from a map
@@ -34,16 +36,14 @@ class Product {
         medicineDescription = map['medicineDescription'],
         buyingPrice = map['buyingPrice'].toDouble(),
         sellingPrice = map['sellingPrice']?.toDouble() ?? 0.0,
-
-        quantity = map['quantity']?.toInt() ??0,
+        quantity = map['quantity']?.toInt() ?? 0,
         image = map['image'],
         expiryDate = map['expiryDate'],
         manufactureDate = map['manufactureDate'],
         unit = map['unit'],
-        soldQuantity =map ['soldQuantity']?.toInt() ??0,
-        profit = map['sellingPrice']?.toDouble() ?? 0.0;
-
-
+        soldQuantity = map['soldQuantity']?.toInt() ?? 0,
+        profit = map['sellingPrice']?.toDouble() ?? 0.0,
+        barcode = map['barcode'];
 
   // Method to convert a Product object to a map
   Map<String, dynamic> toMap({bool excludeId = false}) {
@@ -60,6 +60,7 @@ class Product {
       'unit': unit,
       'soldQuantity': soldQuantity,
       'profit': profit,
+      'barcode': barcode,
     };
   }
 }

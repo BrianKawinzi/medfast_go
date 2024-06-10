@@ -2,31 +2,35 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/editproductpage.dart';
+import 'package:medfast_go/models/M_PesaDetailsEntryPage.dart';
 import 'package:medfast_go/models/M_PesaPayment.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:provider/provider.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:collection/collection.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
-
-
-
+import 'package:audioplayers/audioplayers.dart' as audioplayers;
+import 'package:just_audio/just_audio.dart' as just_audio;
 
 class CartProvider with ChangeNotifier {
   final List<Product> _cartItems = [];
   final Map<int, int> _productQuantities = {};
 
   List<Product> get cartItems => _cartItems;
-  Map<int, int> get productQuantities => _productQuantities;
 
+  Map<int, int> get productQuantities => _productQuantities;
 
   void add(Product product) {
     int currentQuantity = _productQuantities[product.id] ?? 0;
@@ -37,7 +41,6 @@ class CartProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   void remove(Product product, {bool removeAll = false}) {
     if (removeAll) {
@@ -59,21 +62,20 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-    void updateProductQuantities() async {
-      final dbHelper = DatabaseHelper();  
+  void updateProductQuantities() async {
+    final dbHelper = DatabaseHelper();
 
-      for (var product in _cartItems) {
-        int soldQuantity = _productQuantities[product.id] ?? 0;
-        int newQuantity = product.quantity - soldQuantity;
+    for (var product in _cartItems) {
+      int soldQuantity = _productQuantities[product.id] ?? 0;
+      int newQuantity = product.quantity - soldQuantity;
 
-        await dbHelper.updateProductQuantity(product.id, newQuantity);
-      }
-
-      resetCart();
+      await dbHelper.updateProductQuantity(product.id, newQuantity);
     }
 
+    resetCart();
+  }
 
-    void resetCart() {
+  void resetCart() {
     _cartItems.clear();
     _productQuantities.clear();
     notifyListeners();
@@ -84,10 +86,13 @@ class CartProvider with ChangeNotifier {
     return _productQuantities[product.id] ?? 0;
   }
 }
+
 class ProductNotifier with ChangeNotifier {
-  final List<Product> _products = [];
-  List<Product> get products => _products;
   List<Product> cartItems = [];
+
+  final List<Product> _products = [];
+
+  List<Product> get products => _products;
 
   void addProduct(Product product) {
     _products.add(product);
@@ -96,28 +101,48 @@ class ProductNotifier with ChangeNotifier {
 }
 
 class Sales extends StatefulWidget {
-  final List<Product> initialProducts;
+  const Sales({Key? key, required this.initialProducts}) : super(key: key);
 
-  Sales({Key? key, required this.initialProducts}) : super(key: key);
+  final List<Product> initialProducts;
 
   @override
   _SalesState createState() => _SalesState();
 }
 
 class _SalesState extends State<Sales> {
-  final TextEditingController searchController = TextEditingController();
-  List<Product> products = [];
   List<Product> allProducts =
       []; // To store all products fetched from the database
-  String hintText = 'Search';
 
-  get totalPrice => null; // Placeholder text for search
-  
+  QRViewController? controller;
+  String hintText = 'Search';
+  List<Product> products = [];
+  Barcode? result;
+  final TextEditingController searchController = TextEditingController();
+   late just_audio.AudioPlayer _audioPlayer;
+
+  @override
+
+  // Create a GlobalKey for the QR Code scanner
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final AudioPlayer audioPlayer = AudioPlayer();
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+
   @override
   void initState() {
     super.initState();
+    _audioPlayer = just_audio.AudioPlayer();
     _fetchProducts();
   }
+  get totalPrice => null; // Placeholder text for search
+
+  int get cartItemCount => Provider.of<CartProvider>(context).cartItems.length;
 
   Future<void> _fetchProducts() async {
     final dbHelper = DatabaseHelper();
@@ -125,9 +150,6 @@ class _SalesState extends State<Sales> {
     if (mounted) {
       setState(() {
         products = fetchedProducts;
-       
-        
-      
       });
     }
   }
@@ -175,17 +197,16 @@ class _SalesState extends State<Sales> {
 
   Widget _buildProductList() {
     int operationalQuantity = 0;
-  if (products.isEmpty) {
-    return const Center(
-      child: Text(
-        "No added items for a sale",
-        style: TextStyle(fontSize: 18.0),
-      ),
-    );
-  } else {
+    if (products.isEmpty) {
+      return const Center(
+        child: Text(
+          "No added items for a sale",
+          style: TextStyle(fontSize: 18.0),
+        ),
+      );
+    } else {
       return RefreshIndicator(
         onRefresh: _fetchProducts,
-        
         child: ListView.builder(
           itemCount: products.length,
           itemBuilder: (context, index) {
@@ -196,111 +217,105 @@ class _SalesState extends State<Sales> {
             return Card(
               key: Key(product.id.toString()),
               // child: Card(
-                margin: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  title: Text(product.productName),
-                  subtitle: Align(
-                    alignment: Alignment.topLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Expiry Date: ${product.expiryDate}"),
-                        Text('Price: ${product.sellingPrice}'),
-                        // Add stock quantity information here
-                        Text(
-                          operationalQuantity == 0
-                              ? "Out of Stock"
-                              : "${operationalQuantity - Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)} units",
-                          style: TextStyle(
-                            fontSize: 12.0,
-                            color: operationalQuantity == 0
-                                ? Colors.red
-                                : (operationalQuantity <= 10
-                                    ? Colors.red
-                                    : Colors.green),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  leading: SizedBox(
-                    width: 100,
-                    child: imageFile.existsSync()
-                        ? Image.file(
-                            imageFile,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.error);
-                            },
-                          )
-                        : const Placeholder(),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+              margin: const EdgeInsets.all(8.0),
+              child: ListTile(
+                title: Text(product.productName),
+                subtitle: Align(
+                  alignment: Alignment.topLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Add button
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor:
-                            product.quantity > 0 ? Colors.green : Colors.grey,
-                        child: IconButton(
-                          icon: const Icon(Icons.add,
-                              color: Colors.white, size: 20),
-                          onPressed: product.quantity > 0
-                              ? () {
-                                  setState(() {
-                                    ProductNotifier().addProduct(product);
-                                    _addToCart(product);
-                                  });
-                                }
-                              : null,
-                        ),
-                      ),
-                      // This SizedBox provides some spacing between the add button and the quantity text
-                      const SizedBox(width: 8),
-                      // Displaying the quantity in the cart for this product
+                      Text("Expiry Date: ${product.expiryDate}"),
+                      Text('Price: ${product.sellingPrice}'),
+                      // Add stock quantity information here
                       Text(
-                        '${Provider.of<CartProvider>(context, listen: true).getCartQuantity(product) == 0 ? "" : Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)}',
-                        style: const TextStyle(fontSize: 18.0),
-                      ),
-
-                      
-                   
-                      // This SizedBox provides some spacing between the quantity text and the subtract button
-                      const SizedBox(width: 8),
-                      // Subtract button
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.red,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.remove,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              if (_isProductInCart(product)) {
-                                ProductNotifier().addProduct(product);
-                                // Assuming this method removes the product from the cart and updates the quantity
-                                Provider.of<CartProvider>(context,
-                                        listen: false)
-                                    .remove(product);
-                                    
-
-                              } else {
-                                // Display an error message if the product is not in the cart
-                                _showErrorMessage("Item not in cart");
-                              }
-                            });
-                          },
+                        operationalQuantity == 0
+                            ? "Out of Stock"
+                            : "${operationalQuantity - Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)} units",
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          color: operationalQuantity == 0
+                              ? Colors.red
+                              : (operationalQuantity <= 10
+                                  ? Colors.red
+                                  : Colors.green),
                         ),
-                      ),
+                      )
                     ],
-    
                   ),
-                 // onTap: () => _navigateToEditProduct(product),
                 ),
+                leading: SizedBox(
+                  width: 100,
+                  child: imageFile.existsSync()
+                      ? Image.file(
+                          imageFile,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error);
+                          },
+                        )
+                      : const Placeholder(),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Add button
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor:
+                          product.quantity > 0 ? Colors.green : Colors.grey,
+                      child: IconButton(
+                        icon: const Icon(Icons.add,
+                            color: Colors.white, size: 20),
+                        onPressed: product.quantity > 0
+                            ? () {
+                                setState(() {
+                                  ProductNotifier().addProduct(product);
+                                  _addToCart(product);
+                                });
+                              }
+                            : null,
+                      ),
+                    ),
+                    // This SizedBox provides some spacing between the add button and the quantity text
+                    const SizedBox(width: 8),
+                    // Displaying the quantity in the cart for this product
+                    Text(
+                      '${Provider.of<CartProvider>(context, listen: true).getCartQuantity(product) == 0 ? "" : Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)}',
+                      style: const TextStyle(fontSize: 18.0),
+                    ),
+
+                    // This SizedBox provides some spacing between the quantity text and the subtract button
+                    const SizedBox(width: 8),
+                    // Subtract button
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.red,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.remove,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            if (_isProductInCart(product)) {
+                              ProductNotifier().addProduct(product);
+                              // Assuming this method removes the product from the cart and updates the quantity
+                              Provider.of<CartProvider>(context, listen: false)
+                                  .remove(product);
+                            } else {
+                              // Display an error message if the product is not in the cart
+                              _showErrorMessage("Item not in cart");
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                // onTap: () => _navigateToEditProduct(product),
+              ),
               //),
             );
           },
@@ -309,13 +324,6 @@ class _SalesState extends State<Sales> {
     }
   }
 
-  @override
-
-  // Create a GlobalKey for the QR Code scanner
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  Barcode? result;
-  QRViewController? controller;
-
   // Load products from the database
   Future<void> _loadProducts() async {
     setState(() {
@@ -323,8 +331,66 @@ class _SalesState extends State<Sales> {
     });
   }
 
- 
-  int get cartItemCount => Provider.of<CartProvider>(context).cartItems.length;
+   Future<void> _playBeepSound() async {
+    final byteData = await rootBundle.load('lib/assets/scanbeep.mp3');
+    final file = File('${(await getTemporaryDirectory()).path}/scanbeep.mp3');
+    await file.writeAsBytes(byteData.buffer.asUint8List());
+    await _audioPlayer.setFilePath(file.path);
+    _audioPlayer.play();
+  }
+
+  // Function to open the barcode scanner
+    Future<void> _openBarcodeScanner() async {
+    try {
+      final status = await Permission.camera.request();
+      if (status.isGranted) {
+        var result = await BarcodeScanner.scan();
+        String barcode = result.rawContent;
+        final dbHelper = DatabaseHelper();
+        Product product = await dbHelper.getProductByBarcode(barcode);
+        if (product != null) {
+          setState(() {
+            Provider.of<CartProvider>(context, listen: false).add(product);
+          });
+          await _playBeepSound();
+        }
+      } else {
+        throw PlatformException(
+            code: 'PERMISSION_DENIED',
+            message: 'Camera permission is required.');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  // Function to handle the QR code scan result
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+        // Handle the scanned barcode here
+      });
+    });
+  }
+
+  bool _isProductInCart(Product product) {
+    return Provider.of<CartProvider>(context, listen: false)
+        .cartItems
+        .contains(product);
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Item is not added to the cart!'),
+      duration: Duration(seconds: 2),
+    ));
+  }
+
+  void _addToCart(Product product) {
+    Provider.of<CartProvider>(context, listen: false).add(product);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -413,7 +479,7 @@ class _SalesState extends State<Sales> {
                           width:
                               8), // Add some spacing between the icon and text
                       Text(
-                        '${cartItemCount} items',
+                        '$cartItemCount items',
                         style: const TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -556,88 +622,23 @@ class _SalesState extends State<Sales> {
       ),
     );
   }
-
-  // Function to open the barcode scanner
-  Future<void> _openBarcodeScanner() async {
-    try {
-      final status = await Permission.camera.request();
-      if (status.isGranted) {
-        Navigator.push(
-          context as BuildContext,
-          MaterialPageRoute(
-            builder: (BuildContext context) {
-              return Scaffold(
-                appBar: AppBar(title: const Text('Barcode Scanner')),
-                body: QRView(
-                  key: qrKey,
-                  onQRViewCreated: _onQRViewCreated,
-                ),
-              );
-            },
-          ),
-        );
-      } else {
-        throw PlatformException(
-            code: 'PERMISSION_DENIED',
-            message: 'Camera permission is required.');
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  // Function to handle the QR code scan result
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-        // Handle the scanned barcode here
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
-  }
-
-  bool _isProductInCart(Product product) {
-    return Provider.of<CartProvider>(context, listen: false)
-        .cartItems
-        .contains(product);
-  }
-
-
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context as BuildContext).showSnackBar(const SnackBar(
-      content: Text('Item is not added to the cart!'),
-      duration: Duration(seconds: 2),
-    ));
-  }
-
-  void _addToCart(Product product) {
-  
-    Provider.of<CartProvider>(context, listen: false).add(product);
-    
-  }
 }
 
 class OrderRepository {
-static final DatabaseHelper _dbhelper = DatabaseHelper();
+  static final DatabaseHelper _dbhelper = DatabaseHelper();
 
-static Future<void> addCompletedOrder(OrderDetails order) async {
+  static Future<void> addCompletedOrder(OrderDetails order) async {
     await _dbhelper.insertCompletedOrder(order);
   }
+
   // Retrieves all completed orders
   static Future<List<OrderDetails>> getCompletedOrders() async {
     return await _dbhelper.getCompletedOrders();
   }
 
-   static Future<int> countCompletedOrders() async {
+  static Future<int> countCompletedOrders() async {
     List<OrderDetails> completedOrders = await _dbhelper.getCompletedOrders();
-    return completedOrders.length;  
+    return completedOrders.length;
   }
 
   static Future<double> getTotalSales() async {
@@ -646,7 +647,7 @@ static Future<void> addCompletedOrder(OrderDetails order) async {
     return total;
   }
 
-   static Future<double> getTotalProfit() async {
+  static Future<double> getTotalProfit() async {
     List<OrderDetails> orders = await _dbhelper.getCompletedOrders();
     double totalProfit = orders.fold(0, (sum, order) => sum + order.profit);
     return totalProfit;
@@ -655,19 +656,19 @@ static Future<void> addCompletedOrder(OrderDetails order) async {
   static Future<List<Product>> getBestSellingProducts() async {
     return await _dbhelper.getTopSellingProducts();
   }
+
 //customers count
   static Future<int> countCustomers() async {
     List<Customer> customers = await _dbhelper.getCustomers();
-    return customers.length;  
+    return customers.length;
   }
 }
 
 class OrderConfirmationScreen extends StatefulWidget {
-  final List<Product> cartItems;
-  
-
   const OrderConfirmationScreen({Key? key, required this.cartItems})
       : super(key: key);
+
+  final List<Product> cartItems;
 
   @override
   _OrderConfirmationScreenState createState() =>
@@ -675,21 +676,20 @@ class OrderConfirmationScreen extends StatefulWidget {
 }
 
 class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
-  late Map<String, int> productQuantity;
+  bool isMiniScreenVisible = false; // Flag to track if MiniScreen is visible
+  Map<String, double> productDiscounts = {};
   late Map<String, double> productPrice;
-  Map<String, double> productDiscounts = {}; 
-  Map<String, double> totalDiscounts = {};
+  late Map<String, int> productQuantity;
   late double sumOfTotalDiscounts;
+  Map<String, double> totalDiscounts = {};
 
-  
-  
   @override
   void initState() {
     super.initState();
     aggregateProductData();
   }
 
-  void aggregateProductData() { 
+  void aggregateProductData() {
     productQuantity = {};
     productPrice = {};
     productDiscounts = {};
@@ -697,41 +697,35 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
     for (var product in widget.cartItems) {
       productQuantity[product.productName] =
           (productQuantity[product.productName] ?? 0) + 1;
-      if (product.buyingPrice != null) {
-          int quantity = productQuantity[product.productName] ?? 0;
-          double discount = productDiscounts[product.productName] ?? 0.0;
-          double totalDiscountForProduct = discount * quantity;
-        productPrice[product.productName] = product.sellingPrice;
-        productDiscounts[product.productName] = 0.0; 
-
-      } else {
-        productPrice[product.productName] = 0.0; 
-      }
+      int quantity = productQuantity[product.productName] ?? 0;
+      double discount = productDiscounts[product.productName] ?? 0.0;
+      double totalDiscountForProduct = discount * quantity;
+      productPrice[product.productName] = product.sellingPrice;
+      productDiscounts[product.productName] = 0.0;
     }
     // ignore: invalid_use_of_protected_member
     updateTotalDiscounts();
     CartProvider().notifyListeners();
     updateTotalDiscounts();
   }
-   
-   void updateTotalDiscounts() {
-    sumOfTotalDiscounts =0;
+
+  void updateTotalDiscounts() {
+    sumOfTotalDiscounts = 0;
     for (var productName in productQuantity.keys) {
       int quantity = productQuantity[productName] ?? 0;
-      double discount = productDiscounts[productName] ?? 0.0; 
+      double discount = productDiscounts[productName] ?? 0.0;
       double price = productPrice[productName] ?? 0.0;
 
       // Calculate total discount for this product
       double totalDiscount = quantity * discount;
       totalDiscounts[productName] = totalDiscount;
-      sumOfTotalDiscounts +=totalDiscount;
+      sumOfTotalDiscounts += totalDiscount;
     }
   }
 
-
   //  Import collection package
 
-void _removeItemFromCart(String productName) {
+  void _removeItemFromCart(String productName) {
     Product? product =
         widget.cartItems.firstWhereOrNull((p) => p.productName == productName);
 
@@ -748,8 +742,7 @@ void _removeItemFromCart(String productName) {
     }
   }
 
-
- Future<void> _showDiscountDialog(String productName) async {
+  Future<void> _showDiscountDialog(String productName) async {
     TextEditingController discountController = TextEditingController();
     return showDialog<void>(
       context: context,
@@ -788,8 +781,6 @@ void _removeItemFromCart(String productName) {
     );
   }
 
-  bool isMiniScreenVisible = false; // Flag to track if MiniScreen is visible
-
   void _showMiniScreen() {
     setState(() {
       isMiniScreenVisible = true;
@@ -809,14 +800,11 @@ void _removeItemFromCart(String productName) {
       for (var product in widget.cartItems) {
         double price = productPrice[product.productName] ?? 0.0;
         totalPrice += price;
-        
       }
-      totalPrice -=sumOfTotalDiscounts;
-      
-      return totalPrice;
-      
-    }
+      totalPrice -= sumOfTotalDiscounts;
 
+      return totalPrice;
+    }
 
     double totalPrice = getTotalPrice();
     totalPrice = totalPrice;
@@ -834,16 +822,16 @@ void _removeItemFromCart(String productName) {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              // Add your search functionality here
+              // Add your search functionality here gere
             },
           ),
         ],
         toolbarTextStyle: const TextTheme(
-          headline6: TextStyle(color: Colors.black),
-        ).bodyText2,
+          titleLarge: TextStyle(color: Colors.black),
+        ).bodyMedium,
         titleTextStyle: const TextTheme(
-          headline6: TextStyle(color: Colors.black),
-        ).headline6,
+          titleLarge: TextStyle(color: Colors.black),
+        ).titleLarge,
       ),
       body: Stack(
         alignment: Alignment.center,
@@ -867,25 +855,21 @@ void _removeItemFromCart(String productName) {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.green,
-                border:
-                    Border.all(color: Colors.black, width: 2), 
-                borderRadius: BorderRadius.circular(
-                    5), 
+                border: Border.all(color: Colors.black, width: 2),
+                borderRadius: BorderRadius.circular(5),
               ),
               padding: const EdgeInsets.all(8),
               child: Column(
-                mainAxisSize: MainAxisSize.min, 
-                mainAxisAlignment:
-                    MainAxisAlignment.center, 
-                crossAxisAlignment:
-                    CrossAxisAlignment.center, 
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     'Total',
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16, 
+                      fontSize: 16,
                     ),
                   ),
                   Text(
@@ -893,14 +877,14 @@ void _removeItemFromCart(String productName) {
                     style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16, 
+                      fontSize: 16,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-         Positioned(
+          Positioned(
             left: 10,
             bottom: 10 + 1 * 38.1,
             child: Container(
@@ -911,13 +895,18 @@ void _removeItemFromCart(String productName) {
               padding: const EdgeInsets.all(2),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: totalPrice > 0 ? Colors.green : Color.fromARGB(255, 208, 204, 204),
+                  backgroundColor: totalPrice > 0
+                      ? Colors.green
+                      : const Color.fromARGB(255, 208, 204, 204),
                   elevation: 10,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 ),
-                onPressed: totalPrice > 0 ? () {
-                  _showMiniScreen();
-                } : null,
+                onPressed: totalPrice > 0
+                    ? () {
+                        _showMiniScreen();
+                      }
+                    : null,
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -935,19 +924,15 @@ void _removeItemFromCart(String productName) {
               ),
             ),
           ),
-
           Positioned(
             right: 10,
-            bottom: 10 +
-                60,
+            bottom: 10 + 60,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment
-                  .end, 
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 4), 
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: const Center(
                     child: Text(
                       'Add to order',
@@ -970,26 +955,21 @@ void _removeItemFromCart(String productName) {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.black,
-                          backgroundColor:
-                              Colors.white,
+                          backgroundColor: Colors.white,
                         ),
-                        onPressed: () {
-                        
-                        },
+                        onPressed: () {},
                         child: Image.asset('lib/assets/no-barcode.png',
-                            width: 30, height: 30), 
+                            width: 30, height: 30),
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: const Color.fromARGB(255, 117, 114, 114),
-                          backgroundColor:
-                              Colors.white, 
+                          foregroundColor:
+                              const Color.fromARGB(255, 117, 114, 114),
+                          backgroundColor: Colors.white,
                         ),
-                        onPressed: () {
-                          
-                        },
+                        onPressed: () {},
                         child: Image.asset('lib/assets/barcode.png',
-                            width: 30, height: 30), 
+                            width: 30, height: 30),
                       ),
                     ],
                   ),
@@ -1002,30 +982,40 @@ void _removeItemFromCart(String productName) {
               totalPrice: totalPrice,
               onClose: _closeMiniScreen,
             ),
-        Align(
+          Align(
             alignment: Alignment.topCenter,
             child: Container(
-              margin: EdgeInsets.only(bottom: 30), 
+              margin: const EdgeInsets.only(bottom: 30),
               height: MediaQuery.of(context).size.height * 0.7,
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    
                     if (widget.cartItems.isNotEmpty)
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Expanded(child: Text('Item Name', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-                            Expanded(child: Text('Quantity', textAlign: TextAlign.center)),
-                            Expanded(child: Text('Price', textAlign: TextAlign.center)),
-                            Expanded(child: Text('Total', textAlign: TextAlign.center)),
-                            IconButton(icon: Icon(Icons.delete), onPressed: null),
+                            Expanded(
+                                child: Text('Item Name',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16))),
+                            Expanded(
+                                child: Text('Quantity',
+                                    textAlign: TextAlign.center)),
+                            Expanded(
+                                child:
+                                    Text('Price', textAlign: TextAlign.center)),
+                            Expanded(
+                                child:
+                                    Text('Total', textAlign: TextAlign.center)),
+                            IconButton(
+                                icon: Icon(Icons.delete), onPressed: null),
                           ],
                         ),
                       ),
-                    
                     ...productQuantity.entries.map((entry) {
                       String productName = entry.key;
                       int quantity = entry.value;
@@ -1033,13 +1023,13 @@ void _removeItemFromCart(String productName) {
                       double total = quantity * price;
                       double discount = productDiscounts[productName] ?? 0.0;
 
-
-                      TextEditingController discountController = TextEditingController(); 
+                      TextEditingController discountController =
+                          TextEditingController();
 
                       return Container(
                         margin: const EdgeInsets.symmetric(vertical: 8.0),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 3.0), 
+                          border: Border.all(color: Colors.black, width: 3.0),
                           borderRadius: BorderRadius.circular(4.0),
                         ),
                         child: Column(
@@ -1047,20 +1037,35 @@ void _removeItemFromCart(String productName) {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                Expanded(child: Text(productName, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-                                Expanded(child: Text('$quantity', textAlign: TextAlign.center)),
-                                Expanded(child: Text('$price', textAlign: TextAlign.center)),
-                                Expanded(child: Text('$total', textAlign: TextAlign.center)),
+                                Expanded(
+                                    child: Text(productName,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16))),
+                                Expanded(
+                                    child: Text('$quantity',
+                                        textAlign: TextAlign.center)),
+                                Expanded(
+                                    child: Text('$price',
+                                        textAlign: TextAlign.center)),
+                                Expanded(
+                                    child: Text('$total',
+                                        textAlign: TextAlign.center)),
                                 IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _removeItemFromCart(productName),
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
+                                  onPressed: () =>
+                                      _removeItemFromCart(productName),
                                 ),
                               ],
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 4.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
@@ -1069,26 +1074,28 @@ void _removeItemFromCart(String productName) {
                                     ),
                                   ),
                                   Expanded(
-                                child: TextButton(
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.green,
-                                    backgroundColor: Colors.transparent,
-                                    padding: EdgeInsets.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  onPressed: () => _showDiscountDialog(productName),
-                                  child: Text(
-                                    totalDiscounts[productName] != null && totalDiscounts[productName]! > 0
-                                      ? 'Discount: Ksh ${totalDiscounts[productName]!.toStringAsFixed(2)}'
-                                      : 'Offer discount',
-                                    style: const TextStyle(
-                                      color: Colors.green,
-                                      // decoration: TextDecoration.underline,
+                                    child: TextButton(
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.green,
+                                        backgroundColor: Colors.transparent,
+                                        padding: EdgeInsets.zero,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      onPressed: () =>
+                                          _showDiscountDialog(productName),
+                                      child: Text(
+                                        totalDiscounts[productName] != null &&
+                                                totalDiscounts[productName]! > 0
+                                            ? 'Discount: Ksh ${totalDiscounts[productName]!.toStringAsFixed(2)}'
+                                            : 'Offer discount',
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          // decoration: TextDecoration.underline,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-
                                 ],
                               ),
                             ),
@@ -1106,64 +1113,36 @@ void _removeItemFromCart(String productName) {
     );
   }
 }
+
 class MiniScreen extends StatelessWidget {
+  const MiniScreen({Key? key, required this.onClose, required this.totalPrice})
+      : super(key: key);
+
   final VoidCallback onClose;
   final double totalPrice;
 
-  MiniScreen({Key? key, required this.onClose, required this.totalPrice})
-      : super(key: key);
+  Future<void> navigateToPaymentScreen(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? tillNumber = prefs.getString('tillNumber');
+    String? storeNumber = prefs.getString('storeNumber');
 
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 0.2 * 38.1), 
-        width: 600,
-        height: 180, 
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 10, 171, 192),
-          border: Border.all(color: Colors.black, width: 2),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("Pay using", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-            ),
-            Row( 
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (BuildContext context) => CashPayment(totalPrice: totalPrice, sumOfTotalDiscounts: 0,),
-                    ),
-                  );
-                }),
-                _buildPaymentButton("M-Pesa", 'lib/assets/MobilePay.jfif', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MobilePayment(),
-                    ),
-                  );
-                }),
-              ],
-            ),
-            const Divider(color: Colors.black, thickness: 2, indent: 50, endIndent: 50), 
-            _buildCancelButton(context), 
-          ],
-        ),
-      ),
-    );
+    if (tillNumber == null || storeNumber == null) {
+      // Navigate to the details entry page
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentCredentialsForm()),
+      );
+    } else {
+      // Navigate to the M-Pesa payment screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MobilePayment()),
+      );
+    }
   }
 
-  Widget _buildPaymentButton(String text, String imagePath, VoidCallback onTap) {
+  Widget _buildPaymentButton(
+      String text, String imagePath, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1218,16 +1197,75 @@ class MiniScreen extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 0.2 * 38.1),
+        width: 600,
+        height: 180,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 10, 171, 192),
+          border: Border.all(color: Colors.black, width: 2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("Pay using",
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildPaymentButton("Cash", 'lib/assets/cash.png', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (BuildContext context) => CashPayment(
+                        totalPrice: totalPrice,
+                        sumOfTotalDiscounts: 0,
+                      ),
+                    ),
+                  );
+                }),
+                _buildPaymentButton(
+                  "M-Pesa",
+                  "lib/assets/MobilePay.jfif",
+                  () {
+                    navigateToPaymentScreen(context);
+                  },
+                )
+              ],
+            ),
+            const Divider(
+                color: Colors.black, thickness: 2, indent: 50, endIndent: 50),
+            _buildCancelButton(context),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-
 class CashPayment extends StatefulWidget {
+  CashPayment(
+      {Key? key, required this.totalPrice, required this.sumOfTotalDiscounts})
+      : super(key: key);
+
+  String orderNumber = OrderManager().orderId;
+  final double sumOfTotalDiscounts;
+
   @override
   final double totalPrice;
-  final double sumOfTotalDiscounts; 
-  String orderNumber = OrderManager().orderId;
-
-  CashPayment({Key? key, required this.totalPrice, required this.sumOfTotalDiscounts}) : super(key: key);
 
   @override
   _CashPaymentState createState() => _CashPaymentState();
@@ -1235,8 +1273,9 @@ class CashPayment extends StatefulWidget {
 
 class _CashPaymentState extends State<CashPayment> {
   TextEditingController cashGivenController = TextEditingController();
-  TextEditingController customerPhoneController = TextEditingController();
   double cashPaid = 0.0;
+  TextEditingController customerPhoneController = TextEditingController();
+
   //double totalPrice = 0.0; // You should set this based on your total price logic
   double getBalance() {
     return cashPaid - widget.totalPrice;
@@ -1253,7 +1292,8 @@ class _CashPaymentState extends State<CashPayment> {
       final double orderprofit = totalPrice -
           products
               .map((product) => product.buyingPrice ?? 0.0)
-              .reduce((value, element) => value + element)-widget.sumOfTotalDiscounts;
+              .reduce((value, element) => value + element) -
+          widget.sumOfTotalDiscounts;
       OrderDetails orderDetails = OrderDetails(
         orderId: orderId,
         totalPrice: totalPrice,
@@ -1262,14 +1302,14 @@ class _CashPaymentState extends State<CashPayment> {
         profit: orderprofit,
       );
 
-     
       // Before adding the completed order, update the product quantities
-      Provider.of<CartProvider>(context, listen: false).updateProductQuantities();
+      Provider.of<CartProvider>(context, listen: false)
+          .updateProductQuantities();
 
       // Add the completed order to the repository
       OrderRepository.addCompletedOrder(orderDetails);
 
-      // Show confirmation dialog 
+      // Show confirmation dialog
       showDialog(
         context: context,
         barrierDismissible: false, // Dialog will not close on tap outside
@@ -1295,7 +1335,8 @@ class _CashPaymentState extends State<CashPayment> {
         // Clear any existing navigation stack and navigate to the Sales screen
         Provider.of<CartProvider>(context, listen: false).resetCart();
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => Sales(initialProducts: [])),
+          MaterialPageRoute(
+              builder: (context) => const Sales(initialProducts: [])),
           (Route<dynamic> route) =>
               false, // This will remove all the routes below the Sales screen
         );
@@ -1311,7 +1352,7 @@ class _CashPaymentState extends State<CashPayment> {
     // Clear any existing navigation stack and navigate to the Sales screen
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (context) => Sales(initialProducts: []),
+        builder: (context) => const Sales(initialProducts: []),
       ),
       (Route<dynamic> route) =>
           true, // Remove all routes below the Sales screen
@@ -1335,7 +1376,8 @@ class _CashPaymentState extends State<CashPayment> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
+              margin:
+                  const EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
               padding: const EdgeInsets.all(16.0),
               width: 600,
               height: 550, // Increased height to accommodate new field
@@ -1377,7 +1419,7 @@ class _CashPaymentState extends State<CashPayment> {
                         ),
                       ),
                       const SizedBox(width: 30),
-                      Container(
+                      SizedBox(
                         width: 200, // Adjust this width as needed
                         child: TextFormField(
                           controller: cashGivenController,
@@ -1523,7 +1565,6 @@ class _CashPaymentState extends State<CashPayment> {
                   Center(
                     child: ElevatedButton(
                       onPressed: completeAndSendReceipt,
-                      child: const Text("Complete and Send Receipt"),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.green,
@@ -1532,10 +1573,12 @@ class _CashPaymentState extends State<CashPayment> {
                           side: const BorderSide(color: Colors.black),
                         ),
                       ),
+                      child: const Text("Complete and Send Receipt"),
                     ),
                   ),
 
-                  const SizedBox(height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
+                  const SizedBox(
+                      height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
                 ],
               ),
             ),
@@ -1545,305 +1588,21 @@ class _CashPaymentState extends State<CashPayment> {
     );
   }
 }
-
-class MobilePayment extends StatefulWidget {
-  @override
-  _MobilePaymentState createState() => _MobilePaymentState();
-}
-
-class _MobilePaymentState extends State<MobilePayment> {
-  TextEditingController customerPhoneController = TextEditingController();
-  double cashPaid = 0.0;
-  double totalPrice = 0.0; // You should set this based on your total price logic
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Mobile Payment"),
-        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 0.0 * 38.1, bottom: 0.0 * 38.1),
-              padding: const EdgeInsets.all(16.0),
-              width: 600,
-              height: 550, // Increased height to accommodate new field
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.black, width: 2),
-                image: DecorationImage(
-                  image: const AssetImage("lib/assets/PaymentIcon.png"),
-                  fit: BoxFit.cover, // This is to ensure the image covers the whole container
-                  colorFilter: ColorFilter.mode(
-                    Colors.white.withOpacity(0.2), // 20% opacity
-                    BlendMode.dstATop, // This blend mode allows the image to show through the color filter
-                  ),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 10),
-                  const Center(
-                    child: Text(
-                      "M-Pesa Payment",
-                      style: TextStyle(
-                        color: Color.fromARGB(58, 205, 50, 1),
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Center the row contents
-                    children: [
-                      Container(
-                        width: 200, // Adjust this width as needed
-                        child: TextFormField(
-                          controller: TextEditingController(
-                              text: "Ksh. ${totalPrice.toString()}"), // Display "Ksh." followed by total price
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 32, // Make text bold
-                          ), // Center align the text
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
-                          decoration: InputDecoration(
-                            hintText: "Total Price",
-                            fillColor: Colors.green,
-                            filled: true,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          readOnly: true, // Make the field read-only since it's for display purposes
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30), // Space between fields
-                  Row(
-                    children: [
-                      const Text(
-                        "M-Pesa Code:",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: TextFormField(
-                          controller: customerPhoneController,
-                          decoration: InputDecoration(
-                            hintText: "Enter M-Pesa Code",
-                            fillColor: Colors.white,
-                            filled: true,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  const SizedBox(height: 10), // Space for clarity
-
-                  // PaymentInfoDisplay(), // Before payment
-                  PaymentInfoDisplay(
-                      customerName: "John doe",
-                      amountPaid: "Ksh. 500"), // After payment
-                  const Spacer(),
-
-                  const SizedBox(height: 10), // Space for clarity
-                  // Cash Paid
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Cash Paid: ",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold, // Make label text bold
-                          fontSize: 16, // You can adjust the font size as needed
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          alignment: Alignment.bottomCenter,
-                          children: [
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 2, // Increase the thickness of the line
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              "$cashPaid",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold, // Make value text bold
-                                fontSize: 16, // You can adjust the font size as needed
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20), // Adjust the height for spacing
-
-                  // Balance
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Balance: ",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold, // Make label text bold
-                          fontSize: 16, // You can adjust the font size as needed
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          alignment: Alignment.bottomCenter,
-                          children: [
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 2, // Increase the thickness of the line
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              "${cashPaid - totalPrice}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold, // Make value text bold
-                                fontSize: 16, // You can adjust the font size as needed
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 5),
-                  const Spacer(),
-
-                  // Complete and Send Receipt Button
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        String phoneNumber = customerPhoneController.text;
-                        if (phoneNumber.isEmpty) {
-                          // Show some error message
-                          return;
-                        }
-
-                        MpesaPayment mpesaPayment = MpesaPayment();
-                        await mpesaPayment.lipaNaMpesa(
-                          phoneNumber: phoneNumber,
-                          amount: totalPrice,
-                          accountReference: "Account Reference",
-                          transactionDescription: "Payment Description",
-                          callbackUrl: "https://yourcallbackurl.com/callback",
-                        );
-                      },
-                      child: const Text("Complete and Send Receipt"),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 0), // 2 cm space (assuming 1 cm = 10 pixels)
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class PaymentInfoDisplay extends StatelessWidget {
-  final String customerName; // Placeholder for customer name
-  final String amountPaid; // Placeholder for amount paid
-
-  PaymentInfoDisplay({this.customerName = "-", this.amountPaid = "-"});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 200, // Different width and height for an oval
-      height: 120,
-      alignment: Alignment.center, // Center the text inside the container
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: const BorderRadius.all(Radius.circular(60)), // Rounded corners
-        border: Border.all(color: Colors.black, width: 2),
-      ),
-      child: Text(
-        " $customerName, \n\n  $amountPaid",
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
-      ),
-    );
-  }
-}
-
 
 class ProductOrder {
+  ProductOrder({required this.product, required this.quantity});
+
+  List<Product> cartItems = [];
   final Product product;
   final int quantity;
+
   // Assuming you have a quantity field
-  List<Product> _products = [];
+  final List<Product> _products = [];
+
   List<Product> get products => _products;
-  List<Product> cartItems = [];
-  ProductOrder({required this.product, required this.quantity});
 }
 
-
-
 class OrderManager {
-  late String orderId = '#';
-  int counter = 1;
-  late final String orderNumber;
-
   // Constructor
   OrderManager() {
     //orderId = '#'; // Initial value for order ID
@@ -1854,20 +1613,17 @@ class OrderManager {
       timestamp = timestamp.substring(0, 14); // Take only the first 14 digits
       orderNumber = '#medrx-$timestamp';
 
-  
       orderId = orderNumber;
     }
     counter += 1;
   }
+
+  int counter = 1;
+  late String orderId = '#';
+  late final String orderNumber;
 }
 
 class SalesHistoryClass {
-  final String productName;
-  int quantitySold;
-  int currentStock;
-  double unitPrice;
-  double profit;
-
   SalesHistoryClass({
     required this.productName,
     required this.quantitySold,
@@ -1876,23 +1632,30 @@ class SalesHistoryClass {
     required this.profit,
   });
 
+  int currentStock;
+  final String productName;
+  double profit;
+  int quantitySold;
+  double unitPrice;
+
   double get totalPrice => unitPrice * quantitySold;
 
   void updateSalesHistory(int soldQuantity) {
-    quantitySold = soldQuantity; // Assign the value of soldQuantity to quantitySold
+    quantitySold =
+        soldQuantity; // Assign the value of soldQuantity to quantitySold
     currentStock -= soldQuantity;
   }
 }
 
 class SalesHistoryManager {
-  List<SalesHistoryClass> salesHistory = [];
   final DatabaseHelper dbHelper = DatabaseHelper();
+  List<SalesHistoryClass> salesHistory = [];
 
   Future<void> initializeSalesHistory() async {
     List<Product> products = await dbHelper.getProducts();
     for (var product in products) {
-      var existingHistoryIndex = salesHistory.indexWhere(
-          (history) => history.productName == product.productName);
+      var existingHistoryIndex = salesHistory
+          .indexWhere((history) => history.productName == product.productName);
 
       if (existingHistoryIndex == -1) {
         salesHistory.add(SalesHistoryClass(
@@ -1908,11 +1671,12 @@ class SalesHistoryManager {
 
   void updateHistoryForCompletedOrder(List<Product> orderedProducts) {
     for (var orderedProduct in orderedProducts) {
-      var historyIndex = salesHistory.indexWhere(
-          (h) => h.productName == orderedProduct.productName);
+      var historyIndex = salesHistory
+          .indexWhere((h) => h.productName == orderedProduct.productName);
 
       if (historyIndex != -1) {
-        salesHistory[historyIndex].updateSalesHistory(orderedProduct.soldQuantity); // Use soldQuantity
+        salesHistory[historyIndex].updateSalesHistory(
+            orderedProduct.soldQuantity); // Use soldQuantity
       } else {
         salesHistory.add(SalesHistoryClass(
           productName: orderedProduct.productName,
@@ -1925,13 +1689,15 @@ class SalesHistoryManager {
     }
   }
 
-  void updateSalesHistoryFromTopSellingProducts(List<Product> topSellingProducts) {
+  void updateSalesHistoryFromTopSellingProducts(
+      List<Product> topSellingProducts) {
     for (var product in topSellingProducts) {
-      var historyIndex = salesHistory.indexWhere(
-          (h) => h.productName == product.productName);
+      var historyIndex =
+          salesHistory.indexWhere((h) => h.productName == product.productName);
 
       if (historyIndex != -1) {
-        salesHistory[historyIndex].updateSalesHistory(product.soldQuantity); // Use soldQuantity
+        salesHistory[historyIndex]
+            .updateSalesHistory(product.soldQuantity); // Use soldQuantity
       } else {
         salesHistory.add(SalesHistoryClass(
           productName: product.productName,

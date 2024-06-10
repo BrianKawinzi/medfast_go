@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/business/addproductwithoutbarcode.dart';
+import 'package:medfast_go/business/products/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/editproductpage.dart';
-import 'package:medfast_go/business/products.dart';
+import 'package:medfast_go/business/products/products.dart';
 import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/auth_page.dart';
@@ -17,6 +17,7 @@ import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
 import 'package:medfast_go/pages/profile.dart';
+import 'package:mpesa_flutter_plugin/mpesa_flutter_plugin.dart';
 import 'package:provider/provider.dart';
 import 'package:medfast_go/pages/themes.dart';
 import 'package:medfast_go/pages/language.dart';
@@ -26,12 +27,19 @@ import 'package:medfast_go/pages/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Initialize M-Pesa consumer key and secret
+  try {
+    await MpesaFlutterPlugin.setConsumerKey("s2u9AHfIk9WBTuf3vLZFw0nmQp3pdJAnSc8AsGtWEC6ywOny");
+    await MpesaFlutterPlugin.setConsumerSecret("Z8piKGAEZ27k1lnoisJ4683J6JbXGXerCTxcSkD5wfduc3zxLP35VQtn6TZk2wHA");
+    print("M-Pesa consumer key and secret set successfully");
+  } catch (e) {
+    print("Error setting M-Pesa consumer key and secret: $e");
+  }
 
   runApp(
     ChangeNotifierProvider(
-      
-      create: (context) => CartProvider(),
+      create: (context) => CartProvider(), 
       child: const MyApp(),
     ),
   );
@@ -51,18 +59,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
-      initialRoute: '/splash', 
+      initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/bottom': (context) => const BottomNavigation(),
-        
+
         '/HomePage': (context) => const HomePage(),
         '/login': (context) => const LoginPage(),
-        '/home': (context) => const HomeScreen(completedOrders: [],),
+        '/home': (context) => const HomeScreen(
+              completedOrders: [],
+            ),
         '/auth': (context) => const AuthPage(),
         '/signUp': (context) {
           final Map<String, dynamic> args = ModalRoute.of(context)!
-                  .settings
+              .settings
               .arguments as Map<String, dynamic>;
           final int? pharmacyId = args['pharmacyId'];
           return SignUpPage(
@@ -70,8 +80,7 @@ class MyApp extends StatelessWidget {
                   pharmacyId); // Make sure this matches the class and constructor
         },
 
-        '/password': (context) =>
-            forgotPassword(), // Ensure ForgotPassword is correctly named
+        '/password': (context) => ForgotPassword(),
         '/success': (context) => const SuccessfulPassword(),
         '/verify': (context) => const VerificationPage(),
         '/brandintro': (context) => const BrandIntroPage(),
@@ -89,8 +98,9 @@ class MyApp extends StatelessWidget {
         },
         '/themes': (context) => const Themes(),
         '/language': (context) => const Language(),
-        '/support': (context) =>  Support(),
+        '/support': (context) => Support(),
         '/faq': (context) => const FAQ(),
+        '/verify': (context) => const VerificationPage(),
         '/SettingsPage': (context) => const SettingsPage(),
       },
     );

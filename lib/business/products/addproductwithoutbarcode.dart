@@ -1,4 +1,7 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +9,9 @@ import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 
 class AddProductForm extends StatefulWidget {
+  final String? barcode;
+  const AddProductForm({super.key, this.barcode});
+
   @override
   _AddProductFormState createState() => _AddProductFormState();
 }
@@ -13,7 +19,8 @@ class AddProductForm extends StatefulWidget {
 class _AddProductFormState extends State<AddProductForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _expiryDateController = TextEditingController();
-  final TextEditingController _manufactureDateController = TextEditingController();
+  final TextEditingController _manufactureDateController =
+      TextEditingController();
   final ImagePicker _picker = ImagePicker();
   File? _image;
 
@@ -23,10 +30,11 @@ class _AddProductFormState extends State<AddProductForm> {
   String _unit = 'piece';
   int _quantity = 0;
 
-  DatabaseHelper _databaseHelper = DatabaseHelper();
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
@@ -35,7 +43,8 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Future<void> _captureImage() async {
-    final XFile? capturedFile = await _picker.pickImage(source: ImageSource.camera);
+    final XFile? capturedFile =
+        await _picker.pickImage(source: ImageSource.camera);
     if (capturedFile != null) {
       setState(() {
         _image = File(capturedFile.path);
@@ -47,47 +56,43 @@ class _AddProductFormState extends State<AddProductForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-          if (_buyingPrice == 0.0 && _sellingPrice == 0.0||_sellingPrice < _buyingPrice) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Invalid Pricing'),
-            content: const Text('The selling price must be greater than or equal to the buying price which must not be equal to 0'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
-
-      final List<Product> products = await _databaseHelper.getProducts();
-      int maxId = 0;
-      for (final product in products) {
-        if (product.id > maxId) {
-          maxId = product.id;
-        }
+      if (_buyingPrice == 0.0 && _sellingPrice == 0.0 ||
+          _sellingPrice < _buyingPrice) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Invalid Pricing'),
+              content: const Text(
+                  'The selling price must be greater than or equal to the buying price which must not be equal to 0'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        return;
       }
-      final newProductId = maxId + 1;
+
+      final Random random = Random();
 
       final newProduct = Product(
-        id: newProductId,
+        id: random.nextInt(1000000000),
         productName: _productName,
         medicineDescription: '',
         buyingPrice: _buyingPrice,
         sellingPrice: _sellingPrice,
-        image: _image != null ? _image!.path : null,
+        image: _image?.path,
         expiryDate: _expiryDateController.text,
         manufactureDate: _manufactureDateController.text,
         unit: _unit,
-        quantity: _quantity, 
+        quantity: _quantity,
+        barcode: widget.barcode,
       );
 
       final result = await _databaseHelper.insertProduct(newProduct);
@@ -104,7 +109,8 @@ class _AddProductFormState extends State<AddProductForm> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Error'),
-              content: const Text('Failed to insert the product into the database.'),
+              content:
+                  const Text('Failed to insert the product into the database.'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('OK'),
@@ -120,7 +126,8 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(
+      BuildContext context, TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -132,7 +139,8 @@ class _AddProductFormState extends State<AddProductForm> {
     }
   }
 
-  Widget _buildTextField(String label, String errorText, {bool isNumeric = false}) {
+  Widget _buildTextField(String label, String errorText,
+      {bool isNumeric = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -148,50 +156,52 @@ class _AddProductFormState extends State<AddProductForm> {
             ? const TextInputType.numberWithOptions(decimal: true)
             : TextInputType.text,
         validator: (value) {
-        if (value!.isEmpty) {
-          return errorText;  
-        }
-        return null;  
-      },
-        onChanged: (value) => _updateValueForLabel(label, value), // Update the value on change
-      onSaved: (value) => _updateValueForLabel(label, value!),
-    ),
-  );
-}
-  String _getValueForLabel(String label) {
-  switch (label) {
-    case 'Product Name':
-      return _productName;
-    case 'Buying Price':
-      return _buyingPrice.toString();
-    case 'Selling Price':
-      return _sellingPrice.toString();
-    default:
-      return '';
+          if (value!.isEmpty) {
+            return errorText;
+          }
+          return null;
+        },
+        onChanged: (value) =>
+            _updateValueForLabel(label, value), // Update the value on change
+        onSaved: (value) => _updateValueForLabel(label, value!),
+      ),
+    );
   }
-}
 
-void _updateValueForLabel(String label, String value) {
-  setState(() {
+  String _getValueForLabel(String label) {
     switch (label) {
       case 'Product Name':
-        _productName = value;
-        break;
+        return _productName;
       case 'Buying Price':
-        _buyingPrice = double.tryParse(value) ?? 0;
-        break;
+        return _buyingPrice.toString();
       case 'Selling Price':
-        _sellingPrice = double.tryParse(value) ?? 0;
-        break;
+        return _sellingPrice.toString();
+      default:
+        return '';
     }
-  });
-}
+  }
+
+  void _updateValueForLabel(String label, String value) {
+    setState(() {
+      switch (label) {
+        case 'Product Name':
+          _productName = value;
+          break;
+        case 'Buying Price':
+          _buyingPrice = double.tryParse(value) ?? 0;
+          break;
+        case 'Selling Price':
+          _sellingPrice = double.tryParse(value) ?? 0;
+          break;
+      }
+    });
+  }
 
   Widget _buildDropdown() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
+        SizedBox(
           width: MediaQuery.of(context).size.width * 0.4,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -204,18 +214,25 @@ void _updateValueForLabel(String label, String value) {
                   borderSide: BorderSide(color: Colors.green[800]!, width: 2.0),
                 ),
               ),
-              items: <String>['piece', 'packet', 'bottle', 'sheet', 'tablet', 'set']
-                  .map<DropdownMenuItem<String>>((String value) {
+              items: <String>[
+                'piece',
+                'packet',
+                'bottle',
+                'sheet',
+                'tablet',
+                'set'
+              ].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
                 );
               }).toList(),
-              onChanged: (String? newValue) => setState(() => _unit = newValue!),
+              onChanged: (String? newValue) =>
+                  setState(() => _unit = newValue!),
             ),
           ),
         ),
-        Container(
+        SizedBox(
           width: MediaQuery.of(context).size.width * 0.4,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -228,7 +245,8 @@ void _updateValueForLabel(String label, String value) {
                 ),
               ),
               keyboardType: TextInputType.number,
-              validator: (value) => value!.isEmpty ? 'Please enter quantity' : null,
+              validator: (value) =>
+                  value!.isEmpty ? 'Please enter quantity' : null,
               onSaved: (value) {
                 _quantity = int.tryParse(value!) ?? 0;
               },
@@ -263,7 +281,7 @@ void _updateValueForLabel(String label, String value) {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Product Without Barcode'),
+        title: const Text('Add Product Without Barcode'),
         backgroundColor: Colors.green[800],
       ),
       body: Form(
@@ -273,17 +291,33 @@ void _updateValueForLabel(String label, String value) {
           children: <Widget>[
             Text(
               'Add New Product',
-              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.green[800]),
+              style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[800]),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 30.0),
+            const SizedBox(height: 30.0),
+            widget.barcode != '' || widget.barcode != null
+                ? TextField(
+                    controller: TextEditingController(text: widget.barcode),
+                    enabled: false,
+                    decoration: const InputDecoration(
+                      labelText: "Barcode",
+                      border: OutlineInputBorder(),
+                    ),
+                  )
+                : const SizedBox(),
             _buildTextField('Product Name', 'Please enter the product name'),
-            _buildTextField('Buying Price', 'Please enter a valid buying price', isNumeric: true),
-            _buildTextField('Selling Price', 'Please enter a valid selling price', isNumeric: true),
+            _buildTextField('Buying Price', 'Please enter a valid buying price',
+                isNumeric: true),
+            _buildTextField(
+                'Selling Price', 'Please enter a valid selling price',
+                isNumeric: true),
             _buildDropdown(),
             _buildDatePicker(_manufactureDateController, 'Manufacture Date'),
             _buildDatePicker(_expiryDateController, 'Expiry Date'),
-            SizedBox(height: 30.0),
+            const SizedBox(height: 30.0),
             if (_image != null)
               GestureDetector(
                 onTap: () {
@@ -292,7 +326,7 @@ void _updateValueForLabel(String label, String value) {
                     builder: (context) {
                       return Dialog(
                         child: Container(
-                          padding: EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(16.0),
                           child: Image.file(_image!),
                         ),
                       );
@@ -300,7 +334,7 @@ void _updateValueForLabel(String label, String value) {
                   );
                 },
                 child: Container(
-                  margin: EdgeInsets.only(bottom: 15.0),
+                  margin: const EdgeInsets.only(bottom: 15.0),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.green[800]!),
                     borderRadius: BorderRadius.circular(12.0),
@@ -315,31 +349,38 @@ void _updateValueForLabel(String label, String value) {
                   onPressed: _captureImage,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green[800],
-                    padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
                   ),
-                  child: Text('Capture Image'),
+                  child: const Text(
+                    'Capture Image',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: _pickImage,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green[800],
-                    padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0)),
                   ),
-                  child: Text('Select Image'),
+                  child: const Text('Select Image',
+                      style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
-            SizedBox(height: 30.0),
+            const SizedBox(height: 30.0),
             ElevatedButton(
               onPressed: _submitForm,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green[700],
-                padding: EdgeInsets.symmetric(vertical: 15.0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                padding: const EdgeInsets.symmetric(vertical: 15.0),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0)),
               ),
-              child: Text(
+              child: const Text(
                 'Submit',
                 style: TextStyle(fontSize: 18.0, color: Colors.white),
               ),
