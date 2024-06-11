@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:medfast_go/business/reports.dart';
 import 'package:medfast_go/pages/general_page.dart';
 import 'package:medfast_go/pages/home_screen.dart';
-import 'package:medfast_go/pages/profile.dart';
+import 'package:medfast_go/business/products/products.dart';
 import 'package:medfast_go/business/sales.dart';
 
 class BottomNavigation extends StatefulWidget {
@@ -16,15 +16,19 @@ class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    HomeScreen(completedOrders: [],),
-    Sales(
+    const HomeScreen(
+      completedOrders: [],
+    ),
+    const Sales(
       initialProducts: [],
     ),
     GeneralPage(),
-    Reports(
+    const Products(
+      productName: '',
+    ),
+    const Reports(
       products: [],
     ),
-    PharmacyProfile(),
   ];
 
   // Explicitly define a PageController
@@ -54,8 +58,8 @@ class _BottomNavigationState extends State<BottomNavigation> {
         // selectedLabelStyle: TextStyle(color: Color.fromARGB(255, 11, 11, 11)),
         // unselectedLabelStyle: TextStyle(color: Color.fromARGB(255, 11, 11, 11)),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Color.fromARGB(255, 7, 79, 8),
-        unselectedItemColor: Color.fromARGB(255, 37, 234, 6),
+        selectedItemColor: const Color.fromARGB(255, 7, 79, 8),
+        unselectedItemColor: const Color.fromARGB(255, 37, 234, 6),
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard,
@@ -73,14 +77,14 @@ class _BottomNavigationState extends State<BottomNavigation> {
             label: 'General',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart,
+            icon: Icon(Icons.shopping_bag,
                 color: _currentIndex == 3 ? Colors.green : Colors.lightGreen),
-            label: 'Reports',
+            label: 'Products',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person,
+            icon: Icon(Icons.bar_chart,
                 color: _currentIndex == 4 ? Colors.green : Colors.lightGreen),
-            label: 'Profile',
+            label: 'Reports',
           ),
         ],
       ),
