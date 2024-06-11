@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -12,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // Import shared_pr
 import 'package:medfast_go/pages/notification.dart';
 import 'dart:math' as math;
 import 'package:medfast_go/pages/faq.dart';
+import 'package:medfast_go/pages/profile.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<OrderDetails> completedOrders;
@@ -548,6 +548,20 @@ class _HomeScreenState extends State<HomeScreen>
             },
             icon: const Icon(
               Icons.help_outline_rounded,
+              color: Colors.white,
+            ),
+          ),
+
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const PharmacyProfile()),
+              );
+            },
+            icon: const Icon(
+              Icons.person,
               color: Colors.white,
             ),
           ),
