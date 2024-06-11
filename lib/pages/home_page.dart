@@ -6,7 +6,7 @@ import 'package:medfast_go/business/expenses.dart';
 import 'package:medfast_go/business/other_incomes.dart';
 import 'package:medfast_go/business/products/products.dart';
 import 'package:medfast_go/business/purchase_order.dart';
-import 'package:medfast_go/business/reports.dart';
+import 'package:medfast_go/business/reports/reports.dart';
 import 'package:medfast_go/business/representative.dart';
 import 'package:medfast_go/business/sale_order.dart';
 import 'package:medfast_go/business/sales.dart';

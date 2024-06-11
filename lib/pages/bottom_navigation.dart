@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/business/reports.dart';
+import 'package:medfast_go/business/reports/reports.dart';
 import 'package:medfast_go/pages/general_page.dart';
 import 'package:medfast_go/pages/home_screen.dart';
 import 'package:medfast_go/pages/profile.dart';
@@ -16,7 +16,9 @@ class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-    HomeScreen(completedOrders: [],),
+    HomeScreen(
+      completedOrders: [],
+    ),
     Sales(
       initialProducts: [],
     ),
