@@ -58,7 +58,9 @@ class _ReportsState extends State<Reports> {
   void _updateStockRows(List<Product> productList) {
     setState(() {
       stockRows = productList
-          .map((product) => DataRow(cells: [
+          .map(
+            (product) => DataRow(
+              cells: [
                 DataCell(SizedBox(
                   width: 70,
                   child: Text(
@@ -97,7 +99,9 @@ class _ReportsState extends State<Reports> {
                     ),
                   ),
                 ),
-              ]))
+              ],
+            ),
+          )
           .toList();
     });
   }
@@ -105,7 +109,9 @@ class _ReportsState extends State<Reports> {
   void _updateSalesRows(List<Product> productList) {
     setState(() {
       salesRows = productList
-          .map((product) => DataRow(cells: [
+          .map(
+            (product) => DataRow(
+              cells: [
                 DataCell(
                   SizedBox(
                     width: 70,
@@ -151,7 +157,9 @@ class _ReportsState extends State<Reports> {
                     ),
                   ),
                 ),
-              ]))
+              ],
+            ),
+          )
           .toList();
     });
   }
