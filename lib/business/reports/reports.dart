@@ -514,6 +514,7 @@ class _ReportsState extends State<Reports> {
               ),
             ),
             child: DataTable(
+              columnSpacing: 15,
               dataRowMaxHeight: 50,
               columns: isStockSelected
                   ? [
