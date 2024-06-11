@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/business/reports.dart';
+import 'package:medfast_go/business/reports/reports.dart';
 import 'package:medfast_go/pages/general_page.dart';
 import 'package:medfast_go/pages/home_screen.dart';
 import 'package:medfast_go/business/products/products.dart';
