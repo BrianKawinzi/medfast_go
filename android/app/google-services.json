@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "276228943497",
+    "project_id": "medfastgo-d96a2",
+    "storage_bucket": "medfastgo-d96a2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276228943497:android:525da839db328350fca058",
+        "android_client_info": {
+          "package_name": "com.example.medfast_go"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmQSohHOTC0AVA4JsM7KUXDB5R6R4MxF8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276228943497:android:8e8fccd1b59c5808fca058",
+        "android_client_info": {
+          "package_name": "com.medfast_go"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmQSohHOTC0AVA4JsM7KUXDB5R6R4MxF8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

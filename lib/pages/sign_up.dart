@@ -1,14 +1,13 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
+import 'package:medfast_go/services/api_service.dart';
 
 class SignUpPage extends StatefulWidget {
-  final int? pharmacyId;
+  final String pharmacyId;
 
-  SignUpPage({super.key, required this.pharmacyId});
+  const SignUpPage({super.key, required this.pharmacyId});
 
   @override
   _SignUpPageState createState() => _SignUpPageState();
@@ -23,6 +22,7 @@ class _SignUpPageState extends State<SignUpPage> {
   String errorMessage = '';
   bool showErrorMessage = false;
   bool isLoading = false;
+  final ApiService _apiService = ApiService();
 
   void SignUserUp(BuildContext context) async {
     if (passwordController.text != confirmPasswordController.text) {
@@ -38,26 +38,18 @@ class _SignUpPageState extends State<SignUpPage> {
       });
     }
 
-    final url = Uri.parse('https://medrxapi.azurewebsites.net/api/Account/register');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': emailController.text,
-        'password': passwordController.text,
-        'username': usernameController.text,
-        'phoneNumber': passwordController.text,
-        'pharmacyId': widget.pharmacyId,
-      }),
-    );
-
-    if (response.statusCode == 200) {
+    try {
+      await _apiService.registerUser(
+        emailController.text,
+        passwordController.text,
+        usernameController.text,
+        passwordController.text,
+        widget.pharmacyId,
+      );
       Navigator.of(context).pushReplacementNamed('/login');
-    } else {
-      final Map<String, dynamic> responseBody = json.decode(response.body);
-      String apiErrorMessage = responseBody['message'] ?? 'Password needs: 6+ characters, A-Z, a-z, 0-9, and  \nsymbols like #, @.';
+    } catch (e) {
       setState(() {
-        errorMessage = apiErrorMessage;
+        errorMessage = 'Error registering user: $e';
         showErrorMessage = true;
         isLoading = false;
       });
@@ -113,7 +105,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     if (showErrorMessage)
                       Text(
                         errorMessage,
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                       ),
                     const SizedBox(height: 10),
                     MyTextField(
@@ -133,7 +125,7 @@ class _SignUpPageState extends State<SignUpPage> {
             if (isLoading)
               Container(
                 color: Colors.black45,
-                child: Center(child: CircularProgressIndicator()),
+                child: const Center(child: CircularProgressIndicator()),
               ),
           ],
         ),

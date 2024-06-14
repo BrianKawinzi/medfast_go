@@ -1,6 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:medfast_go/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
@@ -17,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool loading = false;
+  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
@@ -51,54 +53,13 @@ class _LoginPageState extends State<LoginPage> {
     final enteredEmail = emailController.text;
     final enteredPassword = passwordController.text;
 
-    final url =
-        Uri.parse('https://medrxapi.azurewebsites.net/api/Account/login');
-
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': enteredEmail,
-          'password': enteredPassword,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        final token = responseData[
-            'token']; // Assuming 'token' is the key in the response
-
-        // Decode the JWT token
-        final payload = decodeJwtPayload(token);
-
-        // Extract the email address and pharmacy name
-        final email = payload[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
-        final pharmacyName = payload['PharmacyName'];
-
-        // Save the token, email, and pharmacy name using SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('jwt_token', token);
-        await prefs.setString('user_email', email);
-        await prefs.setString('pharmacy_name', pharmacyName);
-
-        Navigator.of(context).pushReplacementNamed('/bottom');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid email or password'),
-            duration: Duration(milliseconds: 1500),
-          ),
-        );
-      }
+      await _apiService.signInUser(context, enteredEmail, enteredPassword);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('An error occurred: $e'),
-          duration: Duration(milliseconds: 1500),
+          duration: const Duration(milliseconds: 1500),
         ),
       );
     } finally {
@@ -144,7 +105,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 50),
                     Text(
                       'Welcome back to MedRx',
@@ -222,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
             if (loading)
               Container(
                 color: Colors.black.withOpacity(0.5),
-                child: Center(
+                child: const Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
                   ),
