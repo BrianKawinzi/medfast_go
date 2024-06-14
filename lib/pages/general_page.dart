@@ -14,6 +14,7 @@ import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/notification.dart';
 import 'package:medfast_go/pages/faq.dart';
+import 'package:medfast_go/business/products/products.dart';
 
 class GeneralPage extends StatelessWidget {
   GeneralPage({Key? key}) : super(key: key);
@@ -101,6 +102,7 @@ class GeneralPage extends StatelessWidget {
       body: GridView.count(
         crossAxisCount: 2,
         children: [
+          buildTile(context, "Products", Icons.shopping_bag, false),
           buildTile(context, "Expenses", Icons.money_off, false),
           buildTile(context, "Stores", Icons.store, true),
           buildTile(context, "Purchase Order", Icons.shopping_cart, true),
@@ -171,6 +173,12 @@ class GeneralPage extends StatelessWidget {
 
   void navigateToPage(BuildContext context, String pageTitle) {
     switch (pageTitle) {
+      case 'Products':
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const Products(
+                  productName: '',
+                )));
+        break;
       case 'Expenses':
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => const Expenses()));

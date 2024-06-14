@@ -20,7 +20,11 @@ class LogOutPageState extends State<LogOutPage> {
   Future<void> logoutUser() async {
     // Here you can add your logout logic
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear all stored data
+    await prefs.remove('pharmacyId'); // Remove the specific pharmacy ID
+    await prefs.remove('pharmacyName'); // Remove the specific pharmacy name
+    await prefs.remove('county'); // Remove the specific county
+    await prefs.remove('phone'); // Remove the specific phone number
+    await prefs.remove('profilePicture'); // Remove the profile picture
 
     // After performing the necessary logout operations, navigate to the BrandIntroPage
     WidgetsBinding.instance.addPostFrameCallback((_) {
