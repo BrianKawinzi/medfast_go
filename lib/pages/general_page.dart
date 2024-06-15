@@ -3,7 +3,6 @@ import 'package:medfast_go/business/activity.dart';
 import 'package:medfast_go/business/customers.dart';
 import 'package:medfast_go/business/expenses.dart';
 import 'package:medfast_go/business/other_incomes.dart';
-import 'package:medfast_go/business/products/products.dart';
 import 'package:medfast_go/business/purchase_order.dart';
 import 'package:medfast_go/business/representative.dart';
 import 'package:medfast_go/business/sale_order.dart';
@@ -11,11 +10,11 @@ import 'package:medfast_go/business/stores.dart';
 import 'package:medfast_go/business/suppliers.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
-import 'package:medfast_go/pages/components/tile.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/notification.dart';
 import 'package:medfast_go/pages/faq.dart';
+import 'package:medfast_go/business/products/products.dart';
 
 class GeneralPage extends StatelessWidget {
   GeneralPage({Key? key}) : super(key: key);
@@ -24,7 +23,7 @@ class GeneralPage extends StatelessWidget {
   Widget build(BuildContext context) {
     checkTwoDaysExpiryNotifications();
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 207, 210, 207),
+      backgroundColor: const Color.fromARGB(255, 207, 210, 207),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
@@ -108,9 +107,11 @@ class GeneralPage extends StatelessWidget {
           buildTile(context, "Stores", Icons.store, true),
           buildTile(context, "Purchase Order", Icons.shopping_cart, true),
           buildTile(context, "Supplier", Icons.person, true),
-          buildTile(context, "Activity", Icons.notifications_active_outlined, false),
+          buildTile(
+              context, "Activity", Icons.notifications_active_outlined, false),
           buildTile(context, "Customers", Icons.people, false),
-          buildTile(context, "Manage Employee", Icons.person_add_alt_1_sharp, true),
+          buildTile(
+              context, "Manage Employee", Icons.person_add_alt_1_sharp, true),
           buildTile(context, "Sale History", Icons.receipt, false),
           buildTile(context, "Other Income", Icons.monetization_on, true),
         ],
@@ -118,7 +119,8 @@ class GeneralPage extends StatelessWidget {
     );
   }
 
-  Widget buildTile(BuildContext context, String title, IconData icon, bool isPremium) {
+  Widget buildTile(
+      BuildContext context, String title, IconData icon, bool isPremium) {
     return GestureDetector(
       onTap: isPremium ? null : () => navigateToPage(context, title),
       child: Stack(
@@ -130,8 +132,8 @@ class GeneralPage extends StatelessWidget {
               right: 0,
               child: Container(
                 padding: const EdgeInsets.all(4),
-                color: Color.fromARGB(255, 227, 205, 116),
-                child: Text(
+                color: const Color.fromARGB(255, 227, 205, 116),
+                child: const Text(
                   'Premium',
                   style: TextStyle(
                     color: Color.fromARGB(255, 1, 1, 1),
@@ -155,7 +157,8 @@ class GeneralPage extends StatelessWidget {
             Icon(icon, size: 50.0),
             Text(
               title,
-              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+              style:
+                  const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -172,7 +175,9 @@ class GeneralPage extends StatelessWidget {
     switch (pageTitle) {
       case 'Products':
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => const Products(productName: '')));
+            builder: (context) => const Products(
+                  productName: '',
+                )));
         break;
       case 'Expenses':
         Navigator.of(context)
@@ -183,8 +188,8 @@ class GeneralPage extends StatelessWidget {
             .push(MaterialPageRoute(builder: (context) => const Stores()));
         break;
       case 'Purchase Order':
-        Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => const PurchaseOrder()));
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const PurchaseOrder()));
         break;
       case 'Supplier':
         Navigator.of(context)
