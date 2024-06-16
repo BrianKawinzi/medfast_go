@@ -13,6 +13,7 @@ dependencies:
   charts_flutter: ^0.11.0
   cloud_firestore: ^4.17.2
   collection: ^1.15.0
+  connectivity_plus: ^5.0.0
   csv: ^5.0.1
   cupertino_icons: ^1.0.2
   excel: ^4.0.3
@@ -28,6 +29,7 @@ dependencies:
   flutter_typeahead: ^3.1.1
   fluttertoast: ^8.0.7
   geolocator: ^8.0.0
+  get: ^4.6.6
   http: ^0.13.3
   image_picker: ^0.8.4
   intl: ^0.17.0

@@ -3,8 +3,10 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:medfast_go/controllers/products_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 
@@ -29,6 +31,7 @@ class _AddProductFormState extends State<AddProductForm> {
   double _sellingPrice = 0;
   String _unit = 'piece';
   int _quantity = 0;
+  final ProductsController productsController = Get.find();
 
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
@@ -56,31 +59,7 @@ class _AddProductFormState extends State<AddProductForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_buyingPrice == 0.0 && _sellingPrice == 0.0 ||
-          _sellingPrice < _buyingPrice) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Invalid Pricing'),
-              content: const Text(
-                  'The selling price must be greater than or equal to the buying price which must not be equal to 0'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-        return;
-      }
-
       final Random random = Random();
-
       final newProduct = Product(
         id: random.nextInt(1000000000),
         productName: _productName,
@@ -95,34 +74,8 @@ class _AddProductFormState extends State<AddProductForm> {
         barcode: widget.barcode,
       );
 
-      final result = await _databaseHelper.insertProduct(newProduct);
-
-      if (result != -1) {
-        setState(() {
-          _image = null;
-          _formKey.currentState!.reset();
-        });
-        Navigator.pushReplacementNamed(context, '/product');
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content:
-                  const Text('Failed to insert the product into the database.'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
+      await productsController.storeProduct(
+          product: newProduct, context: context, image: _image);
     }
   }
 
