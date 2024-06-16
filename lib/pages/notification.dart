@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
@@ -36,6 +37,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     super.initState();
     _fetchProducts();
     checkExpiredProducts();
+    checkProductQuantities();
     _loadReadNotifications();
   }
 
@@ -66,51 +68,41 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (expiryDate.isBefore(currentDate)) {
         setState(() {
           expiredProductNotifications.add(NotificationItem(
-            message:
-                '${product.productName} has expired on ${product.expiryDate}',
+            message: '${product.productName} has expired on ${product.expiryDate}',
             timestamp: DateTime.now(),
-            read: readNotifications.contains(
-                '${product.productName} has expired on ${product.expiryDate}'),
+            read: readNotifications.contains('${product.productName} has expired on ${product.expiryDate}'),
           ));
         });
-      } else if (expiryDate.isAfter(currentDate) &&
-          expiryDate.isBefore(twoDaysFromNow)) {
+      } else if (expiryDate.isAfter(currentDate) && expiryDate.isBefore(twoDaysFromNow)) {
         setState(() {
           expiredProductNotifications.add(NotificationItem(
             message: '${product.productName} will expire in 2 days',
             timestamp: DateTime.now(),
-            read: readNotifications
-                .contains('${product.productName} will expire in 2 days'),
+            read: readNotifications.contains('${product.productName} will expire in 2 days'),
           ));
         });
-      } else if (expiryDate.isAfter(currentDate) &&
-          expiryDate.isBefore(oneWeekFromNow)) {
+      } else if (expiryDate.isAfter(currentDate) && expiryDate.isBefore(oneWeekFromNow)) {
         setState(() {
           expiredProductNotifications.add(NotificationItem(
             message: '${product.productName} will expire in 1 week',
             timestamp: DateTime.now(),
-            read: readNotifications
-                .contains('${product.productName} will expire in 1 week'),
+            read: readNotifications.contains('${product.productName} will expire in 1 week'),
           ));
         });
-      } else if (expiryDate.isAfter(currentDate) &&
-          expiryDate.isBefore(twoWeeksFromNow)) {
+      } else if (expiryDate.isAfter(currentDate) && expiryDate.isBefore(twoWeeksFromNow)) {
         setState(() {
           expiredProductNotifications.add(NotificationItem(
             message: '${product.productName} will expire in 2 weeks',
             timestamp: DateTime.now(),
-            read: readNotifications
-                .contains('${product.productName} will expire in 2 weeks'),
+            read: readNotifications.contains('${product.productName} will expire in 2 weeks'),
           ));
         });
-      } else if (expiryDate.isAfter(currentDate) &&
-          expiryDate.isBefore(oneMonthFromNow)) {
+      } else if (expiryDate.isAfter(currentDate) && expiryDate.isBefore(oneMonthFromNow)) {
         setState(() {
           expiredProductNotifications.add(NotificationItem(
             message: '${product.productName} will expire in one month',
             timestamp: DateTime.now(),
-            read: readNotifications
-                .contains('${product.productName} will expire in one month'),
+            read: readNotifications.contains('${product.productName} will expire in one month'),
           ));
         });
       }
@@ -119,25 +111,45 @@ class _NotificationsPageState extends State<NotificationsPage> {
     sortNotifications(); // Sort notifications after adding
   }
 
+  Future<void> checkProductQuantities() async {
+    final dbHelper = DatabaseHelper();
+    final allProducts = await dbHelper.getProducts();
+
+    for (var product in allProducts) {
+      if (product.quantity <= 10) {
+        addLowStockNotification(product);
+      }
+    }
+  }
+
+  void addLowStockNotification(Product product) {
+    final notificationMessage = 'Running low on ${product.productName}';
+    final notification = NotificationItem(
+      message: notificationMessage,
+      timestamp: DateTime.now(),
+      read: false,
+    );
+
+    setState(() {
+      expiredProductNotifications.insert(0, notification);
+    });
+  }
+
   void sortNotifications() {
-    expiredProductNotifications
-        .sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    expiredProductNotifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   Future<void> _loadReadNotifications() async {
     final prefs = await SharedPreferences.getInstance();
-    final readNotificationsList =
-        prefs.getStringList('readNotifications') ?? [];
+    final readNotificationsList = prefs.getStringList('readNotifications') ?? [];
     setState(() {
-      readNotifications =
-          readNotificationsList.toSet(); // Convert to set of message strings
+      readNotifications = readNotificationsList.toSet(); // Convert to set of message strings
     });
   }
 
   Future<void> _saveReadNotifications() async {
     final prefs = await SharedPreferences.getInstance();
-    final readNotificationsList =
-        readNotifications.toList(); // Convert set to list of message strings
+    final readNotificationsList = readNotifications.toList(); // Convert set to list of message strings
     await prefs.setStringList('readNotifications', readNotificationsList);
   }
 
@@ -167,6 +179,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
           backgroundColor = Colors.blue[900]!;
         } else if (notification.message.contains("will expire in one month")) {
           backgroundColor = Colors.blue[200]!;
+        } else if (notification.message.contains("Running low on")) {
+          backgroundColor = Colors.orange;
         } else {
           backgroundColor = Colors.red;
         }
@@ -175,17 +189,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
           backgroundColor = Colors.grey;
         }
 
-        var product = products[index];
-        var imageFile = File(product.image ?? '');
+        var product = products.firstWhereOrNull((p) => notification.message.contains(p.productName));
+        var imageFile = product != null && product.image != null ? File(product.image!) : null;
 
         return GestureDetector(
           onTap: () {
-            _showExpiryDateDialog(context, product.expiryDate,
-                notification); // Pass notification instead of index
+            if (notification.message.contains("Running low on")) {
+              _showProductQuantityDialog(context, product, notification);
+            } else {
+              _showExpiryDateDialog(context, notification);
+            }
           },
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
             child: Container(
               decoration: BoxDecoration(
                 color: backgroundColor,
@@ -198,7 +214,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     child: SizedBox(
                       width: 35,
                       height: 35,
-                      child: imageFile.existsSync()
+                      child: imageFile != null && imageFile.existsSync()
                           ? Image.file(
                               imageFile,
                               fit: BoxFit.cover,
@@ -206,7 +222,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                 return const Icon(Icons.error);
                               },
                             )
-                          : const Placeholder(),
+                          : Image.asset('lib/assets/noimage.png', fit: BoxFit.cover),
                     ),
                   ),
                 ),
@@ -261,8 +277,41 @@ class _NotificationsPageState extends State<NotificationsPage> {
     ));
   }
 
-  void _showExpiryDateDialog(
-      BuildContext context, String expiryDate, NotificationItem notification) {
+  void _showProductQuantityDialog(BuildContext context, Product? product, NotificationItem notification) {
+    if (product == null) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Product Details'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Product Name: ${product.productName}'),
+              Text('Quantity in Stock: ${product.quantity}'),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                setState(() {
+                  notification.read = true; // Mark notification as read
+                  readNotifications.add(notification.message); // Add message to read notifications
+                });
+                _saveReadNotifications();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showExpiryDateDialog(BuildContext context, NotificationItem notification) {
+    String expiryDate = notification.message.split(' on ')[1];
     final isExpired = DateTime.parse(expiryDate).isBefore(DateTime.now());
 
     showDialog(
@@ -279,8 +328,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               onPressed: () {
                 setState(() {
                   notification.read = true; // Mark notification as read
-                  readNotifications.add(notification
-                      .message); // Add message to read notifications
+                  readNotifications.add(notification.message); // Add message to read notifications
                 });
                 _saveReadNotifications();
                 Navigator.of(context).pop();
@@ -314,8 +362,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -331,20 +378,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         Text(
                           'All',
                           style: TextStyle(
-                            fontWeight: showAllNotifications
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: showAllNotifications
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
+                            fontWeight: showAllNotifications ? FontWeight.bold : FontWeight.normal,
+                            color: showAllNotifications ? Theme.of(context).primaryColor : Colors.grey,
                           ),
                         ),
                         Container(
                           width: 24.0,
                           height: 2.0,
-                          color: showAllNotifications
-                              ? Theme.of(context).primaryColor
-                              : Colors.transparent,
+                          color: showAllNotifications ? Theme.of(context).primaryColor : Colors.transparent,
                         ),
                       ],
                     ),
@@ -362,20 +403,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         Text(
                           'Mark all as read',
                           style: TextStyle(
-                            fontWeight: !showAllNotifications
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: !showAllNotifications
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
+                            fontWeight: !showAllNotifications ? FontWeight.bold : FontWeight.normal,
+                            color: !showAllNotifications ? Theme.of(context).primaryColor : Colors.grey,
                           ),
                         ),
                         Container(
                           width: 80.0,
                           height: 2.0,
-                          color: !showAllNotifications
-                              ? Theme.of(context).primaryColor
-                              : Colors.transparent,
+                          color: !showAllNotifications ? Theme.of(context).primaryColor : Colors.transparent,
                         ),
                       ],
                     ),
