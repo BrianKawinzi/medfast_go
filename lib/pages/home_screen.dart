@@ -1,16 +1,19 @@
 import 'dart:io';
-
+import 'dart:math';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:medfast_go/business/sales.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:medfast_go/pages/profile.dart';
 import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:medfast_go/pages/widgets/revenue_card.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 import 'package:medfast_go/pages/notification.dart';
 import 'dart:math' as math;
 import 'package:medfast_go/pages/faq.dart';
+import 'package:fl_chart/fl_chart.dart' as fl;
 
 class HomeScreen extends StatefulWidget {
   final List<OrderDetails> completedOrders;
@@ -21,8 +24,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   late List<OrderDetails> _completedOrders;
   final List<String> _months = [
     '',
@@ -42,36 +44,47 @@ class _HomeScreenState extends State<HomeScreen>
   bool hasNotification = true;
 
   late final int _selectedYear = DateTime.now().year;
-  late int _selectedMonthIndex = DateTime.now().month;
-  //late String _selectedMonth = where index for months is _selectedMonthIndex
-  late String _selectedMonth = _months[_selectedMonthIndex];
+  late int _selectedMonthIndex = DateTime.now().month - 1;
+  late String _selectedMonth = _months[_selectedMonthIndex + 1];
 
   double? _totalRevenueForGraph;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  late Future<List<double>> _monthlySalesFuture;
+
   @override
   void initState() {
     super.initState();
     _completedOrders = widget.completedOrders;
-    _completedOrders = widget.completedOrders;
     fetchAndUpdateCompletedOrders(); // Fetch completed orders on init
-    _selectedMonthIndex = _months.indexOf(_selectedMonth) - 1;
-    calculateTotalRevenue(_selectedYear, _selectedMonthIndex).then((revenue) {
+    _monthlySalesFuture = DatabaseHelper().getMonthlySalesAmounts(_selectedYear);
+    _monthlySalesFuture.then((sales) {
       setState(() {
-        _totalRevenueForGraph = revenue;
+        _totalRevenueForGraph = sales[_selectedMonthIndex];
       });
     });
   }
 
-  //calculate revenue method
-  Future<double> calculateTotalRevenue(int year,
-      [int? selectedMonthIndex]) async {
+  // Method to update monthly sales and total revenue when month changes
+  void _onMonthChanged(int monthIndex) async {
+    setState(() {
+      _selectedMonthIndex = monthIndex;
+      _selectedMonth = _months[monthIndex + 1];
+    });
+
+    List<double> sales = await DatabaseHelper().getMonthlySalesAmounts(_selectedYear);
+    setState(() {
+      _totalRevenueForGraph = sales[monthIndex];
+    });
+  }
+
+  // Calculate revenue method
+  Future<double> calculateTotalRevenue(int year, [int? selectedMonthIndex]) async {
     double totalRevenue = 0;
 
     for (OrderDetails order in _completedOrders) {
-      if (order.completedAt.year == year &&
-          order.completedAt.month == selectedMonthIndex) {
+      if (order.completedAt.year == year && order.completedAt.month == selectedMonthIndex) {
         totalRevenue += order.totalPrice;
       }
     }
@@ -79,21 +92,16 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   static Future<int> countCustomers() async {
-    return await DatabaseHelper()
-        .getCustomers()
-        .then((customers) => customers.length);
+    return await DatabaseHelper().getCustomers().then((customers) => customers.length);
   }
 
   void displayProductSales() async {
-    Map<int, int> soldQuantities =
-        await DatabaseHelper().calculateTotalSoldQuantities();
-
+    Map<int, int> soldQuantities = await DatabaseHelper().calculateTotalSoldQuantities();
     soldQuantities.forEach((productId, quantity) {});
   }
 
   void fetchAndUpdateCompletedOrders() async {
-    List<OrderDetails> todayCompletedOrders =
-        await DatabaseHelper().getTodayCompletedOrders(DateTime.now());
+    List<OrderDetails> todayCompletedOrders = await DatabaseHelper().getTodayCompletedOrders(DateTime.now());
     setState(() {
       _completedOrders = todayCompletedOrders;
     });
@@ -141,20 +149,16 @@ class _HomeScreenState extends State<HomeScreen>
                             title: "Profit",
                           ),
                           FutureBuilder<int>(
-                            future: DatabaseHelper()
-                                .getDailyTotalItemsSold(DateTime.now()),
+                            future: DatabaseHelper().getDailyTotalItemsSold(DateTime.now()),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator());
                               } else if (snapshot.hasData) {
                                 int itemsSold = snapshot.data!;
                                 return Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: [
                                         _buildCircularProgressWithLabel(
                                           value: itemsSold / 2000,
@@ -178,11 +182,9 @@ class _HomeScreenState extends State<HomeScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           FutureBuilder<List<OrderDetails>>(
-                            future: DatabaseHelper()
-                                .getTodayCompletedOrders(DateTime.now()),
+                            future: DatabaseHelper().getTodayCompletedOrders(DateTime.now()),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
                                 return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text("Error: ${snapshot.error}");
@@ -200,11 +202,9 @@ class _HomeScreenState extends State<HomeScreen>
                             },
                           ),
                           FutureBuilder<double>(
-                            future: DatabaseHelper()
-                                .getDailyExpenses(DateTime.now()),
+                            future: DatabaseHelper().getDailyExpenses(DateTime.now()),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
                                 return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text('Error: ${snapshot.error}');
@@ -375,8 +375,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget buildTopProductsSection() {
     return FutureBuilder<List<Product>>(
-      future: OrderRepository
-          .getBestSellingProducts(), // Make sure this is correctly fetching data
+      future: OrderRepository.getBestSellingProducts(), // Make sure this is correctly fetching data
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -388,8 +387,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: snapshot.data!.map((product) {
               ImageProvider imageProvider;
               if (product.image != null && product.image!.isNotEmpty) {
-                if (product.image!.startsWith('http') ||
-                    product.image!.startsWith('https')) {
+                if (product.image!.startsWith('http') || product.image!.startsWith('https')) {
                   // Handle network images
                   imageProvider = NetworkImage(product.image!);
                 } else {
@@ -402,8 +400,7 @@ class _HomeScreenState extends State<HomeScreen>
               }
 
               return Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
                 child: Row(
                   children: [
                     Container(
@@ -424,14 +421,11 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           Text(
                             product.productName,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            product.medicineDescription ??
-                                "No description available",
-                            style: TextStyle(
-                                fontSize: 14, color: Colors.grey[600]),
+                            product.medicineDescription ?? "No description available",
+                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                           ),
                         ],
                       ),
@@ -439,21 +433,16 @@ class _HomeScreenState extends State<HomeScreen>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Price:',
-                            style: TextStyle(
-                                fontSize: 14, color: Colors.grey[800])),
+                        Text('Price:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
                         Text('Ksh${product.sellingPrice.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.bold)),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(width: 15),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Revenue:',
-                            style: TextStyle(
-                                fontSize: 14, color: Colors.grey[800])),
+                        Text('Revenue:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
                         Text(
                             'Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}',
                             style: TextStyle(
@@ -502,13 +491,12 @@ class _HomeScreenState extends State<HomeScreen>
           },
         ),
         actions: [
-          //Notification button
+          // Notification button
           IconButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (context) => const NotificationsPage()),
+                MaterialPageRoute(builder: (context) => const NotificationsPage()),
               );
             },
             icon: Stack(
@@ -536,8 +524,7 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-
-          //help button
+          // Help button
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -550,11 +537,29 @@ class _HomeScreenState extends State<HomeScreen>
               color: Colors.white,
             ),
           ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PharmacyProfile()),
+              );
+            },
+            icon: const Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
       drawer: Drawer(
-        width: MediaQuery.of(context).size.width * 0.9,
-        child: const NavigationDrawerWidget(),
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return SizedBox(
+              width: constraints.maxWidth * 0.9,
+              child: const NavigationDrawerWidget(),
+            );
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -564,7 +569,6 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               buildMetricCard(),
               // Revenue card
-
               Card(
                 elevation: 5.0,
                 child: Padding(
@@ -574,32 +578,15 @@ class _HomeScreenState extends State<HomeScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Total \n Revenue',
-                              style: TextStyle(
+                          Text('$_selectedMonth Revenue',
+                              style: const TextStyle(
                                   fontSize: 16.0, color: Colors.grey)),
-                          FutureBuilder<double>(
-                            future: calculateTotalRevenue(
-                                _selectedYear, _selectedMonthIndex),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const CircularProgressIndicator();
-                              } else if (snapshot.hasData) {
-                                return Text(
-
-                                    //assign snapshot.data to _totalRevenueForGraph
-
-                                    'KSH ${snapshot.data!.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.bold));
-                              } else {
-                                return const Text('Error',
-                                    style: TextStyle(
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.bold));
-                              }
-                            },
+                          Text(
+                            _totalRevenueForGraph != null
+                                ? 'KSH ${_totalRevenueForGraph!.toStringAsFixed(0)}'
+                                : 'Loading...',
+                            style: const TextStyle(
+                                fontSize: 18.0, fontWeight: FontWeight.bold),
                           ),
                           DropdownButton<String>(
                             value: _selectedMonth,
@@ -612,12 +599,10 @@ class _HomeScreenState extends State<HomeScreen>
                               color: Colors.deepPurpleAccent,
                             ),
                             onChanged: (String? newValue) {
-                              setState(() {
-                                _selectedMonth = newValue!;
-                                //nu
-                                _selectedMonthIndex = _months.indexOf(newValue);
-                                // Additional logic if needed when month changes
-                              });
+                              if (newValue != null) {
+                                int newMonthIndex = _months.indexOf(newValue) - 1;
+                                _onMonthChanged(newMonthIndex);
+                              }
                             },
                             items: _months
                                 .map<DropdownMenuItem<String>>((String month) {
@@ -626,33 +611,34 @@ class _HomeScreenState extends State<HomeScreen>
                                 child: Text(month),
                               );
                             }).toList(),
-                          )
+                          ),
                         ],
                       ),
                       SizedBox(
-                          height: 200,
-                          child: IndividualBar(
-                            selectedMonthIndex: _selectedMonthIndex,
-                            monthlyAmounts: const [
-                              100,
-                              45,
-                              200,
-                              150,
-                              300,
-                              250,
-                              400,
-                              350,
-                              500,
-                              450,
-                              600,
-                              550
-                            ],
-                          )),
+                        height: 200,
+                        child: FutureBuilder<List<double>>(
+                          future: _monthlySalesFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else if (snapshot.hasData) {
+                              return IndividualBar(
+                                selectedMonthIndex: _selectedMonthIndex,
+                                monthlyAmounts: snapshot.data!,
+                              );
+                            } else {
+                              return const Text('No data available');
+                            }
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-
+              // The rest of your widgets...
               Card(
                 elevation: 5.0,
                 child: Padding(
@@ -673,8 +659,7 @@ class _HomeScreenState extends State<HomeScreen>
                             FutureBuilder<int>(
                               future: OrderRepository.countCustomers(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
                                   return _buildRectangle(
                                     icon: Icons.people,
                                     label: "Customers",
@@ -705,14 +690,12 @@ class _HomeScreenState extends State<HomeScreen>
                             FutureBuilder<double>(
                               future: OrderRepository.getTotalSales(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
+                                if (snapshot.connectionState == ConnectionState.done) {
                                   if (snapshot.hasData) {
                                     return _buildRectangle(
                                       icon: Icons.shopping_cart,
                                       label: "Sales",
-                                      value:
-                                          "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                      value: "Ksh ${snapshot.data!.toStringAsFixed(2)}",
                                     );
                                   } else if (snapshot.hasError) {
                                     return _buildRectangle(
@@ -733,8 +716,7 @@ class _HomeScreenState extends State<HomeScreen>
                             FutureBuilder<double>(
                               future: OrderRepository.getTotalProfit(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
                                   return _buildRectangle(
                                     icon: Icons.money,
                                     label: "Profit",
@@ -744,8 +726,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   return _buildRectangle(
                                     icon: Icons.money,
                                     label: "Profit",
-                                    value:
-                                        "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                    value: "Ksh ${snapshot.data!.toStringAsFixed(2)}",
                                   );
                                 } else if (snapshot.hasError) {
                                   return _buildRectangle(
@@ -766,8 +747,7 @@ class _HomeScreenState extends State<HomeScreen>
                             FutureBuilder<int>(
                               future: OrderRepository.countCompletedOrders(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.done) {
+                                if (snapshot.connectionState == ConnectionState.done) {
                                   if (snapshot.hasData) {
                                     return _buildRectangle(
                                       icon: Icons.local_shipping,
@@ -808,7 +788,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               const SizedBox(height: 10),
-              //stats card
+              // Stats card
               Card(
                 elevation: 5.0,
                 child: Padding(
@@ -818,28 +798,21 @@ class _HomeScreenState extends State<HomeScreen>
                     children: [
                       const Text(
                         'Actual Top Stats',
-                        style: TextStyle(
-                            fontSize: 16.0, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16.0),
                       FutureBuilder<List<Product>>(
                         future: OrderRepository.getBestSellingProducts(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
                             return const CircularProgressIndicator();
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error.toString()}');
-                          } else if (snapshot.hasData &&
-                              snapshot.data!.isNotEmpty) {
-                            int maxQuantity = snapshot.data!
-                                .map((p) => p.soldQuantity)
-                                .reduce(math.max);
+                          } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                            int maxQuantity = snapshot.data!.map((p) => p.soldQuantity).reduce(math.max);
                             return Column(
                               children: snapshot.data!.map((product) {
-                                double fraction = maxQuantity != 0
-                                    ? product.soldQuantity / maxQuantity
-                                    : 0.0;
+                                double fraction = maxQuantity != 0 ? product.soldQuantity / maxQuantity : 0.0;
                                 return GestureDetector(
                                   onTap: () => showDialog(
                                     context: context,
@@ -849,13 +822,10 @@ class _HomeScreenState extends State<HomeScreen>
                                         content: SingleChildScrollView(
                                           child: ListBody(
                                             children: <Widget>[
-                                              Text(
-                                                  'Price: Ksh${product.sellingPrice.toStringAsFixed(2)}'),
-                                              Text(
-                                                  'Quantity Sold: ${product.soldQuantity}'),
-                                              Text(
-                                                  'Total Revenue: Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}'),
-                                              //Text('Profit: Ksh${(product.profit.toStringAsFixed(2))}'),
+                                              Text('Price: Ksh${product.sellingPrice.toStringAsFixed(2)}'),
+                                              Text('Quantity Sold: ${product.soldQuantity}'),
+                                              Text('Total Revenue: Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}'),
+                                              // Text('Profit: Ksh${(product.profit.toStringAsFixed(2))}'),
                                             ],
                                           ),
                                         ),
@@ -871,20 +841,16 @@ class _HomeScreenState extends State<HomeScreen>
                                     },
                                   ),
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         product.productName,
-                                        style: const TextStyle(
-                                            fontSize: 14.0,
-                                            fontWeight: FontWeight.bold),
+                                        style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
                                       ),
                                       LinearProgressIndicator(
                                         value: fraction,
                                         backgroundColor: Colors.grey[300],
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
+                                        valueColor: AlwaysStoppedAnimation<Color>(
                                           product == snapshot.data!.first
                                               ? Colors.blue
                                               : product == snapshot.data![1]
@@ -915,3 +881,130 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 }
+
+
+
+
+class IndividualBar extends StatelessWidget {
+  final int selectedMonthIndex;
+  final List<double> monthlyAmounts;
+
+  const IndividualBar({
+    Key? key,
+    required this.selectedMonthIndex,
+    required this.monthlyAmounts,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return fl.BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceEvenly,
+        maxY: monthlyAmounts.reduce((a, b) => a > b ? a : b),
+        barGroups: List.generate(12, (index) {
+          final isSelected = index == selectedMonthIndex;
+          final color = isSelected ? Colors.green : Colors.grey;
+          final value = isSelected
+              ? monthlyAmounts[index]
+              : (monthlyAmounts[index] != 0
+                  ? monthlyAmounts[index]
+                  : Random().nextDouble() * 10 + 1); // Ensure some visibility
+
+          return BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: value,
+                color: color,
+                width: 20,
+                borderRadius: BorderRadius.zero,
+              ),
+            ],
+          );
+        }),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              getTitlesWidget: (double value, TitleMeta meta) {
+                const style = TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                );
+                Widget text;
+                switch (value.toInt()) {
+                  case 0:
+                    text = const Text('Jan', style: style);
+                    break;
+                  case 1:
+                    text = const Text('Feb', style: style);
+                    break;
+                  case 2:
+                    text = const Text('Mar', style: style);
+                    break;
+                  case 3:
+                    text = const Text('Apr', style: style);
+                    break;
+                  case 4:
+                    text = const Text('May', style: style);
+                    break;
+                  case 5:
+                    text = const Text('Jun', style: style);
+                    break;
+                  case 6:
+                    text = const Text('Jul', style: style);
+                    break;
+                  case 7:
+                    text = const Text('Aug', style: style);
+                    break;
+                  case 8:
+                    text = const Text('Sep', style: style);
+                    break;
+                  case 9:
+                    text = const Text('Oct', style: style);
+                    break;
+                  case 10:
+                    text = const Text('Nov', style: style);
+                    break;
+                  case 11:
+                    text = const Text('Dec', style: style);
+                    break;
+                  default:
+                    text = const Text('', style: style);
+                    break;
+                }
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  space: 8.0, // space between bar and title
+                  child: text,
+                );
+              },
+            ),
+          ),
+        ),
+        gridData: FlGridData(show: false),
+        borderData: FlBorderData(
+          show: true,
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.black,
+              width: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

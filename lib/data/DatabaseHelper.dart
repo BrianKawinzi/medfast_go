@@ -377,6 +377,28 @@ class DatabaseHelper {
     return result;
   }
 
+  Future<List<double>> getMonthlySalesAmounts(int year) async {
+  final db = await database;
+  List<double> monthlySales = List.filled(12, 0.0);
+
+  // Query completed orders grouped by month for the given year
+  List<Map<String, dynamic>> result = await db!.rawQuery('''
+    SELECT strftime('%m', $columnCompletedAt) AS month,
+           SUM($columnTotalPrice) AS totalPrice
+    FROM $completedOrderTableName
+    WHERE strftime('%Y', $columnCompletedAt) = ?
+    GROUP BY month
+  ''', [year.toString()]);
+
+  for (var row in result) {
+    int monthIndex = int.parse(row['month']) - 1;
+    monthlySales[monthIndex] = row['totalPrice'] ?? 0.0;
+  }
+
+  return monthlySales;
+}
+
+
   // Query all expenses from the expenses table
   Future<List<Expense>> getExpenses() async {
     final Database? db = await database;

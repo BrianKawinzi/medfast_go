@@ -254,7 +254,9 @@ class _SalesState extends State<Sales> {
                             return const Icon(Icons.error);
                           },
                         )
-                      : const Placeholder(),
+                        : Image.asset('lib/assets/noimage.png', fit: BoxFit.cover),
+                      //: const Placeholder(),
+                      
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
