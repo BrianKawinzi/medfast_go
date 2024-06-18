@@ -60,22 +60,28 @@ class _AddProductFormState extends State<AddProductForm> {
       _formKey.currentState!.save();
 
       final Random random = Random();
-      final newProduct = Product(
-        id: random.nextInt(1000000000),
-        productName: _productName,
-        medicineDescription: '',
-        buyingPrice: _buyingPrice,
-        sellingPrice: _sellingPrice,
-        image: _image?.path,
-        expiryDate: _expiryDateController.text,
-        manufactureDate: _manufactureDateController.text,
-        unit: _unit,
-        quantity: _quantity,
-        barcode: widget.barcode,
-      );
+      late Product newProduct;
+      setState(() {
+        newProduct = Product(
+          id: random.nextInt(1000000000),
+          productName: _productName,
+          medicineDescription: '',
+          buyingPrice: _buyingPrice,
+          sellingPrice: _sellingPrice,
+          image: _image?.path,
+          expiryDate: _expiryDateController.text,
+          manufactureDate: _manufactureDateController.text,
+          unit: _unit,
+          quantity: _quantity,
+          barcode: widget.barcode,
+        );
+      });
 
       await productsController.storeProduct(
-          product: newProduct, context: context, image: _image);
+        product: newProduct,
+        context: context,
+        image: _image,
+      );
     }
   }
 
@@ -325,18 +331,28 @@ class _AddProductFormState extends State<AddProductForm> {
               ],
             ),
             const SizedBox(height: 30.0),
-            ElevatedButton(
-              onPressed: _submitForm,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
-                padding: const EdgeInsets.symmetric(vertical: 15.0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-              ),
-              child: const Text(
-                'Submit',
-                style: TextStyle(fontSize: 18.0, color: Colors.white),
-              ),
+            Obx(
+              () => productsController.creatingLoading.value
+                  ? const Center(
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0)),
+                      ),
+                      child: const Text(
+                        'Submit',
+                        style: TextStyle(fontSize: 18.0, color: Colors.white),
+                      ),
+                    ),
             ),
           ],
         ),

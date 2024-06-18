@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:medfast_go/models/pharmacy.dart';
+import 'package:medfast_go/pages/sign_up.dart';
 import 'package:medfast_go/services/api_service.dart';
 
 class RegisterPharmacyScreen extends StatefulWidget {
@@ -69,6 +72,7 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
   Position? pharmacyLocation;
   bool isLoading = false;
   Map<String, String> errors = {};
+  final AuthenticationController authenticationController = Get.find();
 
   void showValidationErrors(Map<String, String> errors) {
     final List<String> errorMessages = errors.values.toList();
@@ -229,7 +233,6 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
-
                         final pharmacy = Pharmacy(
                           pharmacyName: pharmacyName,
                           county: county,
@@ -243,7 +246,8 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
                         });
 
                         try {
-                          await _apiService.registerPharmacy(context, pharmacy);
+                          await authenticationController.registerPharmacy(
+                              context, pharmacy);
                         } catch (validationErrors) {
                           setState(() {
                             // errors = validationErrors;

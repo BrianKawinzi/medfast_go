@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:medfast_go/constants/firebase_collections.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/services/network_provider.dart';
@@ -15,7 +16,7 @@ class SyncService {
 
       for (var product in localData) {
         await _firestore
-            .collection('products')
+            .collection(Collections.PRODUCTS)
             .doc(product.id.toString())
             .set(product.toMap());
         await _dbHelper.deleteProduct(product.id);

@@ -3,12 +3,16 @@ import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products/import_product.dart';
 import 'package:medfast_go/business/products/qr_scanner.dart';
+import 'package:medfast_go/controllers/products_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
+import 'package:medfast_go/services/network_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class Products extends StatefulWidget {
@@ -36,23 +40,11 @@ class _ProductsState extends State<Products> {
   final TextEditingController manufactureDateController =
       TextEditingController();
   final TextEditingController expiryDateController = TextEditingController();
+  final ProductsController productsController = Get.find();
+  final NetworkController networkController = Get.find();
 
   List<Product> products = [];
   String hintText = ''; // To store the hint text
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchProducts();
-  }
-
-  Future<void> _fetchProducts() async {
-    final dbHelper = DatabaseHelper();
-    final fetchedProducts = await dbHelper.getProducts();
-    setState(() {
-      products = fetchedProducts;
-    });
-  }
 
   Future<void> _filterProducts(String query) async {
     final dbHelper = DatabaseHelper();
@@ -95,50 +87,39 @@ class _ProductsState extends State<Products> {
     );
   }
 
-  Widget _buildProductList() {
-    if (products.isEmpty) {
-      return const Center(
-        child: Text(
-          "No products added yet. Click the + button to add your first product.",
-          style: TextStyle(fontSize: 18.0),
+  Widget _buildProductList({required Product product}) {
+    var imageFile = File(product.image ?? '');
+    return Dismissible(
+      key: Key(product.id.toString()),
+      onDismissed: (direction) {
+        _confirmDeleteProduct(product);
+      },
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16),
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+          size: 36,
         ),
-      );
-    } else {
-      return ListView.builder(
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          var product = products[index];
-          var imageFile = File(product.image ?? '');
-          return Dismissible(
-            key: Key(product.id.toString()),
-            onDismissed: (direction) {
-              _confirmDeleteProduct(product);
-            },
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 16),
-              child: const Icon(
-                Icons.delete,
-                color: Colors.white,
-                size: 36,
-              ),
-            ),
-            child: Card(
-              margin: const EdgeInsets.all(8.0),
-              child: ListTile(
-                title: Text(product.productName),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Expiry Date: ${product.expiryDate}"),
-                    Text('Description: ${product.medicineDescription}'),
-                    Text('Price: ${product.sellingPrice}'),
-                  ],
-                ),
-                leading: SizedBox(
-                  width: 100,
-                  child: imageFile.existsSync()
+      ),
+      child: Card(
+        margin: const EdgeInsets.all(8.0),
+        child: ListTile(
+          title: Text(product.productName),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Expiry Date: ${product.expiryDate}"),
+              Text('Description: ${product.medicineDescription}'),
+              Text('Price: ${product.sellingPrice}'),
+            ],
+          ),
+          leading: SizedBox(
+              width: 100,
+              child: networkController.connectionStatus.value == 0
+                  ? imageFile.existsSync()
                       ? Image.file(
                           imageFile,
                           fit: BoxFit.cover,
@@ -146,15 +127,12 @@ class _ProductsState extends State<Products> {
                             return const Icon(Icons.error);
                           },
                         )
-                      : const Placeholder(),
-                ),
-                onTap: () => _navigateToEditProduct(product),
-              ),
-            ),
-          );
-        },
-      );
-    }
+                      : const Placeholder()
+                  : Image.network(product.image!)),
+          onTap: () => _navigateToEditProduct(product),
+        ),
+      ),
+    );
   }
 
   void _confirmDeleteProduct(Product product) {
@@ -174,11 +152,11 @@ class _ProductsState extends State<Products> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                // Reverse the swipe action
+              onPressed: () async {
+                await productsController.deleteProduct(
+                    product: product, context: context);
                 Navigator.of(context).pop(); // Close the dialog
-                _deleteProduct(
-                    product); // Call a method to simulate the swipe action
+                // Call a method to simulate the swipe action
               },
               child: const Text('Delete'),
             ),
@@ -200,12 +178,6 @@ class _ProductsState extends State<Products> {
         ),
       ),
     );
-  }
-
-  void _deleteProduct(Product product) async {
-    final dbHelper = DatabaseHelper();
-    await dbHelper.deleteProduct(product.id);
-    _fetchProducts();
   }
 
   int _calculateTotalQuantity() {
@@ -248,89 +220,115 @@ class _ProductsState extends State<Products> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _fetchProducts, // Function to call when refreshed
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              height: 48,
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 3,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: searchController,
-                      onChanged: (query) => _filterProducts(query),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Search Products',
-                        labelStyle: TextStyle(color: Colors.green),
-                        prefixIcon: Icon(Icons.search),
-                      ),
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            height: 48,
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 2,
+                  blurRadius: 3,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (query) => _filterProducts(query),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Search Products',
+                      labelStyle: TextStyle(color: Colors.green),
+                      prefixIcon: Icon(Icons.search),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.qr_code_scanner),
-                    onPressed: () async {
-                      try {
-                        final status = await Permission.camera.request();
-                        if (status.isGranted) {
-                          try {
-                            var result = await BarcodeScanner.scan();
-                            String barcode = result.rawContent;
-                            final dbHelper = DatabaseHelper();
-                            Product product =
-                                await dbHelper.getProductByBarcode(barcode);
-                            if (product != '') {
-                              _navigateToEditProduct(product);
-                            }
-                          } catch (e) {
-                            print(e);
+                ),
+                IconButton(
+                  icon: const Icon(Icons.qr_code_scanner),
+                  onPressed: () async {
+                    try {
+                      final status = await Permission.camera.request();
+                      if (status.isGranted) {
+                        try {
+                          var result = await BarcodeScanner.scan();
+                          String barcode = result.rawContent;
+                          final dbHelper = DatabaseHelper();
+                          Product product =
+                              await dbHelper.getProductByBarcode(barcode);
+                          if (product != '') {
+                            _navigateToEditProduct(product);
                           }
-                        } else {
-                          throw PlatformException(
-                              code: 'PERMISSION_DENIED',
-                              message: 'Camera permission is required.');
+                        } catch (e) {
+                          print(e);
                         }
-                      } catch (e) {
-                        print(e);
+                      } else {
+                        throw PlatformException(
+                            code: 'PERMISSION_DENIED',
+                            message: 'Camera permission is required.');
                       }
+                    } catch (e) {
+                      print(e);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<Product>>(
+              stream: productsController.fetchProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text('No products available.');
+                } else {
+                  List<Product> products = snapshot.data!;
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      return _buildProductList(product: products[index]);
                     },
-                  ),
+                  );
+                }
+              },
+            ),
+          ),
+          // Expanded(child: _buildProductList()),
+          if (products.isNotEmpty)
+            Container(
+              width: double.infinity,
+              height: 40, // Approx. 1 cm high
+              color: Colors.green[100],
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Total Quantity: $totalQuantity'),
+                  Text('Stock value: Ksh${totalWorth.toStringAsFixed(2)}'),
                 ],
               ),
             ),
-            Expanded(child: _buildProductList()),
-            if (products.isNotEmpty)
-              Container(
-                width: double.infinity,
-                height: 40, // Approx. 1 cm high
-                color: Colors.green[100],
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Total Quantity: $totalQuantity'),
-                    Text('Stock value: Ksh${totalWorth.toStringAsFixed(2)}'),
-                  ],
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
       floatingActionButton: Padding(
         padding:
@@ -347,10 +345,7 @@ class _ProductsState extends State<Products> {
   }
 
   void _showPopupMenu(BuildContext context) {
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
     final RenderBox button = context.findRenderObject() as RenderBox;
-
     final RelativeRect position = RelativeRect.fromLTRB(
       0,
       button.size.height,

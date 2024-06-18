@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/products_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
+import 'package:medfast_go/services/network_provider.dart';
 
 class EditProductPage extends StatefulWidget {
   final Product product;
@@ -20,6 +24,8 @@ class EditProductPageState extends State<EditProductPage> {
   final TextEditingController expiryDateController = TextEditingController();
   final TextEditingController sellingPriceController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
+  final ProductsController productsController = Get.find();
+  final NetworkController networkController = Get.find();
 
   File? _image;
 
@@ -32,7 +38,6 @@ class EditProductPageState extends State<EditProductPage> {
     expiryDateController.text = widget.product.expiryDate;
     sellingPriceController.text = widget.product.sellingPrice.toString();
     quantityController.text = widget.product.quantity.toString();
-    _image = widget.product.image != null ? File(widget.product.image!) : null;
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -75,8 +80,6 @@ class EditProductPageState extends State<EditProductPage> {
   }
 
   void _updateProduct() async {
-    final dbHelper = DatabaseHelper();
-
     final updatedProduct = Product(
       id: widget.product.id,
       productName: nameController.text,
@@ -84,21 +87,15 @@ class EditProductPageState extends State<EditProductPage> {
       buyingPrice: double.parse(priceController.text),
       expiryDate: expiryDateController.text,
       sellingPrice: double.parse(sellingPriceController.text),
-      manufactureDate: '',
-      image: _image?.path,
+      manufactureDate: widget.product.manufactureDate,
+      image: widget.product.image,
       quantity: int.parse(quantityController.text),
+      unit: widget.product.unit,
     );
 
-    await dbHelper.updateProduct(updatedProduct);
+    await productsController.updateProduct(
+        context: context, product: updatedProduct);
 
-    setState(() {
-      widget.product.productName = nameController.text;
-      widget.product.medicineDescription = descriptionController.text;
-      widget.product.buyingPrice = double.parse(priceController.text);
-      widget.product.expiryDate = expiryDateController.text;
-      //widget.product.sellingPrice = double.parse(sellingPriceController.text);
-      widget.product.image = _image?.path;
-    });
     Navigator.pop(context);
   }
 
@@ -128,12 +125,13 @@ class EditProductPageState extends State<EditProductPage> {
                           height: 100,
                           width: double.infinity,
                           color: Colors.grey[300],
+                          child: Image.network(widget.product.image!),
                         ),
                   Positioned(
                     right: 0,
                     bottom: 0,
                     child: IconButton(
-                      icon: Icon(Icons.edit),
+                      icon: const Icon(Icons.edit),
                       color: Colors.blue,
                       onPressed: _showImagePicker,
                     ),
@@ -153,7 +151,7 @@ class EditProductPageState extends State<EditProductPage> {
                     borderSide: BorderSide(color: Colors.black, width: 2.0),
                   ),
                 ),
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -168,13 +166,13 @@ class EditProductPageState extends State<EditProductPage> {
                     borderSide: BorderSide(color: Colors.black, width: 2.0),
                   ),
                 ),
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: descriptionController,
                 maxLines: 3,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Description',
                   labelStyle: TextStyle(color: Colors.black),
                   enabledBorder: OutlineInputBorder(
@@ -184,26 +182,25 @@ class EditProductPageState extends State<EditProductPage> {
                     borderSide: BorderSide(color: Colors.black, width: 2.0),
                   ),
                 ),
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 16),
-
               TextField(
-              controller: quantityController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Quantity',
-                labelStyle: TextStyle(color: Colors.black),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black, width: 2.0),
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Quantity',
+                  labelStyle: TextStyle(color: Colors.black),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 2.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 2.0),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black, width: 2.0),
-                ),
+                style: const TextStyle(color: Colors.black),
               ),
-              style: TextStyle(color: Colors.black),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextField(
                 controller: priceController,
                 keyboardType: TextInputType.number,
@@ -217,7 +214,7 @@ class EditProductPageState extends State<EditProductPage> {
                     borderSide: BorderSide(color: Colors.black, width: 2.0),
                   ),
                 ),
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -233,15 +230,25 @@ class EditProductPageState extends State<EditProductPage> {
                     borderSide: BorderSide(color: Colors.black, width: 2.0),
                   ),
                 ),
-                style: TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _updateProduct,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
-                child: const Text('Save Changes'),
+              Obx(
+                () => productsController.creatingLoading.value
+                    ? const Center(
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : ElevatedButton(
+                        onPressed: _updateProduct,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                        ),
+                        child: const Text('Save Changes'),
+                      ),
               ),
             ],
           ),

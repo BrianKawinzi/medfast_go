@@ -96,27 +96,27 @@ class ApiService {
   //   }
   // }
 
-  Future<void> registerPharmacy(BuildContext context, Pharmacy pharmacy) async {
-    try {
-      DocumentReference docRef = await _firestore.collection('pharmacies').add({
-        'pharmacyName': pharmacy.pharmacyName,
-        'county': pharmacy.county,
-        'phoneNumber': pharmacy.phoneNumber,
-        'latitude': pharmacy.latitude,
-        'longitude': pharmacy.longitude,
-      });
-      String pharmacyId = docRef.id;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SignUpPage(pharmacyId: pharmacyId),
-        ),
-      );
-    } catch (e) {
-      print('Error registering pharmacy: $e');
-      rethrow;
-    }
-  }
+  // Future<void> registerPharmacy(BuildContext context, Pharmacy pharmacy) async {
+  //   try {
+  //     DocumentReference docRef = await _firestore.collection('pharmacies').add({
+  //       'pharmacyName': pharmacy.pharmacyName,
+  //       'county': pharmacy.county,
+  //       'phoneNumber': pharmacy.phoneNumber,
+  //       'latitude': pharmacy.latitude,
+  //       'longitude': pharmacy.longitude,
+  //     });
+  //     String pharmacyId = docRef.id;
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (context) => SignUpPage(pharmacyId: pharmacyId),
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     print('Error registering pharmacy: $e');
+  //     rethrow;
+  //   }
+  // }
 
   Future<void> registerUser(String email, String password, String username,
       String phoneNumber, String pharmacyId) async {

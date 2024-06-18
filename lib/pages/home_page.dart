@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/business/activity.dart';
 import 'package:medfast_go/business/customers.dart';
@@ -29,6 +31,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final AuthenticationController authenticationController = Get.find();
   final List<String> tileNames = [
     'Sales',
     'Products',
@@ -125,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                   children: <Widget>[
                     Icon(tileIcons[index],
                         size: 48, color: Theme.of(context).primaryColor),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Text(
                       tileNames[index],
                       textAlign: TextAlign.center,
@@ -159,13 +162,13 @@ class _HomePageState extends State<HomePage> {
     switch (name) {
       case 'Sales':
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => Sales(
+            builder: (context) => const Sales(
                   initialProducts: [],
                 )));
         break;
       case 'Products':
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => Products(
+            builder: (context) => const Products(
                   productName: '',
                 )));
         break;
@@ -177,7 +180,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Expenses':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Expenses()));
+            .push(MaterialPageRoute(builder: (context) => const Expenses()));
         break;
       case 'Stores':
         Navigator.of(context)
@@ -197,7 +200,7 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Customers':
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Customers()));
+            .push(MaterialPageRoute(builder: (context) => const Customers()));
         break;
       case 'Representative':
         Navigator.of(context).push(
@@ -210,7 +213,7 @@ class _HomePageState extends State<HomePage> {
       case 'Sale History':
         Navigator.of(context).push(MaterialPageRoute(
           builder: (context) =>
-              SaleOrder(), // No need to pass orderDetails if it's optional
+              const SaleOrder(), // No need to pass orderDetails if it's optional
         ));
         break;
       default:
@@ -235,7 +238,7 @@ class _HomePageState extends State<HomePage> {
               color: Colors.black.withOpacity(0.2),
               spreadRadius: 2,
               blurRadius: 5,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),

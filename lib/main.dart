@@ -51,12 +51,6 @@ void main() async {
   );
 }
 
-// Future<String> getInitialRoute() async {
-//   DatabaseHelper dbHelper = DatabaseHelper(); // Initialize your database helper
-//   String? lastRoute = await dbHelper.getLastRoute();
-//   return lastRoute ?? '/splash'; // Default to '/splash' if null
-// }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

@@ -30,6 +30,7 @@ dependencies:
   fluttertoast: ^8.0.7
   geolocator: ^8.0.0
   get: ^4.6.6
+  google_sign_in: ^6.2.1
   http: ^0.13.3
   image_picker: ^0.8.4
   intl: ^0.17.0

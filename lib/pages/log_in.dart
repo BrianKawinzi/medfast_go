@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:medfast_go/services/api_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
+
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
@@ -18,32 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool loading = false;
-  final ApiService _apiService = ApiService();
-
-  @override
-  void initState() {
-    super.initState();
-    _checkForToken();
-  }
-
-  Future<void> _checkForToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('jwt_token');
-    if (token != null) {
-      final payload = decodeJwtPayload(token);
-      final iat = payload['iat'];
-      if (iat != null) {
-        final issuedAt = DateTime.fromMillisecondsSinceEpoch(iat * 1000);
-        final currentDateTime = DateTime.now();
-        final expiryDate = issuedAt.add(const Duration(hours: 24));
-        if (currentDateTime.isBefore(expiryDate)) {
-          Navigator.of(context).pushReplacementNamed('/home');
-          return;
-        }
-      }
-    }
-    // If no token, token is invalid, or token has expired, stay on login page.
-  }
+  final AuthenticationController authenticationController = Get.find();
 
   Future<void> signUserIn() async {
     setState(() {
@@ -54,7 +28,8 @@ class _LoginPageState extends State<LoginPage> {
     final enteredPassword = passwordController.text;
 
     try {
-      await _apiService.signInUser(context, enteredEmail, enteredPassword);
+      await authenticationController.loginInWithEmailPassword(
+          email: enteredEmail, password: enteredPassword);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -67,19 +42,6 @@ class _LoginPageState extends State<LoginPage> {
         loading = false;
       });
     }
-  }
-
-  Map<String, dynamic> decodeJwtPayload(String token) {
-    final parts = token.split('.');
-    if (parts.length != 3) {
-      throw Exception('Invalid token');
-    }
-
-    final payload = parts[1];
-    final normalized = base64Url.normalize(payload);
-    final resp = utf8.decode(base64Url.decode(normalized));
-    final payloadMap = json.decode(resp);
-    return payloadMap;
   }
 
   @override

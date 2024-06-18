@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:medfast_go/pages/components/my_button.dart';
 import 'package:medfast_go/pages/components/my_textfield.dart';
 import 'package:medfast_go/pages/components/normal_tf.dart';
@@ -23,8 +25,9 @@ class _SignUpPageState extends State<SignUpPage> {
   bool showErrorMessage = false;
   bool isLoading = false;
   final ApiService _apiService = ApiService();
+  final AuthenticationController authenticationController = Get.find();
 
-  void SignUserUp(BuildContext context) async {
+  void signUserUp(BuildContext context) async {
     if (passwordController.text != confirmPasswordController.text) {
       setState(() {
         errorMessage = "Password don't match";
@@ -39,13 +42,13 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     try {
-      await _apiService.registerUser(
-        emailController.text,
-        passwordController.text,
-        usernameController.text,
-        passwordController.text,
-        widget.pharmacyId,
+      await authenticationController.registerWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+        userName: usernameController.text,
+        phamacyId: widget.pharmacyId,
       );
+
       Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
       setState(() {
@@ -115,7 +118,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     const SizedBox(height: 20),
                     MyButton(
-                      onTap: () => SignUserUp(context),
+                      onTap: () => signUserUp(context),
                       buttonText: "Agree and Register",
                     ),
                   ],
