@@ -135,16 +135,10 @@ class _ProductsState extends State<Products> {
                   ],
                 ),
                 leading: SizedBox(
-                  width: 100,
-                  child: imageFile.existsSync()
-                      ? Image.file(
-                          imageFile,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.error);
-                          },
-                        )
-                      : const Placeholder(),
+                  width: 70,
+                  child: product.image != null && product.image!.isNotEmpty
+                      ? Image.file(File(product.image!))
+                      : Image.asset('lib/assets/noimage.png'),
                 ),
                 onTap: () => _navigateToEditProduct(product),
               ),
