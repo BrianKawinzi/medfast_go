@@ -885,6 +885,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
+
 class IndividualBar extends StatelessWidget {
   final int selectedMonthIndex;
   final List<double> monthlyAmounts;
@@ -926,10 +927,7 @@ class IndividualBar extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-          rightTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: AxisTitles(
+           topTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
           bottomTitles: AxisTitles(
@@ -1007,4 +1005,3 @@ class IndividualBar extends StatelessWidget {
     );
   }
 }
-
