@@ -24,6 +24,7 @@ class _ReportsState extends State<Reports> {
   List<DataRow> stockRows = [];
   List<DataRow> salesRows = [];
   bool isStockSelected = true;
+
   bool matchesDate(String dataRowDate, DateTime selectedDate) {
     DateTime parsedDate = DateTime.parse(dataRowDate);
     return parsedDate.year == selectedDate.year &&
@@ -61,44 +62,10 @@ class _ReportsState extends State<Reports> {
           .map(
             (product) => DataRow(
               cells: [
-                DataCell(SizedBox(
-                  width: 70,
-                  child: Text(
-                    product.productName,
-                    maxLines: 1,
-                    style: const TextStyle(overflow: TextOverflow.ellipsis),
-                  ),
-                )),
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      '${product.quantity}',
-                      maxLines: 1,
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      product.expiryDate,
-                      maxLines: 1,
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      'Ksh ${product.buyingPrice.toStringAsFixed(2)}',
-                      maxLines: 1,
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
+                _buildTableCell(product.productName),
+                _buildTableCell(product.quantity.toString()),
+                _buildTableCell(product.expiryDate),
+                _buildTableCell(product.buyingPrice.toStringAsFixed(2)),
               ],
             ),
           )
@@ -112,56 +79,35 @@ class _ReportsState extends State<Reports> {
           .map(
             (product) => DataRow(
               cells: [
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      product.productName,
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      product.soldQuantity.toString(),
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      product.quantity.toString(),
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      'Ksh ${product.sellingPrice.toStringAsFixed(2)} ',
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 70,
-                    child: Text(
-                      'Ksh ${(product.sellingPrice * product.soldQuantity).toStringAsFixed(2)} ',
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ),
+                _buildTableCell(product.productName),
+                _buildTableCell(product.soldQuantity.toString()),
+                _buildTableCell(product.quantity.toString()),
+                _buildTableCell(product.sellingPrice.toStringAsFixed(2)),
+                _buildTableCell((product.sellingPrice * product.soldQuantity).toStringAsFixed(2)),
               ],
             ),
           )
           .toList();
     });
+  }
+
+  DataCell _buildTableCell(String value) {
+    return DataCell(
+      Container(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(value),
+      ),
+    );
+  }
+
+  Widget _buildTableHeader(String value) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+    );
   }
 
   void _showFilterOptions() {
@@ -204,8 +150,7 @@ class _ReportsState extends State<Reports> {
           title: const Text("Enter Product Name"),
           content: TextField(
             controller: productController,
-            decoration:
-                const InputDecoration(hintText: "Type product name here"),
+            decoration: const InputDecoration(hintText: "Type product name here"),
           ),
           actions: <Widget>[
             TextButton(
@@ -316,20 +261,20 @@ class _ReportsState extends State<Reports> {
 
   void _filterDataForDate(DateTime date) {
     stockRows = stockRows
-        .where((row) => matchesDate(const Row() as String, date))
+        .where((row) => matchesDate((row.cells[2].child as Container).child as String, date))
         .toList();
     salesRows = salesRows
-        .where((row) => matchesDate(const Row() as String, date))
+        .where((row) => matchesDate((row.cells[2].child as Container).child as String, date))
         .toList();
     setState(() {});
   }
 
   void _filterDataForDateRange(DateTimeRange range) {
     stockRows = stockRows
-        .where((row) => inDateRange(const Row() as String, range))
+        .where((row) => inDateRange((row.cells[2].child as Container).child as String, range))
         .toList();
     salesRows = salesRows
-        .where((row) => inDateRange(const Row() as String, range))
+        .where((row) => inDateRange((row.cells[2].child as Container).child as String, range))
         .toList();
     setState(() {});
   }
@@ -337,13 +282,13 @@ class _ReportsState extends State<Reports> {
   void _filterByProductName(String productName) {
     setState(() {
       stockRows = stockRows
-          .where((row) => (row.cells[0].child as Text)
+          .where((row) => ((row.cells[0].child as Container).child as Text)
               .data!
               .toLowerCase()
               .contains(productName.toLowerCase()))
           .toList();
       salesRows = salesRows
-          .where((row) => (row.cells[0].child as Text)
+          .where((row) => ((row.cells[0].child as Container).child as Text)
               .data!
               .toLowerCase()
               .contains(productName.toLowerCase()))
@@ -418,8 +363,9 @@ class _ReportsState extends State<Reports> {
     }
 
     for (var dataRow in dataRows) {
-      List<dynamic> row =
-          dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
+      List<dynamic> row = dataRow.cells
+          .map((cell) => ((cell.child as Container).child as Text).data ?? '')
+          .toList();
       rows.add(row);
     }
 
@@ -454,8 +400,9 @@ class _ReportsState extends State<Reports> {
     combinedRows
         .add(['Product Name', 'Quantity', 'Expiry Date', 'Price (Ksh)']);
     for (var dataRow in stockRows) {
-      List<dynamic> row =
-          dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
+      List<dynamic> row = dataRow.cells
+          .map((cell) => ((cell.child as Container).child as Text).data ?? '')
+          .toList();
       combinedRows.add(row);
     }
     combinedRows.add(['']); // Add an empty row for separation
@@ -470,8 +417,9 @@ class _ReportsState extends State<Reports> {
       'Total Price (Ksh)'
     ]);
     for (var dataRow in salesRows) {
-      List<dynamic> row =
-          dataRow.cells.map((cell) => (cell.child as Text).data ?? '').toList();
+      List<dynamic> row = dataRow.cells
+          .map((cell) => ((cell.child as Container).child as Text).data ?? '')
+          .toList();
       combinedRows.add(row);
     }
 
@@ -516,19 +464,28 @@ class _ReportsState extends State<Reports> {
             child: DataTable(
               columnSpacing: 15,
               dataRowMaxHeight: 50,
+              headingRowHeight: 56,
+              border: const TableBorder(
+                top: BorderSide(color: Colors.grey),
+                bottom: BorderSide(color: Colors.grey),
+                left: BorderSide(color: Colors.grey),
+                right: BorderSide(color: Colors.grey),
+                verticalInside: BorderSide(color: Colors.grey),
+                horizontalInside: BorderSide(color: Colors.transparent),
+              ),
               columns: isStockSelected
                   ? [
-                      const DataColumn(label: Text('Product Name')),
-                      const DataColumn(label: Text('Quantity')),
-                      const DataColumn(label: Text('Expiry Date')),
-                      const DataColumn(label: Text('Price (Ksh)')),
+                      DataColumn(label: _buildTableHeader('Product')),
+                      DataColumn(label: _buildTableHeader('Qty')),
+                      DataColumn(label: _buildTableHeader('Expiry')),
+                      DataColumn(label: _buildTableHeader('Price (Ksh)')),
                     ]
                   : [
-                      const DataColumn(label: Text('Product Name')),
-                      const DataColumn(label: Text('Quantity Sold')),
-                      const DataColumn(label: Text('Current Stock')),
-                      const DataColumn(label: Text('Unit Price (Ksh)')),
-                      const DataColumn(label: Text('Total Price (Ksh)')),
+                      DataColumn(label: _buildTableHeader('Product')),
+                      DataColumn(label: _buildTableHeader('Qty Sold')),
+                      DataColumn(label: _buildTableHeader('Stock')),
+                      DataColumn(label: _buildTableHeader('Price (Ksh)')),
+                      DataColumn(label: _buildTableHeader('Total Price (Ksh)')),
                     ],
               rows: isStockSelected ? stockRows : salesRows,
             ),
