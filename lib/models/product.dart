@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Product {
   String? barcode;
   final int id;
@@ -13,6 +15,8 @@ class Product {
   int soldQuantity;
   final String manufactureDate;
   final String? unit;
+  String? lastModified;
+  String phamacyId;
 
   Product(
       {required this.id,
@@ -28,7 +32,9 @@ class Product {
       required this.manufactureDate,
       this.unit,
       this.barcode,
-      this.userId});
+      this.userId,
+      this.lastModified,
+      required this.phamacyId});
 
   // Named constructor to create a Product object from a map
   Product.fromMap(Map<String, dynamic> map)
@@ -45,7 +51,9 @@ class Product {
         soldQuantity = map['soldQuantity']?.toInt() ?? 0,
         profit = map['sellingPrice']?.toDouble() ?? 0.0,
         barcode = map['barcode'],
-        userId = map['user_id'];
+        userId = map['user_id'],
+        lastModified = map['last_modified'],
+        phamacyId = map['pharmacy_id'];
 
   // Method to convert a Product object to a map
   Map<String, dynamic> toMap({bool excludeId = false}) {
@@ -63,7 +71,9 @@ class Product {
       'soldQuantity': soldQuantity,
       'profit': profit,
       'barcode': barcode,
-      'user_id': userId
+      'user_id': userId,
+      'last_modified': lastModified,
+      'pharmacy_id': phamacyId
     };
   }
 }

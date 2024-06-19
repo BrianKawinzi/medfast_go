@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:medfast_go/controllers/products_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
@@ -25,6 +26,7 @@ class _AddProductFormState extends State<AddProductForm> {
       TextEditingController();
   final ImagePicker _picker = ImagePicker();
   File? _image;
+  final AuthenticationController authenticationController = Get.find();
 
   String _productName = '';
   double _buyingPrice = 0;
@@ -74,6 +76,8 @@ class _AddProductFormState extends State<AddProductForm> {
           unit: _unit,
           quantity: _quantity,
           barcode: widget.barcode,
+          lastModified: DateTime.now().toIso8601String(),
+          phamacyId: authenticationController.currentUserData.value.phymacyId,
         );
       });
 

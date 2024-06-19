@@ -33,6 +33,8 @@ class DatabaseHelper {
   final String columnProductprofit = 'profit';
   final String columnProductBarCode = 'barcode';
   final String columnuserId = 'user_id';
+  final String columnLastModified = 'last_modified';
+  final String columnPhymacyId = 'pharmacy_id';
 
   // Table name for expenses
   final String expenseTableName = 'expenses';
@@ -142,7 +144,9 @@ class DatabaseHelper {
         $columnProductprofit REAL,
         $columnsoldQuantity INTEGER,
         $columnProductBarCode TEXT,
-        $columnuserId TEXT
+        $columnuserId TEXT,
+        $columnLastModified TEXT,
+        $columnPhymacyId TEXT
       )
     ''');
 

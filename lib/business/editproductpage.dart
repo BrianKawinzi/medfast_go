@@ -91,6 +91,8 @@ class EditProductPageState extends State<EditProductPage> {
       image: widget.product.image,
       quantity: int.parse(quantityController.text),
       unit: widget.product.unit,
+      lastModified: DateTime.now().toIso8601String(),
+      phamacyId: '',
     );
 
     await productsController.updateProduct(

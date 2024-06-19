@@ -63,8 +63,9 @@ class ProductsController extends GetxController {
     if (networkController.connectionStatus.value != 0) {
       firestore
           .collection(Collections.PRODUCTS)
-          .where('user_id',
-              isEqualTo: authenticationController.currentUserData.value.uid)
+          .where('pharmacy_id',
+              isEqualTo:
+                  authenticationController.currentUserData.value.phymacyId)
           .snapshots()
           .listen((querySnapshot) async {
         List<Product> products = querySnapshot.docs.map((doc) {
@@ -110,33 +111,33 @@ class ProductsController extends GetxController {
         return;
       }
 
-      String imageUrl;
-      String newImageFilename =
-          '${product.productName + product.id.toString()}.jpg';
-
-      firebase_storage.Reference reference = firebaseStorage
-          .ref()
-          .child(authenticationController.currentUserData.value.uid)
-          .child('product-images')
-          .child(newImageFilename);
-
-      final metadata = firebase_storage.SettableMetadata(
-          contentType: 'image/jpeg',
-          customMetadata: {'picked-file-path': image!.path});
-
-      if (image.path.isNotEmpty) {
-        if (kIsWeb) {
-          await reference.putData(await image.readAsBytes(), metadata);
-          imageUrl = await reference.getDownloadURL();
-        } else {
-          await reference.putFile(image, metadata);
-          imageUrl = await reference.getDownloadURL();
-        }
-      } else {
-        imageUrl = '';
-      }
-
       if (networkController.connectionStatus.value != 0) {
+        String imageUrl;
+        String newImageFilename =
+            '${product.productName + product.id.toString()}.jpg';
+
+        firebase_storage.Reference reference = firebaseStorage
+            .ref()
+            .child(authenticationController.currentUserData.value.uid)
+            .child('product-images')
+            .child(newImageFilename);
+
+        final metadata = firebase_storage.SettableMetadata(
+            contentType: 'image/jpeg',
+            customMetadata: {'picked-file-path': image!.path});
+
+        if (image.path.isNotEmpty) {
+          if (kIsWeb) {
+            await reference.putData(await image.readAsBytes(), metadata);
+            imageUrl = await reference.getDownloadURL();
+          } else {
+            await reference.putFile(image, metadata);
+            imageUrl = await reference.getDownloadURL();
+          }
+        } else {
+          imageUrl = '';
+        }
+
         product.userId = authenticationController.currentUserData.value.uid;
         product.image = imageUrl;
         await productsCollection
@@ -176,10 +177,10 @@ class ProductsController extends GetxController {
           product.sellingPrice < product.buyingPrice) {
         showInvalidPricingDialog(context);
       }
-
+      product.phamacyId =
+          authenticationController.currentUserData.value.phymacyId;
       if (networkController.connectionStatus.value != 0) {
         product.userId = authenticationController.currentUserData.value.uid;
-
         await db
             .collection(Collections.PRODUCTS)
             .doc(product.id.toString())
@@ -206,6 +207,75 @@ class ProductsController extends GetxController {
       print("::::::::error$e");
       creatingLoading.value = false;
       debugPrint(e.toString());
+    }
+  }
+
+  fetchProductByBarcode({required String barcode}) async {
+    if (networkController.connectionStatus.value != 0) {
+      return await fetchProductByBarcodeFromFirebase(barcode);
+    } else {
+      return await _dbHelper.getProductByBarcode(barcode);
+    }
+  }
+
+  Future fetchProductByBarcodeFromFirebase(String barcode) async {
+    try {
+      CollectionReference productsCollection =
+          FirebaseFirestore.instance.collection(Collections.PRODUCTS);
+
+      QuerySnapshot querySnapshot =
+          await productsCollection.where('barcode', isEqualTo: barcode).get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Assuming there's only one product with the specified barcode
+        DocumentSnapshot productSnapshot = querySnapshot.docs.first;
+        Map<String, dynamic> productData =
+            productSnapshot.data() as Map<String, dynamic>;
+        Product product = Product.fromMap(productData);
+        return product;
+      } else {
+        return CommonUtils.showToast('No product by that barcode');
+      }
+    } catch (e) {
+      print('Error fetching product: $e');
+      // Handle errors here
+    }
+  }
+
+  Future<void> updateProductQuantity(List<Map<String, dynamic>> sales) async {
+    try {
+      CollectionReference productsCollection =
+          FirebaseFirestore.instance.collection('products');
+
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+
+      for (var sale in sales) {
+        DocumentReference productDoc =
+            productsCollection.doc(sale['productId']);
+        DocumentSnapshot productSnapshot = await productDoc.get();
+
+        if (productSnapshot.exists) {
+          Product product =
+              Product.fromMap(productSnapshot.data() as Map<String, dynamic>);
+          num newQuantity = product.quantity - sale['quantity'];
+          num quantitySold = product.soldQuantity + sale['quantitySold'];
+
+          if (newQuantity < 0) {
+            newQuantity = 0;
+          }
+
+          batch.update(productDoc, {
+            'quantity': newQuantity,
+            'soldQuantity': quantitySold,
+          });
+        }
+      }
+
+      await batch.commit();
+      print('Product quantities updated successfully.');
+    } catch (e) {
+      print('Error updating product quantities: $e');
+      // Handle errors here
     }
   }
 
@@ -264,29 +334,29 @@ class ProductsController extends GetxController {
   }) async {
     try {
       if (networkController.connectionStatus.value != 0) {
-        await _deleteProductFromFirestore(product);
-        await _deleteImageFromFirebaseStorage(product.image);
+        await deleteProductFromFirestore(product);
+        await deleteImageFromFirebaseStorage(product.image);
       } else {
         // Offline: Delete from SQLite
-        await _deleteProductFromSQLite(product);
+        await deleteProductFromSQLite(product);
       }
       Navigator.pushReplacementNamed(context, '/product');
       CommonUtils.showToast('Product deleted successfully.');
     } on FirebaseException catch (e) {
-      _handleError(e.message);
+      handleError(e.message!);
     } catch (e) {
-      _handleError(e.toString());
+      handleError(e.toString());
     } finally {}
   }
 
-  Future<void> _deleteProductFromFirestore(Product product) async {
+  Future<void> deleteProductFromFirestore(Product product) async {
     await db
         .collection(Collections.PRODUCTS)
         .doc(product.id.toString())
         .delete();
   }
 
-  Future<void> _deleteImageFromFirebaseStorage(String? imageUrl) async {
+  Future<void> deleteImageFromFirebaseStorage(String? imageUrl) async {
     if (imageUrl != null && imageUrl.isNotEmpty) {
       try {
         firebase_storage.Reference reference =
@@ -298,12 +368,7 @@ class ProductsController extends GetxController {
     }
   }
 
-  Future<void> _deleteProductFromSQLite(Product product) async {
+  Future<void> deleteProductFromSQLite(Product product) async {
     await _dbHelper.deleteProduct(product.id);
-  }
-
-  void _handleError(String? error) {
-    CommonUtils.showToast(error ?? 'An unknown error occurred.');
-    debugPrint(error);
   }
 }

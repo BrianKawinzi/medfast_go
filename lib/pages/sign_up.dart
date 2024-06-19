@@ -47,9 +47,8 @@ class _SignUpPageState extends State<SignUpPage> {
         password: passwordController.text,
         userName: usernameController.text,
         phamacyId: widget.pharmacyId,
+        context: context,
       );
-
-      Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
       setState(() {
         errorMessage = 'Error registering user: $e';

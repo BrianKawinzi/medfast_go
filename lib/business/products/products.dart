@@ -119,15 +119,13 @@ class _ProductsState extends State<Products> {
           leading: SizedBox(
               width: 100,
               child: networkController.connectionStatus.value == 0
-                  ? imageFile.existsSync()
-                      ? Image.file(
-                          imageFile,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.error);
-                          },
-                        )
-                      : const Placeholder()
+                  ? Image.file(
+                      imageFile,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.error);
+                      },
+                    )
                   : Image.network(product.image!)),
           onTap: () => _navigateToEditProduct(product),
         ),
@@ -262,9 +260,8 @@ class _ProductsState extends State<Products> {
                         try {
                           var result = await BarcodeScanner.scan();
                           String barcode = result.rawContent;
-                          final dbHelper = DatabaseHelper();
-                          Product product =
-                              await dbHelper.getProductByBarcode(barcode);
+                          Product product = await productsController
+                              .fetchProductByBarcode(barcode: barcode);
                           if (product != '') {
                             _navigateToEditProduct(product);
                           }
@@ -299,7 +296,7 @@ class _ProductsState extends State<Products> {
                 } else if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text('No products available.');
+                  return const Center(child: Text('No products available.'));
                 } else {
                   List<Product> products = snapshot.data!;
                   return ListView.builder(

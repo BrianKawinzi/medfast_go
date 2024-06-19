@@ -9,8 +9,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:medfast_go/constants/firebase_collections.dart';
 import 'package:medfast_go/models/pharmacy.dart';
 import 'package:medfast_go/models/user_model.dart';
+import 'package:medfast_go/pages/bottom_navigation.dart';
 import 'package:medfast_go/pages/log_in.dart';
 import 'package:medfast_go/pages/sign_up.dart';
+import 'package:medfast_go/pages/splash_screen.dart';
 import 'package:medfast_go/utills/common.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,10 +43,10 @@ class AuthenticationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
     firebaseUser = Rx<User?>(auth.currentUser);
     firebaseUser.bindStream(auth.userChanges());
     usersRef = FirebaseFirestore.instance.collection(Collections.USERS);
+    ever(firebaseUser, _setInitialScreen);
     ever(firebaseUser, getCurrentUserData);
   }
 
@@ -56,6 +58,19 @@ class AuthenticationController extends GetxController {
       return querySnapshot.docs.first['name'];
     } else {
       return null;
+    }
+  }
+
+  _setInitialScreen(User? user) async {
+    if (user == null) {
+      Get.to(const SplashScreen());
+    } else {
+      DocumentSnapshot userSnapshot = await usersRef.doc(user.uid).get();
+      if (userSnapshot.exists) {
+        Get.to(const BottomNavigation());
+      } else {
+        Get.to(const SplashScreen());
+      }
     }
   }
 
@@ -100,6 +115,7 @@ class AuthenticationController extends GetxController {
   }
 
   Future<void> registerWithEmailAndPassword({
+    required BuildContext context,
     required String userName,
     required String email,
     required String password,
@@ -118,6 +134,7 @@ class AuthenticationController extends GetxController {
           await usersRef.doc(userCredential.user!.uid).get();
       if (userSnapshot.exists) {
         print("User exists::${userCredential.user!.uid}");
+        Navigator.of(context).pushReplacementNamed('/login');
       } else {
         print("user does not exixt::::${userCredential.user!.uid}");
         return await storeUserInFirestore(
@@ -126,6 +143,7 @@ class AuthenticationController extends GetxController {
           userName: userName,
         );
       }
+      Navigator.of(context).pushReplacementNamed('/login');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         creatingUser.value = false;
