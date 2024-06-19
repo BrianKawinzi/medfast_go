@@ -124,11 +124,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
             ),
-            if (isLoading)
-              Container(
-                color: Colors.black45,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
+            Obx(() => authenticationController.creatingUser.value
+                ? Container(
+                    color: Colors.black45,
+                    child: const Center(child: CircularProgressIndicator()),
+                  )
+                : const SizedBox()),
           ],
         ),
       ),

@@ -83,6 +83,10 @@ class AuthenticationController extends GetxController {
     }
   }
 
+  Future<void> signOut() async {
+    await auth.signOut();
+  }
+
   Stream<DocumentSnapshot<Map<String, dynamic>>> singleProfileStream(
       {required String userId}) {
     return db.collection(Collections.USERS).doc(userId).snapshots();
@@ -145,6 +149,8 @@ class AuthenticationController extends GetxController {
       }
       Navigator.of(context).pushReplacementNamed('/login');
     } on FirebaseAuthException catch (e) {
+      creatingUser.value = false;
+
       if (e.code == 'weak-password') {
         creatingUser.value = false;
         CommonUtils.showToast('The password provided is too weak.');
@@ -239,11 +245,6 @@ class AuthenticationController extends GetxController {
         );
       }
     }).catchError((error) {});
-  }
-
-  Future<void> signOut() async {
-    await auth.signOut();
-    Get.offAll(const LoginPage());
   }
 
   Future<void> storeUserInFirestore(

@@ -572,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       drawer: Drawer(
         width: MediaQuery.of(context).size.width * 0.9,
-        child: const NavigationDrawerWidget(),
+        child: NavigationDrawerWidget(),
       ),
       body: SingleChildScrollView(
         child: Padding(

@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
       ),
       drawer: Drawer(
         width: MediaQuery.of(context).size.width * 0.9,
-        child: const NavigationDrawerWidget(),
+        child:  NavigationDrawerWidget(),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
