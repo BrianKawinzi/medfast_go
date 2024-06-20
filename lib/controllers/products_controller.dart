@@ -112,30 +112,33 @@ class ProductsController extends GetxController {
       }
 
       if (networkController.connectionStatus.value != 0) {
-        String imageUrl;
-        String newImageFilename =
-            '${product.productName + product.id.toString()}.jpg';
+        String imageUrl = '';
 
-        firebase_storage.Reference reference = firebaseStorage
-            .ref()
-            .child(authenticationController.currentUserData.value.uid)
-            .child('product-images')
-            .child(newImageFilename);
+        if (image != null) {
+          String newImageFilename =
+              '${product.productName + product.id.toString()}.jpg';
 
-        final metadata = firebase_storage.SettableMetadata(
-            contentType: 'image/jpeg',
-            customMetadata: {'picked-file-path': image!.path});
+          firebase_storage.Reference reference = firebaseStorage
+              .ref()
+              .child(authenticationController.currentUserData.value.uid)
+              .child('product-images')
+              .child(newImageFilename);
 
-        if (image.path.isNotEmpty) {
-          if (kIsWeb) {
-            await reference.putData(await image.readAsBytes(), metadata);
-            imageUrl = await reference.getDownloadURL();
+          final metadata = firebase_storage.SettableMetadata(
+              contentType: 'image/jpeg',
+              customMetadata: {'picked-file-path': image.path});
+
+          if (image.path.isNotEmpty) {
+            if (kIsWeb) {
+              await reference.putData(await image.readAsBytes(), metadata);
+              imageUrl = await reference.getDownloadURL();
+            } else {
+              await reference.putFile(image, metadata);
+              imageUrl = await reference.getDownloadURL();
+            }
           } else {
-            await reference.putFile(image, metadata);
-            imageUrl = await reference.getDownloadURL();
+            imageUrl = '';
           }
-        } else {
-          imageUrl = '';
         }
 
         product.userId = authenticationController.currentUserData.value.uid;
@@ -370,5 +373,24 @@ class ProductsController extends GetxController {
 
   Future<void> deleteProductFromSQLite(Product product) async {
     await _dbHelper.deleteProduct(product.id);
+  }
+
+  Future searchProductsByName(String productName) async {
+    try {
+      CollectionReference productsCollection =
+          FirebaseFirestore.instance.collection('products');
+
+      QuerySnapshot querySnapshot = await productsCollection
+          .where('productName', isGreaterThanOrEqualTo: productName)
+          .where('productName', isLessThanOrEqualTo: '$productName\uf8ff')
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error searching for products by name: $e');
+      return [];
+    }
   }
 }

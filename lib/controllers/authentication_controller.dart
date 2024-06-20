@@ -63,7 +63,7 @@ class AuthenticationController extends GetxController {
 
   _setInitialScreen(User? user) async {
     if (user == null) {
-      Get.to(const SplashScreen());
+      Get.to(const LoginPage());
     } else {
       DocumentSnapshot userSnapshot = await usersRef.doc(user.uid).get();
       if (userSnapshot.exists) {

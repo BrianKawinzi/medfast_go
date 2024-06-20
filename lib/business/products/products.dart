@@ -46,19 +46,19 @@ class _ProductsState extends State<Products> {
   String hintText = ''; // To store the hint text
 
   Future<void> _filterProducts(String query) async {
-    final dbHelper = DatabaseHelper();
-    final allProducts = await dbHelper.getProducts();
+    // final dbHelper = DatabaseHelper();
+    // final allProducts = await dbHelper.getProducts();
 
-    setState(() {
-      if (query.isEmpty) {
-        products = allProducts;
-      } else {
-        products = allProducts.where((product) {
-          final productName = product.productName;
-          return productName.toLowerCase().contains(query.toLowerCase());
-        }).toList();
-      }
-    });
+    // setState(() {
+    //   if (query.isEmpty) {
+    //     products = allProducts;
+    //   } else {
+    //     products = allProducts.where((product) {
+    //       final productName = product.productName;
+    //       return productName.toLowerCase().contains(query.toLowerCase());
+    //     }).toList();
+    //   }
+    // });
   }
 
   void _navigateToEditProduct(Product product) {
@@ -294,7 +294,9 @@ class _ProductsState extends State<Products> {
                 } else if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No products available.'));
+                  return const Center(
+                      child: Text(
+                          'No products available click the button below to add one.'));
                 } else {
                   List<Product> products = snapshot.data!;
                   return ListView.builder(

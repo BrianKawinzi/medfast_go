@@ -65,6 +65,9 @@ class _ProductImportState extends State<ProductImport> {
             expiryDate: row[6]!.value.toString(),
             manufactureDate: row[7]!.value.toString(),
             phamacyId: authenticationController.currentUserData.value.phymacyId,
+            userId: authenticationController.currentUserData.value.uid,
+            lastModified: DateTime.now().toIso8601String(),
+            barcode: '',
           );
 
           if (product.buyingPrice != 0.0 &&
