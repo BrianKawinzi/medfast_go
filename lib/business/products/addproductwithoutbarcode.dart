@@ -3,8 +3,11 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
+import 'package:medfast_go/controllers/products_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 
@@ -23,12 +26,14 @@ class _AddProductFormState extends State<AddProductForm> {
       TextEditingController();
   final ImagePicker _picker = ImagePicker();
   File? _image;
+  final AuthenticationController authenticationController = Get.find();
 
   String _productName = '';
   double _buyingPrice = 0;
   double _sellingPrice = 0;
   String _unit = 'piece';
   int _quantity = 0;
+  final ProductsController productsController = Get.find();
 
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
@@ -56,73 +61,31 @@ class _AddProductFormState extends State<AddProductForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_buyingPrice == 0.0 && _sellingPrice == 0.0 ||
-          _sellingPrice < _buyingPrice) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Invalid Pricing'),
-              content: const Text(
-                  'The selling price must be greater than or equal to the buying price which must not be equal to 0'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-        return;
-      }
-
       final Random random = Random();
-
-      final newProduct = Product(
-        id: random.nextInt(1000000000),
-        productName: _productName,
-        medicineDescription: '',
-        buyingPrice: _buyingPrice,
-        sellingPrice: _sellingPrice,
-        image: _image?.path,
-        expiryDate: _expiryDateController.text,
-        manufactureDate: _manufactureDateController.text,
-        unit: _unit,
-        quantity: _quantity,
-        barcode: widget.barcode,
-      );
-
-      final result = await _databaseHelper.insertProduct(newProduct);
-
-      if (result != -1) {
-        setState(() {
-          _image = null;
-          _formKey.currentState!.reset();
-        });
-        Navigator.pushReplacementNamed(context, '/product');
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content:
-                  const Text('Failed to insert the product into the database.'),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
+      late Product newProduct;
+      setState(() {
+        newProduct = Product(
+          id: random.nextInt(1000000000),
+          productName: _productName,
+          medicineDescription: '',
+          buyingPrice: _buyingPrice,
+          sellingPrice: _sellingPrice,
+          image: _image?.path,
+          expiryDate: _expiryDateController.text,
+          manufactureDate: _manufactureDateController.text,
+          unit: _unit,
+          quantity: _quantity,
+          barcode: widget.barcode,
+          lastModified: DateTime.now().toIso8601String(),
+          phamacyId: authenticationController.currentUserData.value.phymacyId,
         );
-      }
+      });
+
+      await productsController.storeProduct(
+        product: newProduct,
+        context: context,
+        image: _image,
+      );
     }
   }
 
@@ -372,18 +335,28 @@ class _AddProductFormState extends State<AddProductForm> {
               ],
             ),
             const SizedBox(height: 30.0),
-            ElevatedButton(
-              onPressed: _submitForm,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
-                padding: const EdgeInsets.symmetric(vertical: 15.0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0)),
-              ),
-              child: const Text(
-                'Submit',
-                style: TextStyle(fontSize: 18.0, color: Colors.white),
-              ),
+            Obx(
+              () => productsController.creatingLoading.value
+                  ? const Center(
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0)),
+                      ),
+                      child: const Text(
+                        'Submit',
+                        style: TextStyle(fontSize: 18.0, color: Colors.white),
+                      ),
+                    ),
             ),
           ],
         ),

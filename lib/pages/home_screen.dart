@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:medfast_go/business/sales.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
@@ -50,8 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double? _totalRevenueForGraph;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  late Future<List<double>> _monthlySalesFuture;
+  final AuthenticationController authenticationController = Get.find();
 
   @override
   void initState() {
@@ -471,27 +472,27 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
-        title: FutureBuilder<String>(
-          future: getPharmacyName(), // Fetch pharmacy name dynamically
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return Text(
-                snapshot.data!,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              );
-            }
-            // Display a placeholder or loading indicator as needed
-            return const CircularProgressIndicator(
-              color: Colors.white,
-            );
-          },
-        ),
+        title: Text(authenticationController.currentUserData.value.displayName),
+        //  FutureBuilder<String>(
+        //   future: getPharmacyName(), // Fetch pharmacy name dynamically
+        //   builder: (context, snapshot) {
+        //     if (snapshot.connectionState == ConnectionState.done) {
+        //       return Text(
+        //         snapshot.data!,
+        //         style: const TextStyle(
+        //           color: Colors.white,
+        //           fontSize: 18.0,
+        //           fontWeight: FontWeight.bold,
+        //         ),
+        //       );
+        //     }
+        //     // Display a placeholder or loading indicator as needed
+        //     return const CircularProgressIndicator(
+        //       color: Colors.white,
+        //     );
+        //   },
+        // ),
         actions: [
-          // Notification button
           IconButton(
             onPressed: () {
               Navigator.push(
@@ -552,14 +553,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: Drawer(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return SizedBox(
-              width: constraints.maxWidth * 0.9,
-              child: const NavigationDrawerWidget(),
-            );
-          },
-        ),
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: NavigationDrawerWidget(),
       ),
       body: SingleChildScrollView(
         child: Padding(

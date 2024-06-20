@@ -32,6 +32,9 @@ class DatabaseHelper {
   final String columnsoldQuantity = 'soldQuantity';
   final String columnProductprofit = 'profit';
   final String columnProductBarCode = 'barcode';
+  final String columnuserId = 'user_id';
+  final String columnLastModified = 'last_modified';
+  final String columnPhymacyId = 'pharmacy_id';
 
   // Table name for expenses
   final String expenseTableName = 'expenses';
@@ -128,7 +131,7 @@ class DatabaseHelper {
   void _createDb(Database db, int newVersion) async {
     await db.execute('''
       CREATE TABLE $productTableName (
-        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnId INTEGER PRIMARY KEY,
         $columnProductName TEXT,
         $columnMedicineDescription TEXT,
         $columnBuyingPrice REAL,
@@ -140,7 +143,10 @@ class DatabaseHelper {
         $columnImage TEXT,
         $columnProductprofit REAL,
         $columnsoldQuantity INTEGER,
-        $columnProductBarCode TEXT
+        $columnProductBarCode TEXT,
+        $columnuserId TEXT,
+        $columnLastModified TEXT,
+        $columnPhymacyId TEXT
       )
     ''');
 
@@ -200,9 +206,9 @@ class DatabaseHelper {
   }
 
   void _upgradeDb(Database db, int oldVersion, int newVersion) async {
-  if (oldVersion < 2) {
-    // Upgrade logic for version 2
-    await db.execute('''
+    if (oldVersion < 2) {
+      // Upgrade logic for version 2
+      await db.execute('''
       CREATE TABLE $completedOrderTableName (
         $columnOrderId TEXT,
         $columnTotalPrice REAL,
@@ -211,19 +217,19 @@ class DatabaseHelper {
         $columnprofit REAL
       )
     ''');
-  }
-  if (oldVersion < 3) {
-    // Upgrade logic for version 3
-    await db.execute('''
+    }
+    if (oldVersion < 3) {
+      // Upgrade logic for version 3
+      await db.execute('''
       ALTER TABLE $productTableName ADD COLUMN $columnsoldQuantity INTEGER DEFAULT 0
     ''');
-    await db.execute('''
+      await db.execute('''
       ALTER TABLE $productTableName ADD COLUMN $columnProductprofit REAL DEFAULT 0.0
     ''');
-  }
-  if (oldVersion < 4) {
-    // Upgrade logic for version 4
-    await _createTableIfNotExists(db, remindersTableName, '''
+    }
+    if (oldVersion < 4) {
+      // Upgrade logic for version 4
+      await _createTableIfNotExists(db, remindersTableName, '''
       CREATE TABLE $remindersTableName (
         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnReminderTittle TEXT,
@@ -232,7 +238,7 @@ class DatabaseHelper {
         $columnReminderTime TEXT
       )
     ''');
-    await _createTableIfNotExists(db, notesTableName, '''
+      await _createTableIfNotExists(db, notesTableName, '''
       CREATE TABLE $notesTableName (
         $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnNoteTittle TEXT,
@@ -241,14 +247,14 @@ class DatabaseHelper {
         $columnNoteTime TEXT
       )
     ''');
-  }
-  if (oldVersion < 5) {
-    // Upgrade logic for version 5
-    await db.execute('''
+    }
+    if (oldVersion < 5) {
+      // Upgrade logic for version 5
+      await db.execute('''
       ALTER TABLE $productTableName ADD COLUMN $columnProductBarCode TEXT
     ''');
+    }
   }
-}
 
   Future<void> _createTableIfNotExists(
       Database db, String tableName, String createTableQuery) async {
@@ -263,7 +269,11 @@ class DatabaseHelper {
   // Insert a product into the products table
   Future<int> insertProduct(Product product) async {
     final Database? db = await database;
-    final int result = await db!.insert(productTableName, product.toMap());
+    final int result = await db!.insert(
+      productTableName, product.toMap(),
+      conflictAlgorithm:
+          ConflictAlgorithm.replace, // This handles duplicate entries
+    );
     return result;
   }
 
@@ -440,6 +450,12 @@ class DatabaseHelper {
       whereArgs: [id],
     );
     return result;
+  }
+
+  // delete products
+  Future<void> clearProducts() async {
+    final db = await database;
+    await db?.delete(productTableName);
   }
 
   // Update an expense in the expenses table

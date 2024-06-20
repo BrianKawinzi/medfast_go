@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,6 +21,7 @@ class _ProductImportState extends State<ProductImport> {
   FilePickerResult? filePaths;
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   bool isFromAdding = false;
+  final AuthenticationController authenticationController = Get.find();
 
   Future<void> displayExcelData(String excelFilePath) async {
     var bytes = File(excelFilePath).readAsBytesSync();
@@ -61,6 +64,7 @@ class _ProductImportState extends State<ProductImport> {
             quantity: int.tryParse(row[5]?.value.toString() ?? '0') ?? 0,
             expiryDate: row[6]!.value.toString(),
             manufactureDate: row[7]!.value.toString(),
+            phamacyId: authenticationController.currentUserData.value.phymacyId,
           );
 
           if (product.buyingPrice != 0.0 &&

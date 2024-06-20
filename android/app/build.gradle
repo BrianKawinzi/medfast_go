@@ -85,3 +85,5 @@ flutter {
 dependencies {
     // Add your dependencies here
 }
+
+apply plugin: 'com.google.gms.google-services'
