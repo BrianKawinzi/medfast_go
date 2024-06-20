@@ -2,9 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:medfast_go/business/sales.dart';
-import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/product.dart';
@@ -52,14 +50,16 @@ class _HomeScreenState extends State<HomeScreen> {
   double? _totalRevenueForGraph;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final AuthenticationController authenticationController = Get.find();
+
+  late Future<List<double>> _monthlySalesFuture;
 
   @override
   void initState() {
     super.initState();
     _completedOrders = widget.completedOrders;
     fetchAndUpdateCompletedOrders(); // Fetch completed orders on init
-    _monthlySalesFuture = DatabaseHelper().getMonthlySalesAmounts(_selectedYear);
+    _monthlySalesFuture =
+        DatabaseHelper().getMonthlySalesAmounts(_selectedYear);
     _monthlySalesFuture.then((sales) {
       setState(() {
         _totalRevenueForGraph = sales[_selectedMonthIndex];
@@ -74,18 +74,21 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedMonth = _months[monthIndex + 1];
     });
 
-    List<double> sales = await DatabaseHelper().getMonthlySalesAmounts(_selectedYear);
+    List<double> sales =
+        await DatabaseHelper().getMonthlySalesAmounts(_selectedYear);
     setState(() {
       _totalRevenueForGraph = sales[monthIndex];
     });
   }
 
   // Calculate revenue method
-  Future<double> calculateTotalRevenue(int year, [int? selectedMonthIndex]) async {
+  Future<double> calculateTotalRevenue(int year,
+      [int? selectedMonthIndex]) async {
     double totalRevenue = 0;
 
     for (OrderDetails order in _completedOrders) {
-      if (order.completedAt.year == year && order.completedAt.month == selectedMonthIndex) {
+      if (order.completedAt.year == year &&
+          order.completedAt.month == selectedMonthIndex) {
         totalRevenue += order.totalPrice;
       }
     }
@@ -93,16 +96,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   static Future<int> countCustomers() async {
-    return await DatabaseHelper().getCustomers().then((customers) => customers.length);
+    return await DatabaseHelper()
+        .getCustomers()
+        .then((customers) => customers.length);
   }
 
   void displayProductSales() async {
-    Map<int, int> soldQuantities = await DatabaseHelper().calculateTotalSoldQuantities();
+    Map<int, int> soldQuantities =
+        await DatabaseHelper().calculateTotalSoldQuantities();
     soldQuantities.forEach((productId, quantity) {});
   }
 
   void fetchAndUpdateCompletedOrders() async {
-    List<OrderDetails> todayCompletedOrders = await DatabaseHelper().getTodayCompletedOrders(DateTime.now());
+    List<OrderDetails> todayCompletedOrders =
+        await DatabaseHelper().getTodayCompletedOrders(DateTime.now());
     setState(() {
       _completedOrders = todayCompletedOrders;
     });
@@ -150,16 +157,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             title: "Profit",
                           ),
                           FutureBuilder<int>(
-                            future: DatabaseHelper().getDailyTotalItemsSold(DateTime.now()),
+                            future: DatabaseHelper()
+                                .getDailyTotalItemsSold(DateTime.now()),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Center(child: CircularProgressIndicator());
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
                               } else if (snapshot.hasData) {
                                 int itemsSold = snapshot.data!;
                                 return Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
                                       children: [
                                         _buildCircularProgressWithLabel(
                                           value: itemsSold / 2000,
@@ -183,9 +194,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           FutureBuilder<List<OrderDetails>>(
-                            future: DatabaseHelper().getTodayCompletedOrders(DateTime.now()),
+                            future: DatabaseHelper()
+                                .getTodayCompletedOrders(DateTime.now()),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text("Error: ${snapshot.error}");
@@ -203,9 +216,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                           FutureBuilder<double>(
-                            future: DatabaseHelper().getDailyExpenses(DateTime.now()),
+                            future: DatabaseHelper()
+                                .getDailyExpenses(DateTime.now()),
                             builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text('Error: ${snapshot.error}');
@@ -376,7 +391,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildTopProductsSection() {
     return FutureBuilder<List<Product>>(
-      future: OrderRepository.getBestSellingProducts(), // Make sure this is correctly fetching data
+      future: OrderRepository
+          .getBestSellingProducts(), // Make sure this is correctly fetching data
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -388,7 +404,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: snapshot.data!.map((product) {
               ImageProvider imageProvider;
               if (product.image != null && product.image!.isNotEmpty) {
-                if (product.image!.startsWith('http') || product.image!.startsWith('https')) {
+                if (product.image!.startsWith('http') ||
+                    product.image!.startsWith('https')) {
                   // Handle network images
                   imageProvider = NetworkImage(product.image!);
                 } else {
@@ -401,7 +418,8 @@ class _HomeScreenState extends State<HomeScreen> {
               }
 
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
                 child: Row(
                   children: [
                     Container(
@@ -422,11 +440,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text(
                             product.productName,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            product.medicineDescription ?? "No description available",
-                            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                            product.medicineDescription ??
+                                "No description available",
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[600]),
                           ),
                         ],
                       ),
@@ -434,16 +455,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Price:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
+                        Text('Price:',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[800])),
                         Text('Ksh${product.sellingPrice.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(width: 15),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Revenue:', style: TextStyle(fontSize: 14, color: Colors.grey[800])),
+                        Text('Revenue:',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[800])),
                         Text(
                             'Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}',
                             style: TextStyle(
@@ -472,32 +498,33 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 16, 253, 44),
         elevation: 10.0,
-        title: Text(authenticationController.currentUserData.value.displayName),
-        //  FutureBuilder<String>(
-        //   future: getPharmacyName(), // Fetch pharmacy name dynamically
-        //   builder: (context, snapshot) {
-        //     if (snapshot.connectionState == ConnectionState.done) {
-        //       return Text(
-        //         snapshot.data!,
-        //         style: const TextStyle(
-        //           color: Colors.white,
-        //           fontSize: 18.0,
-        //           fontWeight: FontWeight.bold,
-        //         ),
-        //       );
-        //     }
-        //     // Display a placeholder or loading indicator as needed
-        //     return const CircularProgressIndicator(
-        //       color: Colors.white,
-        //     );
-        //   },
-        // ),
+        title: FutureBuilder<String>(
+          future: getPharmacyName(), // Fetch pharmacy name dynamically
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return Text(
+                snapshot.data!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            }
+            // Display a placeholder or loading indicator as needed
+            return const CircularProgressIndicator(
+              color: Colors.white,
+            );
+          },
+        ),
         actions: [
+          // Notification button
           IconButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const NotificationsPage()),
+                MaterialPageRoute(
+                    builder: (context) => const NotificationsPage()),
               );
             },
             icon: Stack(
@@ -542,7 +569,8 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const PharmacyProfile()),
+                MaterialPageRoute(
+                    builder: (context) => const PharmacyProfile()),
               );
             },
             icon: const Icon(
@@ -553,8 +581,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: Drawer(
-        width: MediaQuery.of(context).size.width * 0.9,
-        child: NavigationDrawerWidget(),
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return SizedBox(
+              width: constraints.maxWidth * 0.9,
+              child: NavigationDrawerWidget(),
+            );
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -595,7 +629,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             onChanged: (String? newValue) {
                               if (newValue != null) {
-                                int newMonthIndex = _months.indexOf(newValue) - 1;
+                                int newMonthIndex =
+                                    _months.indexOf(newValue) - 1;
                                 _onMonthChanged(newMonthIndex);
                               }
                             },
@@ -614,8 +649,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: FutureBuilder<List<double>>(
                           future: _monthlySalesFuture,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else if (snapshot.hasData) {
@@ -654,7 +691,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             FutureBuilder<int>(
                               future: OrderRepository.countCustomers(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
                                   return _buildRectangle(
                                     icon: Icons.people,
                                     label: "Customers",
@@ -685,12 +723,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             FutureBuilder<double>(
                               future: OrderRepository.getTotalSales(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.done) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.done) {
                                   if (snapshot.hasData) {
                                     return _buildRectangle(
                                       icon: Icons.shopping_cart,
                                       label: "Sales",
-                                      value: "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                      value:
+                                          "Ksh ${snapshot.data!.toStringAsFixed(2)}",
                                     );
                                   } else if (snapshot.hasError) {
                                     return _buildRectangle(
@@ -711,7 +751,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             FutureBuilder<double>(
                               future: OrderRepository.getTotalProfit(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
                                   return _buildRectangle(
                                     icon: Icons.money,
                                     label: "Profit",
@@ -721,7 +762,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return _buildRectangle(
                                     icon: Icons.money,
                                     label: "Profit",
-                                    value: "Ksh ${snapshot.data!.toStringAsFixed(2)}",
+                                    value:
+                                        "Ksh ${snapshot.data!.toStringAsFixed(2)}",
                                   );
                                 } else if (snapshot.hasError) {
                                   return _buildRectangle(
@@ -742,7 +784,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             FutureBuilder<int>(
                               future: OrderRepository.countCompletedOrders(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.done) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.done) {
                                   if (snapshot.hasData) {
                                     return _buildRectangle(
                                       icon: Icons.local_shipping,
@@ -793,21 +836,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const Text(
                         'Actual Top Stats',
-                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16.0, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16.0),
                       FutureBuilder<List<Product>>(
                         future: OrderRepository.getBestSellingProducts(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return const CircularProgressIndicator();
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error.toString()}');
-                          } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                            int maxQuantity = snapshot.data!.map((p) => p.soldQuantity).reduce(math.max);
+                          } else if (snapshot.hasData &&
+                              snapshot.data!.isNotEmpty) {
+                            int maxQuantity = snapshot.data!
+                                .map((p) => p.soldQuantity)
+                                .reduce(math.max);
                             return Column(
                               children: snapshot.data!.map((product) {
-                                double fraction = maxQuantity != 0 ? product.soldQuantity / maxQuantity : 0.0;
+                                double fraction = maxQuantity != 0
+                                    ? product.soldQuantity / maxQuantity
+                                    : 0.0;
                                 return GestureDetector(
                                   onTap: () => showDialog(
                                     context: context,
@@ -817,9 +867,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                         content: SingleChildScrollView(
                                           child: ListBody(
                                             children: <Widget>[
-                                              Text('Price: Ksh${product.sellingPrice.toStringAsFixed(2)}'),
-                                              Text('Quantity Sold: ${product.soldQuantity}'),
-                                              Text('Total Revenue: Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}'),
+                                              Text(
+                                                  'Price: Ksh${product.sellingPrice.toStringAsFixed(2)}'),
+                                              Text(
+                                                  'Quantity Sold: ${product.soldQuantity}'),
+                                              Text(
+                                                  'Total Revenue: Ksh${(product.soldQuantity * product.sellingPrice).toStringAsFixed(2)}'),
                                               // Text('Profit: Ksh${(product.profit.toStringAsFixed(2))}'),
                                             ],
                                           ),
@@ -836,16 +889,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                     },
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         product.productName,
-                                        style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                            fontSize: 14.0,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       LinearProgressIndicator(
                                         value: fraction,
                                         backgroundColor: Colors.grey[300],
-                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
                                           product == snapshot.data!.first
                                               ? Colors.blue
                                               : product == snapshot.data![1]
@@ -876,11 +933,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-
-
-
-
 
 class IndividualBar extends StatelessWidget {
   final int selectedMonthIndex;
@@ -984,10 +1036,7 @@ class IndividualBar extends StatelessWidget {
                 return SideTitleWidget(
                   axisSide: meta.axisSide,
                   space: 8.0, // space between bar and title
-                  child: Transform.rotate(
-                    angle: -pi / 2,
-                    child: text,
-                  ),
+                  child: text,
                 );
               },
             ),
@@ -996,7 +1045,7 @@ class IndividualBar extends StatelessWidget {
         gridData: FlGridData(show: false),
         borderData: FlBorderData(
           show: true,
-          border: const Border(
+          border: Border(
             bottom: BorderSide(
               color: Colors.black,
               width: 1,
