@@ -70,7 +70,7 @@ class _AddProductFormState extends State<AddProductForm> {
           medicineDescription: '',
           buyingPrice: _buyingPrice,
           sellingPrice: _sellingPrice,
-          image: _image?.path,
+          image: _image?.path ?? '',
           expiryDate: _expiryDateController.text,
           manufactureDate: _manufactureDateController.text,
           unit: _unit,
