@@ -258,10 +258,10 @@ class _ProductsState extends State<Products> {
                         try {
                           var result = await BarcodeScanner.scan();
                           String barcode = result.rawContent;
-                          Product product = await productsController
+                          Product? product = await productsController
                               .fetchProductByBarcode(barcode: barcode);
                           if (product != '') {
-                            _navigateToEditProduct(product);
+                            _navigateToEditProduct(product!);
                           }
                         } catch (e) {
                           print(e);

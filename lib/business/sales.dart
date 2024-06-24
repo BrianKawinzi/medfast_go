@@ -5,16 +5,14 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:medfast_go/business/editproductpage.dart';
-import 'package:medfast_go/controllers/products_controller.dart';
 import 'package:medfast_go/models/M_PesaDetailsEntryPage.dart';
+import 'package:medfast_go/models/M_PesaPayment.dart';
 import 'package:medfast_go/models/OrderDetails.dart';
 import 'package:medfast_go/models/customers.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:flutter/services.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
-import 'package:medfast_go/services/network_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -22,6 +20,7 @@ import 'package:provider/provider.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:collection/collection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:audioplayers/audioplayers.dart' as audioplayers;
 import 'package:just_audio/just_audio.dart' as just_audio;
 
@@ -71,6 +70,8 @@ class CartProvider with ChangeNotifier {
       int newQuantity = product.quantity - soldQuantity;
 
       await dbHelper.updateProductQuantity(product.id, newQuantity);
+      await dbHelper.updateProductQuantityInFirestore(
+          product.id.toString(), newQuantity);
     }
 
     resetCart();
@@ -120,8 +121,6 @@ class _SalesState extends State<Sales> {
   Barcode? result;
   final TextEditingController searchController = TextEditingController();
   late just_audio.AudioPlayer _audioPlayer;
-  final ProductsController productsController = Get.find();
-  final NetworkController networkController = Get.find();
 
   @override
 
@@ -140,6 +139,7 @@ class _SalesState extends State<Sales> {
   void initState() {
     super.initState();
     _audioPlayer = just_audio.AudioPlayer();
+    _fetchProducts();
   }
 
   get totalPrice => null; // Placeholder text for search
@@ -207,135 +207,123 @@ class _SalesState extends State<Sales> {
         ),
       );
     } else {
-      return StreamBuilder<List<Product>>(
-        stream: productsController.fetchProducts(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No products available.'));
-          } else {
-            return ListView.builder(
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                var product = products[index];
-                operationalQuantity = product.quantity;
-                var imageFile = File(product.image ?? '');
-                //updated
-                return Card(
-                  key: Key(product.id.toString()),
-                  // child: Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(product.productName),
-                    subtitle: Align(
-                      alignment: Alignment.topLeft,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Expiry Date: ${product.expiryDate}"),
-                          Text('Price: ${product.sellingPrice}'),
-                          // Add stock quantity information here
-                          Text(
-                            operationalQuantity == 0
-                                ? "Out of Stock"
-                                : "${operationalQuantity - Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)} units",
-                            style: TextStyle(
-                              fontSize: 12.0,
-                              color: operationalQuantity == 0
+      return RefreshIndicator(
+        onRefresh: _fetchProducts,
+        child: ListView.builder(
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            var product = products[index];
+            operationalQuantity = product.quantity;
+            var imageFile = File(product.image ?? '');
+            //updated
+            return Card(
+              key: Key(product.id.toString()),
+              // child: Card(
+              margin: const EdgeInsets.all(8.0),
+              child: ListTile(
+                title: Text(product.productName),
+                subtitle: Align(
+                  alignment: Alignment.topLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Expiry Date: ${product.expiryDate}"),
+                      Text('Price: ${product.sellingPrice}'),
+                      // Add stock quantity information here
+                      Text(
+                        operationalQuantity == 0
+                            ? "Out of Stock"
+                            : "${operationalQuantity - Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)} units",
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          color: operationalQuantity == 0
+                              ? Colors.red
+                              : (operationalQuantity <= 10
                                   ? Colors.red
-                                  : (operationalQuantity <= 10
-                                      ? Colors.red
-                                      : Colors.green),
-                            ),
-                          )
-                        ],
+                                  : Colors.green),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                leading: SizedBox(
+                  width: 100,
+                  child: imageFile.existsSync()
+                      ? Image.file(
+                          imageFile,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error);
+                          },
+                        )
+                      : Image.asset('lib/assets/noimage.png',
+                          fit: BoxFit.cover),
+                  //: const Placeholder(),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Add button
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor:
+                          product.quantity > 0 ? Colors.green : Colors.grey,
+                      child: IconButton(
+                        icon: const Icon(Icons.add,
+                            color: Colors.white, size: 20),
+                        onPressed: product.quantity > 0
+                            ? () {
+                                setState(() {
+                                  ProductNotifier().addProduct(product);
+                                  _addToCart(product);
+                                });
+                              }
+                            : null,
                       ),
                     ),
-                    leading: SizedBox(
-                        width: 100,
-                        child: networkController.connectionStatus.value == 0
-                            ? Image.file(
-                                imageFile,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.error);
-                                },
-                              )
-                            : Image.network(product.image!)),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Add button
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor:
-                              product.quantity > 0 ? Colors.green : Colors.grey,
-                          child: IconButton(
-                            icon: const Icon(Icons.add,
-                                color: Colors.white, size: 20),
-                            onPressed: product.quantity > 0
-                                ? () {
-                                    setState(() {
-                                      ProductNotifier().addProduct(product);
-                                      _addToCart(product);
-                                    });
-                                  }
-                                : null,
-                          ),
-                        ),
-                        // This SizedBox provides some spacing between the add button and the quantity text
-                        const SizedBox(width: 8),
-                        // Displaying the quantity in the cart for this product
-                        Text(
-                          '${Provider.of<CartProvider>(context, listen: true).getCartQuantity(product) == 0 ? "" : Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)}',
-                          style: const TextStyle(fontSize: 18.0),
-                        ),
-
-                        // This SizedBox provides some spacing between the quantity text and the subtract button
-                        const SizedBox(width: 8),
-                        // Subtract button
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.red,
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.remove,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                if (_isProductInCart(product)) {
-                                  ProductNotifier().addProduct(product);
-                                  // Assuming this method removes the product from the cart and updates the quantity
-                                  Provider.of<CartProvider>(context,
-                                          listen: false)
-                                      .remove(product);
-                                } else {
-                                  // Display an error message if the product is not in the cart
-                                  _showErrorMessage("Item not in cart");
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                      ],
+                    // This SizedBox provides some spacing between the add button and the quantity text
+                    const SizedBox(width: 8),
+                    // Displaying the quantity in the cart for this product
+                    Text(
+                      '${Provider.of<CartProvider>(context, listen: true).getCartQuantity(product) == 0 ? "" : Provider.of<CartProvider>(context, listen: true).getCartQuantity(product)}',
+                      style: const TextStyle(fontSize: 18.0),
                     ),
-                  ),
-                );
-              },
+
+                    // This SizedBox provides some spacing between the quantity text and the subtract button
+                    const SizedBox(width: 8),
+                    // Subtract button
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.red,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.remove,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            if (_isProductInCart(product)) {
+                              ProductNotifier().addProduct(product);
+                              // Assuming this method removes the product from the cart and updates the quantity
+                              Provider.of<CartProvider>(context, listen: false)
+                                  .remove(product);
+                            } else {
+                              // Display an error message if the product is not in the cart
+                              _showErrorMessage("Item not in cart");
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                // onTap: () => _navigateToEditProduct(product),
+              ),
+              //),
             );
-          }
-        },
+          },
+        ),
       );
     }
   }
@@ -364,10 +352,12 @@ class _SalesState extends State<Sales> {
         String barcode = result.rawContent;
         final dbHelper = DatabaseHelper();
         Product product = await dbHelper.getProductByBarcode(barcode);
-        setState(() {
-          Provider.of<CartProvider>(context, listen: false).add(product);
-        });
-        await _playBeepSound();
+        if (product != null) {
+          setState(() {
+            Provider.of<CartProvider>(context, listen: false).add(product);
+          });
+          await _playBeepSound();
+        }
       } else {
         throw PlatformException(
             code: 'PERMISSION_DENIED',

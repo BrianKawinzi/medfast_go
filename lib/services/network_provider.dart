@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,7 +18,7 @@ class NetworkController extends GetxController {
   }
 
   @override
-  onClose() {
+  void onClose() {
     _connectivitySubscription.cancel();
   }
 
@@ -40,42 +39,72 @@ class NetworkController extends GetxController {
         if (Get.isSnackbarOpen) {
           Get.closeCurrentSnackbar();
         }
-        // _syncService.syncData();
-
         break;
       case ConnectivityResult.mobile:
         connectionStatus.value = 2;
         if (Get.isSnackbarOpen) {
           Get.closeCurrentSnackbar();
         }
-        // _syncService.syncData();
-
         break;
       case ConnectivityResult.none:
         connectionStatus.value = 0;
-        Get.rawSnackbar(
-          messageText: const Text(
-            'PLEASE CONNECT TO INTERNET',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-            ),
-          ),
-          isDismissible: false,
-          duration: const Duration(days: 1),
-          backgroundColor: Colors.red.shade400,
-          icon: const Icon(
-            Icons.wifi_off,
-            color: Colors.white,
-            size: 35,
-          ),
-          margin: EdgeInsets.zero,
-          snackStyle: SnackStyle.GROUNDED,
-        );
         break;
-
       default:
         Get.snackbar("Network Error", 'Failed to connect to a network');
     }
   }
+}
+
+// OfflineIcon widget
+class OfflineIcon extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 10,
+      left: 10,
+      child: CircleAvatar(
+        backgroundColor: Colors.red,
+        child: Icon(
+          Icons.wifi_off,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+// Usage in the main widget tree
+class MainPage extends StatelessWidget {
+  final NetworkController networkController = Get.put(NetworkController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Network Status Demo'),
+      ),
+      body: Stack(
+        children: [
+          Center(
+            child: Text('Your main content goes here'),
+          ),
+          Obx(() {
+            if (networkController.connectionStatus.value == 0) {
+              return OfflineIcon();
+            } else {
+              return SizedBox.shrink();
+            }
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(
+    GetMaterialApp(
+      home: MainPage(),
+    ),
+  );
 }

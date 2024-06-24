@@ -8,9 +8,12 @@ import 'package:medfast_go/models/note.dart';
 import 'package:medfast_go/models/reminder.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/product.dart';
 
 class DatabaseHelper {
+
+
   static DatabaseHelper? _databaseHelper; // Singleton DatabaseHelper
   static Database? _database; // Singleton Database
 
@@ -768,6 +771,18 @@ class DatabaseHelper {
       where: '$columnId = ?',
       whereArgs: [productId],
     );
+  }
+final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> updateProductQuantityInFirestore(
+      String productId, int newQuantity) async {
+    try {
+      await _firestore.collection('products').doc(productId).update({
+        'quantity': newQuantity,
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   // Close the database

@@ -19,12 +19,13 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 class ProductsController extends GetxController {
   final NetworkController networkController = Get.find();
-
-  static final FirebaseFirestore db = FirebaseFirestore.instance;
-  static final firebase_storage.FirebaseStorage firebaseStorage =
-      firebase_storage.FirebaseStorage.instance;
+  final AuthenticationController authenticationController = Get.find();
+  final SyncService _syncService = SyncService();
   final DatabaseHelper _dbHelper = DatabaseHelper();
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  static final FirebaseFirestore firestoreInstance = FirebaseFirestore.instance;
+  static final firebase_storage.FirebaseStorage storageInstance =
+      firebase_storage.FirebaseStorage.instance;
 
   var selectedFile = "".obs;
   Rx<XFile> selectedImageFile = XFile('').obs;
@@ -34,55 +35,25 @@ class ProductsController extends GetxController {
 
   TextEditingController productNameController = TextEditingController();
   TextEditingController productPriceController = TextEditingController();
-  TextEditingController productdescriptionController = TextEditingController();
+  TextEditingController productDescriptionController = TextEditingController();
   TextEditingController productMinController = TextEditingController();
   TextEditingController productCurrController = TextEditingController();
   Timestamp firestoreTimestamp = Timestamp.fromDate(DateTime.now());
-  final SyncService _syncService = SyncService();
+
   var connectivityResult = ConnectivityResult.none.obs;
-  final AuthenticationController authenticationController = Get.find();
 
   @override
   void onInit() {
     super.onInit();
-    networkController.connectivity.onConnectivityChanged
-        .listen((ConnectivityResult result) {
+    networkController.connectivity.onConnectivityChanged.listen((result) {
       connectivityResult.value = result;
     });
 
-    ever(connectivityResult, (ConnectivityResult result) {
+    ever(connectivityResult, (result) {
       if (result != ConnectivityResult.none) {
         _syncService.syncData();
       }
     });
-  }
-
-  Stream<List<Product>> fetchProducts() {
-    StreamController<List<Product>> controller =
-        StreamController<List<Product>>();
-    if (networkController.connectionStatus.value != 0) {
-      firestore
-          .collection(Collections.PRODUCTS)
-          .where('pharmacy_id',
-              isEqualTo:
-                  authenticationController.currentUserData.value.phymacyId)
-          .snapshots()
-          .listen((querySnapshot) async {
-        List<Product> products = querySnapshot.docs.map((doc) {
-          return Product.fromMap(doc.data());
-        }).toList();
-        await _dbHelper.clearProducts();
-        for (var product in products) {
-          await _dbHelper.insertProduct(product);
-        }
-        controller.add(products);
-      });
-    } else {
-      _dbHelper.getProducts().then((products) {
-        controller.add(products);
-      });
-    }
-    return controller.stream;
   }
 
   Future<void> storeProduct({
@@ -96,10 +67,12 @@ class ProductsController extends GetxController {
       if (product.buyingPrice == 0.0 && product.sellingPrice == 0.0 ||
           product.sellingPrice < product.buyingPrice) {
         showInvalidPricingDialog(context);
+        return;
       }
 
+      // Check if product with the same name already exists in Firestore
       CollectionReference productsCollection =
-          db.collection(Collections.PRODUCTS);
+          firestoreInstance.collection(Collections.PRODUCTS);
       QuerySnapshot existingProducts = await productsCollection
           .where('productName', isEqualTo: product.productName)
           .get();
@@ -111,59 +84,53 @@ class ProductsController extends GetxController {
         return;
       }
 
-      if (networkController.connectionStatus.value != 0) {
-        String imageUrl = '';
+      String imageUrl = '';
+      if (image != null) {
+        String newImageFilename =
+            '${product.productName + product.id.toString()}.jpg';
+        firebase_storage.Reference reference = storageInstance
+            .ref()
+            .child(authenticationController.currentUserData.value.uid)
+            .child('product-images')
+            .child(newImageFilename);
 
-        if (image != null) {
-          String newImageFilename =
-              '${product.productName + product.id.toString()}.jpg';
-
-          firebase_storage.Reference reference = firebaseStorage
-              .ref()
-              .child(authenticationController.currentUserData.value.uid)
-              .child('product-images')
-              .child(newImageFilename);
-
-          final metadata = firebase_storage.SettableMetadata(
-              contentType: 'image/jpeg',
-              customMetadata: {'picked-file-path': image.path});
-
-          if (image.path.isNotEmpty) {
-            if (kIsWeb) {
-              await reference.putData(await image.readAsBytes(), metadata);
-              imageUrl = await reference.getDownloadURL();
-            } else {
-              await reference.putFile(image, metadata);
-              imageUrl = await reference.getDownloadURL();
-            }
+        final metadata = firebase_storage.SettableMetadata(
+            contentType: 'image/jpeg',
+            customMetadata: {'picked-file-path': image.path});
+        if (image.path.isNotEmpty) {
+          if (kIsWeb) {
+            await reference.putData(await image.readAsBytes(), metadata);
+            imageUrl = await reference.getDownloadURL();
           } else {
-            imageUrl = '';
+            await reference.putFile(image, metadata);
+            imageUrl = await reference.getDownloadURL();
           }
+        } else {
+          imageUrl = '';
         }
-
-        product.userId = authenticationController.currentUserData.value.uid;
-        product.image = imageUrl;
-        await productsCollection
-            .doc(product.id.toString())
-            .set(product.toMap());
-        creatingLoading.value = false;
-        clearControllers();
-        Navigator.pushReplacementNamed(context, '/product');
-        CommonUtils.showToast('Product data stored in Firestore successfully.');
-      } else {
-        await _dbHelper.insertProduct(product);
-        creatingLoading.value = false;
-        clearControllers();
-        Navigator.pushReplacementNamed(context, '/product');
-        CommonUtils.showToast('Product data stored in SQLite successfully.');
       }
+
+      product.userId = authenticationController.currentUserData.value.uid;
+      product.image = imageUrl;
+
+      // Store in Firestore
+      await productsCollection.doc(product.id.toString()).set(product.toMap());
+
+      // Store in SQLite
+      await _dbHelper.insertProduct(product);
+
+      creatingLoading.value = false;
+      clearControllers();
+      Navigator.pushReplacementNamed(context, '/product');
+      CommonUtils.showToast('Product data stored successfully.');
     } on FirebaseException catch (e) {
       CommonUtils.showToast(e.message.toString());
       debugPrint(e.code);
       creatingLoading.value = false;
       update();
     } catch (e) {
-      print("::::::::error$e");
+      print("Error: $e");
+      CommonUtils.showToast('An error occurred while storing the product.');
       creatingLoading.value = false;
       debugPrint(e.toString());
     }
@@ -173,30 +140,32 @@ class ProductsController extends GetxController {
     required Product product,
     required BuildContext context,
   }) async {
-    creatingLoading.value = true;
+    updatingProduct.value = true;
 
     try {
       if (product.buyingPrice == 0.0 && product.sellingPrice == 0.0 ||
           product.sellingPrice < product.buyingPrice) {
         showInvalidPricingDialog(context);
+        return;
       }
+
       product.phamacyId =
           authenticationController.currentUserData.value.phymacyId;
       if (networkController.connectionStatus.value != 0) {
         product.userId = authenticationController.currentUserData.value.uid;
-        await db
+        await firestoreInstance
             .collection(Collections.PRODUCTS)
             .doc(product.id.toString())
             .update(product.toMap());
-        creatingLoading.value = false;
+        updatingProduct.value = false;
         clearControllers();
         Navigator.pushReplacementNamed(context, '/product');
         CommonUtils.showToast(
             'Product data updated in Firestore successfully.');
       } else {
         product.userId = authenticationController.currentUserData.value.uid;
-        await _dbHelper.insertProduct(product);
-        creatingLoading.value = false;
+        await _dbHelper.updateProduct(product);
+        updatingProduct.value = false;
         clearControllers();
         Navigator.pushReplacementNamed(context, '/product');
         CommonUtils.showToast('Product updated stored in SQLite successfully.');
@@ -204,95 +173,133 @@ class ProductsController extends GetxController {
     } on FirebaseException catch (e) {
       CommonUtils.showToast(e.message.toString());
       debugPrint(e.code);
-      creatingLoading.value = false;
+      updatingProduct.value = false;
       update();
     } catch (e) {
-      print("::::::::error$e");
-      creatingLoading.value = false;
+      print("Error: $e");
+      CommonUtils.showToast('An error occurred while updating the product.');
+      updatingProduct.value = false;
       debugPrint(e.toString());
     }
   }
 
-  fetchProductByBarcode({required String barcode}) async {
+  Future<void> deleteProduct(
+      {required Product product, required BuildContext context}) async {
+    try {
+      if (networkController.connectionStatus.value != 0) {
+        await _deleteProductFromFirestore(product);
+        await _deleteImageFromFirebaseStorage(product.image);
+      } else {
+        await _deleteProductFromSQLite(product);
+      }
+      Navigator.pushReplacementNamed(context, '/product');
+      CommonUtils.showToast('Product deleted successfully.');
+    } on FirebaseException catch (e) {
+      handleError(e.message!);
+    } catch (e) {
+      handleError(e.toString());
+    }
+  }
+
+  Future<void> _deleteProductFromFirestore(Product product) async {
+    await firestoreInstance
+        .collection(Collections.PRODUCTS)
+        .doc(product.id.toString())
+        .delete();
+  }
+
+  Future<void> _deleteImageFromFirebaseStorage(String? imageUrl) async {
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        firebase_storage.Reference reference =
+            storageInstance.refFromURL(imageUrl);
+        await reference.delete();
+      } catch (e) {
+        debugPrint('Error deleting image: $e');
+      }
+    }
+  }
+
+  Future<void> _deleteProductFromSQLite(Product product) async {
+    await _dbHelper.deleteProduct(product.id);
+  }
+
+  Future<Product?> fetchProductByBarcode({required String barcode}) async {
     if (networkController.connectionStatus.value != 0) {
-      return await fetchProductByBarcodeFromFirebase(barcode);
+      return await _fetchProductByBarcodeFromFirebase(barcode);
     } else {
       return await _dbHelper.getProductByBarcode(barcode);
     }
   }
 
-  Future fetchProductByBarcodeFromFirebase(String barcode) async {
+  Future<Product?> _fetchProductByBarcodeFromFirebase(String barcode) async {
     try {
       CollectionReference productsCollection =
-          FirebaseFirestore.instance.collection(Collections.PRODUCTS);
-
+          firestoreInstance.collection(Collections.PRODUCTS);
       QuerySnapshot querySnapshot =
           await productsCollection.where('barcode', isEqualTo: barcode).get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Assuming there's only one product with the specified barcode
         DocumentSnapshot productSnapshot = querySnapshot.docs.first;
         Map<String, dynamic> productData =
             productSnapshot.data() as Map<String, dynamic>;
-        Product product = Product.fromMap(productData);
-        return product;
+        return Product.fromMap(productData);
       } else {
-        return CommonUtils.showToast('No product by that barcode');
+        CommonUtils.showToast('No product by that barcode');
+        return null;
       }
     } catch (e) {
       print('Error fetching product: $e');
-      // Handle errors here
+      return null;
     }
   }
 
-  Future<void> updateProductQuantity(List<Map<String, dynamic>> sales) async {
-    try {
-      CollectionReference productsCollection =
-          FirebaseFirestore.instance.collection('products');
-
-      WriteBatch batch = FirebaseFirestore.instance.batch();
-
-      for (var sale in sales) {
-        DocumentReference productDoc =
-            productsCollection.doc(sale['productId']);
-        DocumentSnapshot productSnapshot = await productDoc.get();
-
-        if (productSnapshot.exists) {
-          Product product =
-              Product.fromMap(productSnapshot.data() as Map<String, dynamic>);
-          num newQuantity = product.quantity - sale['quantity'];
-          num quantitySold = product.soldQuantity + sale['quantitySold'];
-
-          if (newQuantity < 0) {
-            newQuantity = 0;
-          }
-
-          batch.update(productDoc, {
-            'quantity': newQuantity,
-            'soldQuantity': quantitySold,
-          });
+  Stream<List<Product>> fetchProducts() {
+    StreamController<List<Product>> controller =
+        StreamController<List<Product>>();
+    if (networkController.connectionStatus.value != 0) {
+      firestoreInstance
+          .collection(Collections.PRODUCTS)
+          .where('pharmacy_id',
+              isEqualTo:
+                  authenticationController.currentUserData.value.phymacyId)
+          .snapshots()
+          .listen((querySnapshot) async {
+        List<Product> products = querySnapshot.docs
+            .map((doc) => Product.fromMap(doc.data()))
+            .toList();
+        await _dbHelper.clearProducts();
+        for (var product in products) {
+          await _dbHelper.insertProduct(product);
         }
-      }
-
-      await batch.commit();
-      print('Product quantities updated successfully.');
-    } catch (e) {
-      print('Error updating product quantities: $e');
-      // Handle errors here
+        controller.add(products);
+      });
+    } else {
+      _dbHelper.getProducts().then((products) => controller.add(products));
     }
+    return controller.stream;
   }
 
-  void showInvalidPricingDialog(BuildContext context) {
+  void clearControllers() {
+    productNameController.clear();
+    productPriceController.clear();
+    productDescriptionController.clear();
+    productMinController.clear();
+    productCurrController.clear();
+    selectedImageFile.close();
+  }
+
+void showInvalidPricingDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Invalid Pricing'),
+title: const Text("Invalid Pricing"),
           content: const Text(
-              'The selling price must be greater than or equal to the buying price, which must not be 0.'),
-          actions: <Widget>[
+              "The selling price must be greater than or equal to the buying price, which must not be 0."),
+          actions: [
             TextButton(
-              child: const Text('OK'),
+child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -303,94 +310,8 @@ class ProductsController extends GetxController {
     );
   }
 
-  void handleError(String error) {
+void handleError(String error) {
     CommonUtils.showToast(error);
     debugPrint(error);
-  }
-
-  clearControllers() {
-    productCurrController.clear();
-    productdescriptionController.clear();
-    productPriceController.clear();
-    productMinController.clear();
-    productNameController.clear();
-    selectedImageFile.close();
-  }
-
-  Future<DocumentSnapshot?> getProductDocumentById(String productId) async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection(Collections.PRODUCTS)
-        .where('id', isEqualTo: productId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      return querySnapshot.docs.first;
-    } else {
-      print("No such document!");
-      return null;
-    }
-  }
-
-  Future<void> deleteProduct({
-    required Product product,
-    required BuildContext context,
-  }) async {
-    try {
-      if (networkController.connectionStatus.value != 0) {
-        await deleteProductFromFirestore(product);
-        await deleteImageFromFirebaseStorage(product.image);
-      } else {
-        // Offline: Delete from SQLite
-        await deleteProductFromSQLite(product);
-      }
-      Navigator.pushReplacementNamed(context, '/product');
-      CommonUtils.showToast('Product deleted successfully.');
-    } on FirebaseException catch (e) {
-      handleError(e.message!);
-    } catch (e) {
-      handleError(e.toString());
-    } finally {}
-  }
-
-  Future<void> deleteProductFromFirestore(Product product) async {
-    await db
-        .collection(Collections.PRODUCTS)
-        .doc(product.id.toString())
-        .delete();
-  }
-
-  Future<void> deleteImageFromFirebaseStorage(String? imageUrl) async {
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      try {
-        firebase_storage.Reference reference =
-            firebaseStorage.refFromURL(imageUrl);
-        await reference.delete();
-      } catch (e) {
-        debugPrint('Error deleting image: $e');
-      }
-    }
-  }
-
-  Future<void> deleteProductFromSQLite(Product product) async {
-    await _dbHelper.deleteProduct(product.id);
-  }
-
-  Future searchProductsByName(String productName) async {
-    try {
-      CollectionReference productsCollection =
-          FirebaseFirestore.instance.collection('products');
-
-      QuerySnapshot querySnapshot = await productsCollection
-          .where('productName', isGreaterThanOrEqualTo: productName)
-          .where('productName', isLessThanOrEqualTo: '$productName\uf8ff')
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      print('Error searching for products by name: $e');
-      return [];
-    }
   }
 }
