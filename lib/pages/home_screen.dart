@@ -537,18 +537,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
             ),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PharmacyProfile()),
-              );
-            },
-            icon: const Icon(
-              Icons.person,
-              color: Colors.white,
-            ),
-          ),
+          
         ],
       ),
       drawer: Drawer(
