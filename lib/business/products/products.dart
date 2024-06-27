@@ -2,11 +2,14 @@ import 'dart:io';
 import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:excel/excel.dart';
+import 'package:csv/csv.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products/import_product.dart';
 import 'package:medfast_go/business/products/qr_scanner.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class Products extends StatefulWidget {
@@ -216,6 +219,46 @@ class _ProductsState extends State<Products> {
     return totalWorth;
   }
 
+  Future<void> _exportToCSV() async {
+    List<List<dynamic>> rows = [];
+
+    // Adding headers
+    rows.add([
+      "Product Name",
+      "Quantity",
+      "Barcode",
+      "Selling Price",
+      "Medicine Description",
+      "Manufacture Date",
+      "Expiry Date",
+    ]);
+
+
+    for (var product in products) {
+      List<dynamic> row = [];
+      row.add(product.productName);
+      row.add(product.quantity);
+      row.add(product.barcode);
+      row.add(product.sellingPrice);
+      row.add(product.medicineDescription);
+      row.add(product.manufactureDate);
+      row.add(product.expiryDate);
+      rows.add(row);
+    }
+
+    String csv = const ListToCsvConverter().convert(rows);
+    final directory = await getApplicationDocumentsDirectory();
+    final path = "${directory.path}/products.csv";
+    final file = File(path);
+
+    await file.writeAsString(csv);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('CSV file saved at: $path')),
+    );
+
+  }
+  
+
   @override
   Widget build(BuildContext context) {
     int totalQuantity = _calculateTotalQuantity();
@@ -236,6 +279,12 @@ class _ProductsState extends State<Products> {
             onPressed: () {
               // Implement menu action
             },
+          ),
+          IconButton(
+            onPressed: () {
+              _showExportMenu(context);
+            }, 
+            icon: const Icon(Icons.file_download),
           ),
         ],
       ),
@@ -487,6 +536,36 @@ class _ProductsState extends State<Products> {
           ),
         );
       },
+    );
+  }
+
+  void _showExportMenu(BuildContext context) {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox button = context.findRenderObject() as RenderBox;
+
+    final RelativeRect position = RelativeRect.fromLTRB(
+      0, 
+      button.size.height, 
+      button.size.width / 2, 
+      0
+    );
+
+    showMenu(
+      context: context, 
+      position: position, 
+      items: [
+        PopupMenuItem(
+          child: ListTile(
+            leading: const Icon(Icons.download),
+            title: const Text('Export to CSV'),
+            onTap: () {
+              Navigator.pop(context);
+              _exportToCSV();
+            },
+          ),
+        ),
+      ]
     );
   }
 }
