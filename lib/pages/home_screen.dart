@@ -537,18 +537,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
             ),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PharmacyProfile()),
-              );
-            },
-            icon: const Icon(
-              Icons.person,
-              color: Colors.white,
-            ),
-          ),
+          
         ],
       ),
       drawer: Drawer(
@@ -886,6 +875,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
+
 class IndividualBar extends StatelessWidget {
   final int selectedMonthIndex;
   final List<double> monthlyAmounts;
@@ -927,7 +917,10 @@ class IndividualBar extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-           topTitles: AxisTitles(
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
           bottomTitles: AxisTitles(
@@ -985,7 +978,10 @@ class IndividualBar extends StatelessWidget {
                 return SideTitleWidget(
                   axisSide: meta.axisSide,
                   space: 8.0, // space between bar and title
-                  child: text,
+                  child: Transform.rotate(
+                    angle: -pi / 2,
+                    child: text,
+                  ),
                 );
               },
             ),
@@ -994,7 +990,7 @@ class IndividualBar extends StatelessWidget {
         gridData: FlGridData(show: false),
         borderData: FlBorderData(
           show: true,
-          border: Border(
+          border: const Border(
             bottom: BorderSide(
               color: Colors.black,
               width: 1,
