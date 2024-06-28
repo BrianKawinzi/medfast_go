@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:csv/csv.dart';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -20,47 +22,62 @@ class _ProductImportState extends State<ProductImport> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   bool isFromAdding = false;
 
-  Future<void> displayExcelData(String excelFilePath) async {
-    var bytes = File(excelFilePath).readAsBytesSync();
-    var excelFile = excel.Excel.decodeBytes(bytes);
-    var sheet = excelFile.tables.keys.first;
-    var table = excelFile.tables[sheet]!;
-    setState(() {
-      excelData = table.rows
-          .map((row) => row.map((cell) => cell!.value).toList())
+  Future<void> displayExcelData(String filePath) async {
+    var extension = filePath.split('.').last;
+
+    if (extension == 'csv') {
+      var input = File(filePath).openRead();
+      var fields = await input
+          .transform(utf8.decoder)
+          .transform(const CsvToListConverter())
           .toList();
-    });
+      setState(() {
+        excelData = fields;
+      });
+    } else {
+      var bytes = File(filePath).readAsBytesSync();
+      var excelFile = excel.Excel.decodeBytes(bytes);
+      var sheet = excelFile.tables.keys.first;
+      var table = excelFile.tables[sheet]!;
+      setState(() {
+        excelData = table.rows
+            .map((row) => row.map((cell) => cell!.value).toList())
+            .toList();
+      });
+    }
   }
 
   Future<void> readProductsFromExcel(String file) async {
     setState(() {
       isFromAdding = true;
     });
-    var bytes = File(file).readAsBytesSync();
-    var excels = excel.Excel.decodeBytes(bytes);
+
+    var extension = file.split('.').last;
     List<Product> validProducts = [];
     bool hasValidProducts = false;
 
-    for (var table in excels.tables.keys) {
-      var sheet = excels.tables[table];
+    if (extension == 'csv') {
+      var input = File(file).openRead();
+      var fields = await input
+          .transform(utf8.decoder)
+          .transform(const CsvToListConverter())
+          .toList();
 
-      if (sheet == null) continue;
-
-      for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
-        var row = sheet.rows[rowIndex];
+      for (var i = 1; i < fields.length; i++) {
+        var row = fields[i];
         final Random random = Random();
 
         try {
           var product = Product(
             id: random.nextInt(1000000000),
-            productName: row[0]!.value.toString(),
-            medicineDescription: row[1]!.value.toString(),
-            buyingPrice: double.tryParse(row[2]?.value.toString() ?? '0') ?? 0,
-            sellingPrice: double.tryParse(row[3]?.value.toString() ?? '0') ?? 0,
-            unit: row[4]!.value.toString(),
-            quantity: int.tryParse(row[5]?.value.toString() ?? '0') ?? 0,
-            expiryDate: row[6]!.value.toString(),
-            manufactureDate: row[7]!.value.toString(),
+            productName: row[0].toString(),
+            medicineDescription: row[1].toString(),
+            buyingPrice: double.tryParse(row[2]?.toString() ?? '0') ?? 0,
+            sellingPrice: double.tryParse(row[3]?.toString() ?? '0') ?? 0,
+            unit: row[4].toString(),
+            quantity: int.tryParse(row[5]?.toString() ?? '0') ?? 0,
+            expiryDate: row[6].toString(),
+            manufactureDate: row[7].toString(),
           );
 
           if (product.buyingPrice != 0.0 &&
@@ -72,7 +89,46 @@ class _ProductImportState extends State<ProductImport> {
             break;
           }
         } catch (e) {
-          print('Error parsing row: $rowIndex, $e');
+          print('Error parsing row: $i, $e');
+        }
+      }
+    } else {
+      var bytes = File(file).readAsBytesSync();
+      var excels = excel.Excel.decodeBytes(bytes);
+
+      for (var table in excels.tables.keys) {
+        var sheet = excels.tables[table];
+
+        if (sheet == null) continue;
+
+        for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
+          var row = sheet.rows[rowIndex];
+          final Random random = Random();
+
+          try {
+            var product = Product(
+              id: random.nextInt(1000000000),
+              productName: row[0]!.value.toString(),
+              medicineDescription: row[1]!.value.toString(),
+              buyingPrice: double.tryParse(row[2]?.value.toString() ?? '0') ?? 0,
+              sellingPrice: double.tryParse(row[3]?.value.toString() ?? '0') ?? 0,
+              unit: row[4]!.value.toString(),
+              quantity: int.tryParse(row[5]?.value.toString() ?? '0') ?? 0,
+              expiryDate: row[6]!.value.toString(),
+              manufactureDate: row[7]!.value.toString(),
+            );
+
+            if (product.buyingPrice != 0.0 &&
+                product.sellingPrice >= product.buyingPrice) {
+              validProducts.add(product);
+              hasValidProducts = true;
+            } else {
+              hasValidProducts = false;
+              break;
+            }
+          } catch (e) {
+            print('Error parsing row: $rowIndex, $e');
+          }
         }
       }
     }
@@ -142,7 +198,7 @@ class _ProductImportState extends State<ProductImport> {
                       ),
                       SizedBox(width: 10),
                       Text(
-                        'upload Products',
+                        'Upload Products',
                         style: TextStyle(color: Colors.white),
                       ),
                     ],
@@ -156,7 +212,7 @@ class _ProductImportState extends State<ProductImport> {
                   await Permission.storage.request();
                   filePaths = await FilePicker.platform.pickFiles(
                     type: FileType.custom,
-                    allowedExtensions: ['xls', 'xlsx'],
+                    allowedExtensions: ['xls', 'xlsx', 'csv'],
                   ).then((value) => value!);
 
                   await displayExcelData(filePaths!.files.single.path!);
