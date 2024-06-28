@@ -11,6 +11,7 @@ import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:file_picker/file_picker.dart';
 
 class Products extends StatefulWidget {
   const Products({super.key, required String productName});
@@ -220,43 +221,52 @@ class _ProductsState extends State<Products> {
   }
 
   Future<void> _exportToCSV() async {
-    List<List<dynamic>> rows = [];
+  List<List<dynamic>> rows = [];
 
-    // Adding headers
-    rows.add([
-      "Product Name",
-      "Quantity",
-      "Barcode",
-      "Selling Price",
-      "Medicine Description",
-      "Manufacture Date",
-      "Expiry Date",
-    ]);
+  // Adding headers
+  rows.add([
+    "Product Name",
+    "Quantity",
+    "Barcode",
+    "Selling Price",
+    "Medicine Description",
+    "Manufacture Date",
+    "Expiry Date",
+  ]);
 
-
-    for (var product in products) {
-      List<dynamic> row = [];
-      row.add(product.productName);
-      row.add(product.quantity);
-      row.add(product.barcode);
-      row.add(product.sellingPrice);
-      row.add(product.medicineDescription);
-      row.add(product.manufactureDate);
-      row.add(product.expiryDate);
-      rows.add(row);
-    }
-
-    String csv = const ListToCsvConverter().convert(rows);
-    final directory = await getApplicationDocumentsDirectory();
-    final path = "${directory.path}/products.csv";
-    final file = File(path);
-
-    await file.writeAsString(csv);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('CSV file saved at: $path')),
-    );
-
+  for (var product in products) {
+    List<dynamic> row = [];
+    row.add(product.productName);
+    row.add(product.quantity);
+    row.add(product.barcode);
+    row.add(product.sellingPrice);
+    row.add(product.medicineDescription);
+    row.add(product.manufactureDate);
+    row.add(product.expiryDate);
+    rows.add(row);
   }
+
+  String csv = const ListToCsvConverter().convert(rows);
+
+  String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
+  if (selectedDirectory == null) {
+    // User canceled the picker
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Export canceled.')),
+    );
+    return;
+  }
+
+  final path = "$selectedDirectory/products.csv";
+  final file = File(path);
+
+  await file.writeAsString(csv);
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('CSV file saved at: $path')),
+  );
+}
   
 
   @override
