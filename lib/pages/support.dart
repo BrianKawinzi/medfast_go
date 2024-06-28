@@ -1,8 +1,9 @@
-
+import 'package:medfast_go/pages/widgets/navigation_drawer.dart';
 import 'package:flutter/material.dart';
-import 'package:medfast_go/pages/home_page.dart';
 
 class Support extends StatefulWidget {
+  const Support({super.key});
+
   @override
   _SupportState createState() => _SupportState();
 }
@@ -15,21 +16,15 @@ class _SupportState extends State<Support> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Support'),
+        title: const Text('Support'),
         centerTitle: true,
-        backgroundColor: Color.fromRGBO(58, 205, 50, 1),
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => HomePage(),
-            ));
-          },
-          child: Icon(Icons.arrow_back),
-        ),
+        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
       ),
-      backgroundColor:
-          Colors.green, // Set the background color of the entire screen
-
+      drawer: Drawer(
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: const NavigationDrawerWidget(),
+      ),
+      backgroundColor: Colors.green, // Set the background c
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -37,35 +32,6 @@ class _SupportState extends State<Support> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Pharmacy ID Box
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors
-                      .white, // Set the background color of the text field
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: TextFormField(
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your pharmacy ID';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Pharmacy ID',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(8.0),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      showSendButton = true;
-                    });
-                  },
-                ),
-              ),
-              SizedBox(height: 16.0), // Spacer
-
               // Email Box
               Container(
                 decoration: BoxDecoration(
@@ -81,7 +47,7 @@ class _SupportState extends State<Support> {
                     }
                     return null;
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Email',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(8.0),
@@ -93,7 +59,7 @@ class _SupportState extends State<Support> {
                   },
                 ),
               ),
-              SizedBox(height: 16.0), // Spacer
+              const SizedBox(height: 16.0), // Spacer
 
               // Subject Box
               Container(
@@ -110,7 +76,7 @@ class _SupportState extends State<Support> {
                     }
                     return null;
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Subject',
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(8.0),
@@ -122,7 +88,7 @@ class _SupportState extends State<Support> {
                   },
                 ),
               ),
-              SizedBox(height: 16.0), // Spacer
+              const SizedBox(height: 16.0), // Spacer
 
               // Large Message Box
               Expanded(
@@ -142,7 +108,7 @@ class _SupportState extends State<Support> {
                     },
                     maxLines: null,
                     keyboardType: TextInputType.multiline,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Type message here',
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.all(8.0),
@@ -168,11 +134,11 @@ class _SupportState extends State<Support> {
               // You can implement your send logic here
               print('Send button clicked!');
             }
-          },
-          child: Icon(Icons.send,
-              color: Colors.green), // Change the color of the Send icon
-          backgroundColor:
-              Colors.white, // Set the background color of the Send button
+          }, // Change the color of the Send icon
+          backgroundColor: Colors.white,
+          child: const Icon(Icons.send,
+              color:
+                  Colors.green), // Set the background color of the Send button
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

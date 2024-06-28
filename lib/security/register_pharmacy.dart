@@ -1,35 +1,89 @@
+// RegisterPharmacyScreen.dart
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:medfast_go/models/pharmacy.dart';
 import 'package:medfast_go/services/api_service.dart';
 
 class RegisterPharmacyScreen extends StatefulWidget {
+  const RegisterPharmacyScreen({Key? key}) : super(key: key);
+
   @override
   _RegisterPharmacyScreenState createState() => _RegisterPharmacyScreenState();
 }
 
+List<String> counties = [
+  'Mombasa',
+  'Kwale',
+  'Kilifi',
+  'Tana River',
+  'Lamu',
+  'Taita-Taveta',
+  'Garissa',
+  'Wajir',
+  'Mandera',
+  'Marsabit',
+  'Isiolo',
+  'Meru',
+  'Tharaka-Nithi',
+  'Embu',
+  'Kitui',
+  'Machakos',
+  'Makueni',
+  'Nyandarua',
+  'Nyeri',
+  'Kirinyaga',
+  'Muranga',
+  'Kiambu',
+  'Turkana',
+  'West Pokot',
+  'Samburu',
+  'Trans Nzoia',
+  'Uasin Gishu',
+  'Elgeyo-Marakwet',
+  'Nandi',
+  'Baringo',
+  'Laikipia',
+  'Nakuru',
+  'Narok',
+  'Kajiado',
+  'Kericho',
+  'Bomet',
+  'Kakamega',
+  'Vihiga',
+  'Bungoma',
+  'Busia',
+  'Siaya',
+  'Kisumu',
+  'Homa Bay',
+  'Migori',
+  'Kisii',
+  'Nyamira',
+  'Nairobi'
+];
+
 class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
-
   String pharmacyName = '';
-  String region = '';
-  String city = '';
-  String subCity = '';
-  String landmark = '';
+  String county = '';
   String phoneNumber = '';
-
-  // Variable to store location
   Position? pharmacyLocation;
-
-  //loading state
   bool isLoading = false;
+  Map<String, String> errors = {};
+
+  void showValidationErrors(Map<String, String> errors) {
+    final List<String> errorMessages = errors.values.toList();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(errorMessages.join('\n')),
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    // Fetch initial location when the screen loads
     _getCurrentLocation();
   }
 
@@ -37,12 +91,10 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Check if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Location services are not enabled, notify the user.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Location services are disabled.'),
         ),
       );
@@ -53,9 +105,8 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        // Permissions are denied, notify the user.
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Location permissions are denied'),
           ),
         );
@@ -64,16 +115,15 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Location permissions are permanently denied, we cannot request permissions.'),
+        const SnackBar(
+          content: Text(
+              'Location permissions are permanently denied, we cannot request permissions.'),
         ),
       );
       return;
     }
 
-    // When permissions are granted or already granted, get the current location.
     try {
       Position currentPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best,
@@ -97,7 +147,7 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
-        title: Text(
+        title: const Text(
           'Register Pharmacy',
           style: TextStyle(
             color: Colors.white,
@@ -107,171 +157,143 @@ class _RegisterPharmacyScreenState extends State<RegisterPharmacyScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Pharmacy Name',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: <Widget>[
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Pharmacy Name',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the pharmacy name';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => pharmacyName = value ?? '',
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the pharmacy name';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => pharmacyName = value ?? '',
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Region',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  onSaved: (value) => region = value ?? '',
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'City',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the city';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => city = value ?? '',
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'SubCity',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  onSaved: (value) => subCity = value ?? '',
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Landmark',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  onSaved: (value) => landmark = value ?? '',
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the phone number';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => phoneNumber = value ?? '',
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-      
-                      final pharmacy = Pharmacy(
-                        pharmacyName: pharmacyName,
-                        region: region,
-                        city: city,
-                        subCity: subCity,
-                        landmark: landmark,
-                        phoneNumber: phoneNumber,
-                        latitude: pharmacyLocation?.latitude ?? 0.0,
-                        longitude: pharmacyLocation?.longitude ?? 0.0,
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    // Remove the 'value' attribute
+                    items: counties.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
                       );
-
-
-                      //set loading state
+                    }).toList(),
+                    onChanged: (String? newValue) {
                       setState(() {
-                        isLoading = true;
+                        county = newValue ?? '';
                       });
-      
-                      // Register the pharmacy using the API service
-                     try {
-                      await _apiService.registerPharmacy(context, pharmacy);
-                     } finally {
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'County',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Choose county';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Phone Number',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the phone number';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => phoneNumber = value ?? '',
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
 
-                      //Reset loading state
-                      setState(() {
-                        isLoading = false;
-                      });
-                     }
-                    }
-                  },
-                  child: Text(
-                    'Register',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16.0,
+                        final pharmacy = Pharmacy(
+                          pharmacyName: pharmacyName,
+                          county: county,
+                          phoneNumber: phoneNumber,
+                          latitude: pharmacyLocation?.latitude ?? 0.0,
+                          longitude: pharmacyLocation?.longitude ?? 0.0,
+                        );
+
+                        setState(() {
+                          isLoading = true;
+                        });
+
+                        try {
+                          await _apiService.registerPharmacy(context, pharmacy);
+                        } catch (validationErrors) {
+                          setState(() {
+                            // errors = validationErrors;
+                          });
+                          showValidationErrors(errors);
+                        } finally {
+                          setState(() {
+                            isLoading = false;
+                          });
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    child: const Text(
+                      'Register',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.0,
+                      ),
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.green, // Change button color to green
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
+                  const SizedBox(height: 20),
+                  if (pharmacyLocation != null)
+                    Text(
+                      'Location: Lat:${pharmacyLocation!.latitude}, Lon:${pharmacyLocation!.longitude}',
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                if (pharmacyLocation != null)
-                  Text(
-                    'Location: Lat:${pharmacyLocation!.latitude}, Lon:${pharmacyLocation!.longitude}',
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        if (isLoading)
-          Container(
-            color: Colors.black54,
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                ],
               ),
             ),
           ),
+          if (isLoading)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                ),
+              ),
+            ),
         ],
       ),
     );

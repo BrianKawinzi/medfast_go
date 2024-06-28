@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:medfast_go/pages/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/brand_intro.dart'; // Import the BrandIntroPage
+import 'package:medfast_go/pages/home_page.dart';
 
 class LogOutPage extends StatefulWidget {
   const LogOutPage({Key? key}) : super(key: key);
@@ -13,13 +14,25 @@ class LogOutPageState extends State<LogOutPage> {
   @override
   void initState() {
     super.initState();
-    // Navigate to the BrandIntroPage when the LogOutPage is opened
+    logoutUser();
+  }
+
+  Future<void> logoutUser() async {
+    // Here you can add your logout logic
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pharmacyId'); // Remove the specific pharmacy ID
+    await prefs.remove('pharmacyName'); // Remove the specific pharmacy name
+    await prefs.remove('county'); // Remove the specific county
+    await prefs.remove('phone'); // Remove the specific phone number
+    await prefs.remove('profilePicture'); // Remove the profile picture
+
+    // After performing the necessary logout operations, navigate to the BrandIntroPage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const BrandIntroPage(),
-        ),
-      );
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const BrandIntroPage()),
+        );
+      }
     });
   }
 
@@ -38,6 +51,9 @@ class LogOutPageState extends State<LogOutPage> {
             child: const Icon(Icons.arrow_back),
           ),
         ),
-        // Additional UI components for the LogOutPage if needed
+        body: Center(
+          child:
+              CircularProgressIndicator(), // Show a loading indicator while logging out
+        ),
       );
 }

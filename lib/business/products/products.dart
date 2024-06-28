@@ -1,13 +1,20 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:barcode_scan2/platform_wrapper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:excel/excel.dart';
+import 'package:csv/csv.dart';
 import 'package:medfast_go/business/editproductpage.dart';
+import 'package:medfast_go/business/products/import_product.dart';
+import 'package:medfast_go/business/products/qr_scanner.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
-import 'package:medfast_go/pages/home_page.dart';
 import 'package:medfast_go/models/product.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:file_picker/file_picker.dart';
 
 class Products extends StatefulWidget {
-  const Products({super.key});
+  const Products({super.key, required String productName});
 
   @override
   _ProductsState createState() => _ProductsState();
@@ -128,20 +135,14 @@ class _ProductsState extends State<Products> {
                   children: [
                     Text("Expiry Date: ${product.expiryDate}"),
                     Text('Description: ${product.medicineDescription}'),
-                    Text('Price: ${product.buyingPrice}'),
+                    Text('Price: ${product.sellingPrice}'),
                   ],
                 ),
                 leading: SizedBox(
-                  width: 100,
-                  child: imageFile.existsSync()
-                      ? Image.file(
-                          imageFile,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.error);
-                          },
-                        )
-                      : const Placeholder(),
+                  width: 70,
+                  child: product.image != null && product.image!.isNotEmpty
+                      ? Image.file(File(product.image!))
+                      : Image.asset('lib/assets/noimage.png'),
                 ),
                 onTap: () => _navigateToEditProduct(product),
               ),
@@ -162,14 +163,18 @@ class _ProductsState extends State<Products> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
+
+                _showProductList(); // Close the dialog
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                _deleteProduct(product);
+                // Reverse the swipe action
                 Navigator.of(context).pop(); // Close the dialog
+                _deleteProduct(
+                    product); // Call a method to simulate the swipe action
               },
               child: const Text('Delete'),
             ),
@@ -179,92 +184,259 @@ class _ProductsState extends State<Products> {
     );
   }
 
+  void _showProductList() {
+    // Simulate the swipe action or any other action needed
+    // You can add the logic to update the state or perform any other action
+    // For example, you can use Navigator.push to navigate to the same page again
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Products(
+          productName: '',
+        ),
+      ),
+    );
+  }
+
   void _deleteProduct(Product product) async {
     final dbHelper = DatabaseHelper();
     await dbHelper.deleteProduct(product.id);
     _fetchProducts();
   }
 
+  int _calculateTotalQuantity() {
+    int totalQuantity = 0;
+    for (var product in products) {
+      totalQuantity += product.quantity;
+    }
+    return totalQuantity;
+  }
+
+  double _calculateTotalWorth() {
+    double totalWorth = 0;
+    for (var product in products) {
+      totalWorth += product.quantity * product.sellingPrice;
+    }
+    return totalWorth;
+  }
+
+  Future<void> _exportToCSV() async {
+  List<List<dynamic>> rows = [];
+
+  // Adding headers
+  rows.add([
+    "Product Name",
+    "Quantity",
+    "Barcode",
+    "Selling Price",
+    "Medicine Description",
+    "Manufacture Date",
+    "Expiry Date",
+  ]);
+
+  for (var product in products) {
+    List<dynamic> row = [];
+    row.add(product.productName);
+    row.add(product.quantity);
+    row.add(product.barcode);
+    row.add(product.sellingPrice);
+    row.add(product.medicineDescription);
+    row.add(product.manufactureDate);
+    row.add(product.expiryDate);
+    rows.add(row);
+  }
+
+  String csv = const ListToCsvConverter().convert(rows);
+
+  String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
+  if (selectedDirectory == null) {
+    // User canceled the picker
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Export canceled.')),
+    );
+    return;
+  }
+
+  final path = "$selectedDirectory/products.csv";
+  final file = File(path);
+
+  await file.writeAsString(csv);
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('CSV file saved at: $path')),
+  );
+}
+  
+
   @override
   Widget build(BuildContext context) {
+    int totalQuantity = _calculateTotalQuantity();
+    double totalWorth = _calculateTotalWorth();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
         leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const HomePage(),
-              ),
-            );
-          },
+          onTap: () => Navigator.of(context).pop(),
           child: const Icon(Icons.arrow_back),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
-              // Menu action
+              // Implement menu action
             },
           ),
+          IconButton(
+            onPressed: () {
+              _showExportMenu(context);
+            }, 
+            icon: const Icon(Icons.file_download),
+          ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            height: 48,
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 3,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: (query) => _filterProducts(query),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      labelText: 'Search Products',
-                      labelStyle: TextStyle(color: Colors.green),
-                      prefixIcon: Icon(Icons.search),
+      body: RefreshIndicator(
+        onRefresh: _fetchProducts, // Function to call when refreshed
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              height: 48,
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 3,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: (query) => _filterProducts(query),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Search Products',
+                        labelStyle: TextStyle(color: Colors.green),
+                        prefixIcon: Icon(Icons.search),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.qr_code_scanner),
-                  onPressed: () {
-                    if (kDebugMode) {
-                      print("Retrieving product by barcode...");
-                    }
-                  },
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: () async {
+                      try {
+                        final status = await Permission.camera.request();
+                        if (status.isGranted) {
+                          try {
+                            var result = await BarcodeScanner.scan();
+                            String barcode = result.rawContent;
+                            final dbHelper = DatabaseHelper();
+                            Product product =
+                                await dbHelper.getProductByBarcode(barcode);
+                            if (product != '') {
+                              _navigateToEditProduct(product);
+                            }
+                          } catch (e) {
+                            print(e);
+                          }
+                        } else {
+                          throw PlatformException(
+                              code: 'PERMISSION_DENIED',
+                              message: 'Camera permission is required.');
+                        }
+                      } catch (e) {
+                        print(e);
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
+            Expanded(child: _buildProductList()),
+            if (products.isNotEmpty)
+              Container(
+                width: double.infinity,
+                height: 40, // Approx. 1 cm high
+                color: Colors.green[100],
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Total Quantity: $totalQuantity'),
+                    Text('Stock value: Ksh${totalWorth.toStringAsFixed(2)}'),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+      floatingActionButton: Padding(
+        padding:
+            const EdgeInsets.only(bottom: 30.9), // 0.5 cm in logical pixels
+        child: FloatingActionButton(
+          onPressed: () {
+            _showPopupMenu(context);
+          },
+          backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
+          child: const Icon(Icons.add),
+        ),
+      ),
+    );
+  }
+
+  void _showPopupMenu(BuildContext context) {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox button = context.findRenderObject() as RenderBox;
+
+    final RelativeRect position = RelativeRect.fromLTRB(
+      0,
+      button.size.height,
+      button.size.width / 2,
+      0,
+    );
+
+    showMenu(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem(
+          child: ListTile(
+            leading: const Icon(Icons.camera),
+            title: const Text('Add single product'),
+            onTap: () {
+              Navigator.pop(context);
+              _showProductForm(context);
+            },
           ),
-          Expanded(child: _buildProductList()),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showProductForm(context);
-        },
-        backgroundColor: const Color.fromRGBO(58, 205, 50, 1),
-        child: const Icon(Icons.add),
-      ),
+        ),
+        PopupMenuItem(
+          child: ListTile(
+            leading: const Icon(Icons.picture_as_pdf),
+            title: const Text('Import from excel'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  (MaterialPageRoute(
+                    builder: (context) => const ProductImport(),
+                  )));
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -287,9 +459,12 @@ class _ProductsState extends State<Products> {
                   elevation: 6,
                   child: InkWell(
                     onTap: () {
-                      if (kDebugMode) {
-                        print("Retrieving product by barcode...");
-                      }
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          (MaterialPageRoute(
+                            builder: (context) => const BarcodeScanners(),
+                          )));
                     },
                     child: Ink(
                       decoration: BoxDecoration(
@@ -371,6 +546,36 @@ class _ProductsState extends State<Products> {
           ),
         );
       },
+    );
+  }
+
+  void _showExportMenu(BuildContext context) {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox button = context.findRenderObject() as RenderBox;
+
+    final RelativeRect position = RelativeRect.fromLTRB(
+      0, 
+      button.size.height, 
+      button.size.width / 2, 
+      0
+    );
+
+    showMenu(
+      context: context, 
+      position: position, 
+      items: [
+        PopupMenuItem(
+          child: ListTile(
+            leading: const Icon(Icons.download),
+            title: const Text('Export to CSV'),
+            onTap: () {
+              Navigator.pop(context);
+              _exportToCSV();
+            },
+          ),
+        ),
+      ]
     );
   }
 }
