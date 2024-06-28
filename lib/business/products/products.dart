@@ -164,7 +164,6 @@ class _ProductsState extends State<Products> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-
                 _showProductList(); // Close the dialog
               },
               child: const Text('Cancel'),
@@ -221,53 +220,54 @@ class _ProductsState extends State<Products> {
   }
 
   Future<void> _exportToCSV() async {
-  List<List<dynamic>> rows = [];
+    List<List<dynamic>> rows = [];
 
-  // Adding headers
-  rows.add([
-    "Product Name",
-    "Quantity",
-    "Barcode",
-    "Selling Price",
-    "Medicine Description",
-    "Manufacture Date",
-    "Expiry Date",
-  ]);
+    // Adding headers
+    rows.add([
+      "Product name",
+      "Product description",
+      "Buying price",
+      "Selling price",
+      "Unit",
+      "Quantity",
+      "Manufacture Date",
+      "Expiry Date",
+    ]);
 
-  for (var product in products) {
-    List<dynamic> row = [];
-    row.add(product.productName);
-    row.add(product.quantity);
-    row.add(product.barcode);
-    row.add(product.sellingPrice);
-    row.add(product.medicineDescription);
-    row.add(product.manufactureDate);
-    row.add(product.expiryDate);
-    rows.add(row);
-  }
+    for (var product in products) {
+      List<dynamic> row = [];
+      row.add(product.productName);
+      row.add(product.medicineDescription);
+      row.add(product.buyingPrice);
+      row.add(product.sellingPrice);
+      row.add(product.unit);
+      row.add(product.quantity);
+      row.add(product.manufactureDate);
+      row.add(product.expiryDate);
+      rows.add(row);  // Ensure rows are added to the list
+    }
 
-  String csv = const ListToCsvConverter().convert(rows);
+    String csv = const ListToCsvConverter().convert(rows);
 
-  String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
 
-  if (selectedDirectory == null) {
-    // User canceled the picker
+    if (selectedDirectory == null) {
+      // User canceled the picker
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Export canceled.')),
+      );
+      return;
+    }
+
+    final path = "$selectedDirectory/products.csv";
+    final file = File(path);
+
+    await file.writeAsString(csv);
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Export canceled.')),
+      SnackBar(content: Text('CSV file saved at: $path')),
     );
-    return;
   }
-
-  final path = "$selectedDirectory/products.csv";
-  final file = File(path);
-
-  await file.writeAsString(csv);
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('CSV file saved at: $path')),
-  );
-}
-  
 
   @override
   Widget build(BuildContext context) {
@@ -293,7 +293,7 @@ class _ProductsState extends State<Products> {
           IconButton(
             onPressed: () {
               _showExportMenu(context);
-            }, 
+            },
             icon: const Icon(Icons.file_download),
           ),
         ],
@@ -555,15 +555,15 @@ class _ProductsState extends State<Products> {
     final RenderBox button = context.findRenderObject() as RenderBox;
 
     final RelativeRect position = RelativeRect.fromLTRB(
-      0, 
-      button.size.height, 
-      button.size.width / 2, 
-      0
+      0,
+      button.size.height,
+      button.size.width / 2,
+      0,
     );
 
     showMenu(
-      context: context, 
-      position: position, 
+      context: context,
+      position: position,
       items: [
         PopupMenuItem(
           child: ListTile(
@@ -575,7 +575,7 @@ class _ProductsState extends State<Products> {
             },
           ),
         ),
-      ]
+      ],
     );
   }
 }
