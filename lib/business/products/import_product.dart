@@ -5,6 +5,8 @@ import 'package:csv/csv.dart';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:medfast_go/data/DatabaseHelper.dart';
 import 'package:medfast_go/models/product.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -21,6 +23,7 @@ class _ProductImportState extends State<ProductImport> {
   FilePickerResult? filePaths;
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   bool isFromAdding = false;
+  final AuthenticationController authenticationController = Get.find();
 
   Future<void> displayExcelData(String filePath) async {
     var extension = filePath.split('.').last;
@@ -78,6 +81,7 @@ class _ProductImportState extends State<ProductImport> {
             quantity: int.tryParse(row[5]?.toString() ?? '0') ?? 0,
             expiryDate: row[6].toString(),
             manufactureDate: row[7].toString(),
+            phamacyId: '',
           );
 
           if (product.buyingPrice != 0.0 &&
@@ -105,18 +109,22 @@ class _ProductImportState extends State<ProductImport> {
           var row = sheet.rows[rowIndex];
           final Random random = Random();
 
-          try {
-            var product = Product(
-              id: random.nextInt(1000000000),
-              productName: row[0]!.value.toString(),
-              medicineDescription: row[1]!.value.toString(),
-              buyingPrice: double.tryParse(row[2]?.value.toString() ?? '0') ?? 0,
-              sellingPrice: double.tryParse(row[3]?.value.toString() ?? '0') ?? 0,
-              unit: row[4]!.value.toString(),
-              quantity: int.tryParse(row[5]?.value.toString() ?? '0') ?? 0,
-              expiryDate: row[6]!.value.toString(),
-              manufactureDate: row[7]!.value.toString(),
-            );
+        try {
+          var product = Product(
+            id: random.nextInt(1000000000),
+            productName: row[0]!.value.toString(),
+            medicineDescription: row[1]!.value.toString(),
+            buyingPrice: double.tryParse(row[2]?.value.toString() ?? '0') ?? 0,
+            sellingPrice: double.tryParse(row[3]?.value.toString() ?? '0') ?? 0,
+            unit: row[4]!.value.toString(),
+            quantity: int.tryParse(row[5]?.value.toString() ?? '0') ?? 0,
+            expiryDate: row[6]!.value.toString(),
+            manufactureDate: row[7]!.value.toString(),
+            phamacyId: authenticationController.currentUserData.value.phymacyId,
+            userId: authenticationController.currentUserData.value.uid,
+            lastModified: DateTime.now().toIso8601String(),
+            barcode: '',
+          );
 
             if (product.buyingPrice != 0.0 &&
                 product.sellingPrice >= product.buyingPrice) {

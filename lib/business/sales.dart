@@ -70,6 +70,8 @@ class CartProvider with ChangeNotifier {
       int newQuantity = product.quantity - soldQuantity;
 
       await dbHelper.updateProductQuantity(product.id, newQuantity);
+      await dbHelper.updateProductQuantityInFirestore(
+          product.id.toString(), newQuantity);
     }
 
     resetCart();
@@ -118,7 +120,7 @@ class _SalesState extends State<Sales> {
   List<Product> products = [];
   Barcode? result;
   final TextEditingController searchController = TextEditingController();
-   late just_audio.AudioPlayer _audioPlayer;
+  late just_audio.AudioPlayer _audioPlayer;
 
   @override
 
@@ -133,13 +135,13 @@ class _SalesState extends State<Sales> {
     super.dispose();
   }
 
-
   @override
   void initState() {
     super.initState();
     _audioPlayer = just_audio.AudioPlayer();
     _fetchProducts();
   }
+
   get totalPrice => null; // Placeholder text for search
 
   int get cartItemCount => Provider.of<CartProvider>(context).cartItems.length;
@@ -254,9 +256,9 @@ class _SalesState extends State<Sales> {
                             return const Icon(Icons.error);
                           },
                         )
-                        : Image.asset('lib/assets/noimage.png', fit: BoxFit.cover),
-                      //: const Placeholder(),
-                      
+                      : Image.asset('lib/assets/noimage.png',
+                          fit: BoxFit.cover),
+                  //: const Placeholder(),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -333,7 +335,7 @@ class _SalesState extends State<Sales> {
     });
   }
 
-   Future<void> _playBeepSound() async {
+  Future<void> _playBeepSound() async {
     final byteData = await rootBundle.load('lib/assets/scanbeep.mp3');
     final file = File('${(await getTemporaryDirectory()).path}/scanbeep.mp3');
     await file.writeAsBytes(byteData.buffer.asUint8List());
@@ -342,7 +344,7 @@ class _SalesState extends State<Sales> {
   }
 
   // Function to open the barcode scanner
-    Future<void> _openBarcodeScanner() async {
+  Future<void> _openBarcodeScanner() async {
     try {
       final status = await Permission.camera.request();
       if (status.isGranted) {
