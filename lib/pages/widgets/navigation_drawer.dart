@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:medfast_go/controllers/authentication_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:medfast_go/pages/bottom_navigation.dart';
 
 class NavigationDrawerWidget extends StatelessWidget {
   final padding = const EdgeInsets.symmetric(horizontal: 20);
+  final AuthenticationController authenticationController = Get.find();
 
-  const NavigationDrawerWidget({Key? key}) : super(key: key);
+  NavigationDrawerWidget({Key? key}) : super(key: key);
 
   Future<Map<String, String>> getUserDetails() async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,7 +47,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      email,
+                      authenticationController.currentUserData.value.email,
                       style: const TextStyle(fontSize: 14, color: Colors.white),
                     ),
                   ],
@@ -181,11 +184,9 @@ class NavigationDrawerWidget extends StatelessWidget {
               text: 'Log Out',
               icon: Icons.exit_to_app,
               onClicked: () async {
-                // Implement the log out functionality
-                // For example, clear shared preferences, navigate to login screen, etc.
                 final prefs = await SharedPreferences.getInstance();
-                await prefs
-                    .clear(); // This clears all data in shared preferences
+                await prefs.clear();
+                await authenticationController.signOut();
                 Navigator.of(context).popAndPushNamed('/login');
               },
             ),

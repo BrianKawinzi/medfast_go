@@ -1,4 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:medfast_go/business/products/addproductwithoutbarcode.dart';
 import 'package:medfast_go/business/editproductpage.dart';
 import 'package:medfast_go/business/products/products.dart';
@@ -17,6 +19,7 @@ import 'package:medfast_go/pages/successful_password.dart';
 import 'package:medfast_go/pages/verification_page.dart';
 import 'package:medfast_go/security/register_pharmacy.dart';
 import 'package:medfast_go/pages/profile.dart';
+import 'package:medfast_go/services/homebindings.dart';
 import 'package:mpesa_flutter_plugin/mpesa_flutter_plugin.dart';
 import 'package:provider/provider.dart';
 import 'package:medfast_go/pages/themes.dart';
@@ -30,8 +33,11 @@ void main() async {
 
   // Initialize M-Pesa consumer key and secret
   try {
-    await MpesaFlutterPlugin.setConsumerKey("s2u9AHfIk9WBTuf3vLZFw0nmQp3pdJAnSc8AsGtWEC6ywOny");
-    await MpesaFlutterPlugin.setConsumerSecret("Z8piKGAEZ27k1lnoisJ4683J6JbXGXerCTxcSkD5wfduc3zxLP35VQtn6TZk2wHA");
+    await Firebase.initializeApp();
+    await MpesaFlutterPlugin.setConsumerKey(
+        "s2u9AHfIk9WBTuf3vLZFw0nmQp3pdJAnSc8AsGtWEC6ywOny");
+    await MpesaFlutterPlugin.setConsumerSecret(
+        "Z8piKGAEZ27k1lnoisJ4683J6JbXGXerCTxcSkD5wfduc3zxLP35VQtn6TZk2wHA");
     print("M-Pesa consumer key and secret set successfully");
   } catch (e) {
     print("Error setting M-Pesa consumer key and secret: $e");
@@ -39,24 +45,19 @@ void main() async {
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => CartProvider(), 
+      create: (context) => CartProvider(),
       child: const MyApp(),
     ),
   );
 }
-
-// Future<String> getInitialRoute() async {
-//   DatabaseHelper dbHelper = DatabaseHelper(); // Initialize your database helper
-//   String? lastRoute = await dbHelper.getLastRoute();
-//   return lastRoute ?? '/splash'; // Default to '/splash' if null
-// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
+      initialBinding: HomeBinding(),
       debugShowCheckedModeBanner: false,
       title: 'MedFast',
       initialRoute: '/splash',
@@ -76,8 +77,8 @@ class MyApp extends StatelessWidget {
               .arguments as Map<String, dynamic>;
           final int? pharmacyId = args['pharmacyId'];
           return SignUpPage(
-              pharmacyId:
-                  pharmacyId); // Make sure this matches the class and constructor
+              pharmacyId: pharmacyId
+                  .toString()); // Make sure this matches the class and constructor
         },
 
         '/password': (context) => ForgotPassword(),
@@ -89,7 +90,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) =>
             const PharmacyProfile(), // Ensure PharmacyProfile is correctly named
         '/productwithoutbarcode': (context) =>
-            AddProductForm(), // Ensure AddProductWithoutBarcode is correctly named
+            const AddProductForm(), // Ensure AddProductWithoutBarcode is correctly named
         '/product': (context) => const Products(productName: ''),
         '/editProduct': (context) {
           final Product product =
@@ -98,7 +99,7 @@ class MyApp extends StatelessWidget {
         },
         '/themes': (context) => const Themes(),
         '/language': (context) => const Language(),
-        '/support': (context) => Support(),
+        '/support': (context) => const Support(),
         '/faq': (context) => const FAQ(),
         '/verify': (context) => const VerificationPage(),
         '/SettingsPage': (context) => const SettingsPage(),

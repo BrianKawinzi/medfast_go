@@ -3,7 +3,8 @@ import 'package:medfast_go/business/activity/add_note_page.dart';
 import 'package:medfast_go/business/activity/add_reminder.dart';
 import 'package:medfast_go/business/activity/notes_page.dart';
 import 'package:medfast_go/business/activity/remaiders_page.dart';
-import 'package:medfast_go/data/DatabaseHelper.dart';
+
+import '../data/DatabaseHelper.dart';
 
 class Activity extends StatefulWidget {
   const Activity({super.key});

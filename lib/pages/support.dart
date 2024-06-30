@@ -22,7 +22,7 @@ class _SupportState extends State<Support> {
       ),
       drawer: Drawer(
         width: MediaQuery.of(context).size.width * 0.9,
-        child: const NavigationDrawerWidget(),
+        child: NavigationDrawerWidget(),
       ),
       backgroundColor: Colors.green, // Set the background c
       body: Padding(
